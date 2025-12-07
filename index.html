@@ -2,200 +2,275 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>Dodge Game (Full Mobile Version)</title>
+<title>Dodge Duel (Simple Send-Enemy Duel)</title>
 
-<!-- iPhoneズーム防止（完全版） -->
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
 <style>
-    html, body {
-        margin: 0;
-        padding: 0;
-        overflow: hidden;
-        touch-action: none;
-        background: #222;
-        -webkit-user-select: none;
-        user-select: none;
-        height: 100%;
-    }
-
-    #gameArea {
-        position: fixed;
-        width: 100vw;
-        height: 100vh;
-        background: #333;
-        overflow: hidden;
-    }
-
-    /* 画面に合わせてサイズ可変 */
-    .player, .enemy {
-        position: absolute;
-        width: 10vw;
-        height: 10vw;
-        max-width: 60px;
-        max-height: 60px;
-    }
-
-    .player {
-        background: #4af;
-        bottom: 5vh;
-        left: 45vw;
-    }
-
-    .enemy {
-        background: #0f0; /* ← 敵を緑色に */
-        top: -10vw;
-        border-radius: 10px;
-    }
-
-    #score {
-        position: absolute;
-        top: 2vw;
-        left: 2vw;
-        font-size: 6vw;
-        color: #fff;
-    }
-
-    /* 操作ボタン */
-    #controls {
-        position: absolute;
-        bottom: 0;
-        width: 100%;
-        height: 20vh;
-        display: flex;
-    }
-    .btn {
-        flex: 1;
-        background: rgba(255,255,255,0.15);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 10vw;
-        color: #fff;
-    }
-    .btn:active {
-        background: rgba(255,255,255,0.35);
-    }
+  html,body { margin:0; padding:0; height:100%; background:#111; -webkit-user-select:none; user-select:none; overflow:hidden; }
+  #ui {
+    position: absolute; left: 6px; top: 6px; z-index:999; color:#fff; font-family:sans-serif;
+    background: rgba(0,0,0,0.4); padding:6px; border-radius:6px;
+  }
+  #roomControls { margin-bottom:6px; }
+  #gameArea {
+    position: fixed; left:0; top:0; width:100vw; height:100vh; background:#222; overflow:hidden;
+  }
+  .player, .enemy { position:absolute; width:10vw; height:10vw; max-width:60px; max-height:60px; border-radius:10px; }
+  .player { background:#4af; bottom:5vh; left:45vw; }
+  .enemy { background:#0f0; top:-10vw; }
+  #score { position:absolute; top:2vw; left:2vw; font-size:6vw; color:#fff; z-index:2; }
+  #controls { position:absolute; bottom:0; width:100%; height:20vh; display:flex; z-index:2; }
+  .btn { flex:1; display:flex; align-items:center; justify-content:center; font-size:10vw; color:#fff; background:rgba(255,255,255,0.12); }
+  .btn:active { background:rgba(255,255,255,0.28); }
 </style>
 </head>
-
 <body>
 
-<div id="gameArea">
-    <div id="score">Score: 0</div>
-    <div class="player" id="player"></div>
-
-    <div id="controls">
-        <div class="btn" id="leftBtn">◀</div>
-        <div class="btn" id="rightBtn">▶</div>
-    </div>
+<div id="ui">
+  <div id="roomControls">
+    <button id="createBtn">Create room</button>
+    <input id="roomInput" placeholder="room id" style="width:110px"/>
+    <button id="joinBtn">Join room</button>
+  </div>
+  <div>Room: <span id="roomIdDisplay">—</span></div>
+  <div>Player: <span id="playerIdDisplay">—</span></div>
+  <div>Other connected: <span id="otherCount">0</span></div>
 </div>
 
-<script>
-/* ----------------------------------------------------------
-   🔒 iPhone Safari ズーム完全禁止パック
-   ---------------------------------------------------------- */
+<div id="gameArea">
+  <div id="score">Score: 0</div>
+  <div class="player" id="player"></div>
+  <div id="controls">
+    <div class="btn" id="leftBtn">◀</div>
+    <div class="btn" id="rightBtn">▶</div>
+  </div>
+</div>
 
-// ピンチ（gesture系）完全禁止
-['gesturestart','gesturechange','gestureend'].forEach(ev=>{
-    document.addEventListener(ev, e => e.preventDefault(), { passive:false });
+<!-- Firebase (compat) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+<script>
+/* ====== ← IMPORTANT: ここを自分の Firebase コンフィグに置き換えてください ====== */
+const firebaseConfig = {
+    apiKey: "AIzaSyAs8DqxHiRzveAMJ7j-UMBWKp6ztGF-hd8",
+    authDomain: "ddgame-6f5f8.firebaseapp.com",
+    databaseURL: "https://ddgame-6f5f8-default-rtdb.firebaseio.com",
+    projectId: "ddgame-6f5f8",
+    storageBucket: "ddgame-6f5f8.firebasestorage.app",
+    messagingSenderId: "172945824128",
+    appId: "1:172945824128:web:e3c7333928e1545aa1c965",
+    measurementId: "G-FG0645HHZD"
+};
+/* ============================================================================== */
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+/* ------------------- ルーム／プレイヤーID管理 ------------------- */
+function makeId(n=6){
+  const s = "abcdefghijklmnopqrstuvwxyz0123456789";
+  let r="";
+  for(let i=0;i<n;i++) r+=s[Math.floor(Math.random()*s.length)];
+  return r;
+}
+const playerId = makeId(8);
+document.getElementById('playerIdDisplay').innerText = playerId;
+
+let currentRoom = null;
+let otherPlayerCount = 0;
+
+/* ルーム作成 / 入室操作 */
+const createBtn = document.getElementById('createBtn');
+const joinBtn = document.getElementById('joinBtn');
+const roomInput = document.getElementById('roomInput');
+const roomIdDisplay = document.getElementById('roomIdDisplay');
+const otherCount = document.getElementById('otherCount');
+
+createBtn.addEventListener('click', ()=>{
+  const id = makeId(5);
+  joinRoom(id);
 });
 
-// ダブルタップ禁止
-let lastTouch = 0;
-document.addEventListener("touchend", e => {
-    const now = Date.now();
-    if (now - lastTouch < 350) e.preventDefault();
-    lastTouch = now;
-}, { passive:false });
+joinBtn.addEventListener('click', ()=>{
+  const id = (roomInput.value || "").trim();
+  if(!id) { alert("ルームIDを入力してください"); return; }
+  joinRoom(id);
+});
 
-// 二本指タップ禁止
-document.addEventListener("touchstart", e => {
-    if (e.touches.length > 1) e.preventDefault();
-}, { passive:false });
+function joinRoom(roomId){
+  // leave previous
+  if(currentRoom) leaveRoom();
+  currentRoom = roomId;
+  roomIdDisplay.innerText = roomId;
 
-// Safari の「小さい文字自動ズーム」を防止
-document.documentElement.style.fontSize = "16px";
+  // 参加をDBに記録
+  const playerRef = db.ref(`rooms/${roomId}/players/${playerId}`);
+  playerRef.set({connected: true, ts: Date.now()});
+  // 接続が切れたら自動削除
+  playerRef.onDisconnect().remove();
 
-// アドレスバーによる高さズレを修正
-function adjustHeight() {
-    document.body.style.height = window.innerHeight + "px";
-    document.getElementById("gameArea").style.height = window.innerHeight + "px";
+  // 監視：プレイヤー数
+  db.ref(`rooms/${roomId}/players`).on('value', snap=>{
+    const val = snap.val() || {};
+    const keys = Object.keys(val);
+    // 他プレイヤー数（自分以外）
+    const others = keys.filter(k=>k!==playerId).length;
+    otherPlayerCount = others;
+    otherCount.innerText = others;
+  });
+
+  // 監視：イベント（相手から送られた敵出現命令）
+  db.ref(`rooms/${roomId}/events`).on('child_added', snap=>{
+    const ev = snap.val();
+    const key = snap.key;
+    // 受け取って、target === myId のイベントだけ処理
+    if(ev && ev.type === 'addEnemy' && ev.target === playerId && ev.from !== playerId){
+      // 敵を一体送る（即座に）
+      spawnExtraEnemyFromRemote();
+      // イベントを消す（処理済み）
+      db.ref(`rooms/${roomId}/events/${key}`).remove();
+    }
+  });
 }
-window.addEventListener("resize", adjustHeight);
-window.addEventListener("orientationchange", adjustHeight);
-adjustHeight();
 
+/* 退出処理 */
+function leaveRoom(){
+  if(!currentRoom) return;
+  db.ref(`rooms/${currentRoom}/players/${playerId}`).remove();
+  db.ref(`rooms/${currentRoom}/players`).off();
+  db.ref(`rooms/${currentRoom}/events`).off();
+  currentRoom = null;
+  roomIdDisplay.innerText = '—';
+  otherCount.innerText = '0';
+}
 
-/* ----------------------------------------------------------
-   🎮 ゲーム処理
-   ---------------------------------------------------------- */
-
-const player = document.getElementById("player");
+/* ------------------- ゲーム本体（既存のロジック流用） ------------------- */
+/* 基本はあなたの既存コードを使います（多少改変） */
 const gameArea = document.getElementById("gameArea");
+const player = document.getElementById("player");
 const scoreText = document.getElementById("score");
-
 let score = 0;
 let speed = 2;
 let moveLeft = false;
 let moveRight = false;
 let playerX = 45;
 
-leftBtn.addEventListener("touchstart", () => moveLeft = true);
-leftBtn.addEventListener("touchend", () => moveLeft = false);
-rightBtn.addEventListener("touchstart", () => moveRight = true);
-rightBtn.addEventListener("touchend", () => moveRight = false);
+document.getElementById('leftBtn').addEventListener('touchstart', ()=>moveLeft=true);
+document.getElementById('leftBtn').addEventListener('touchend', ()=>moveLeft=false);
+document.getElementById('rightBtn').addEventListener('touchstart', ()=>moveRight=true);
+document.getElementById('rightBtn').addEventListener('touchend', ()=>moveRight=false);
 
-// 敵生成
-function createEnemy() {
-    const enemy = document.createElement("div");
-    enemy.classList.add("enemy");
-    enemy.style.left = Math.random() * 90 + "vw";
-    enemy.dataset.speed = 2 + Math.random() * 3;
-    gameArea.appendChild(enemy);
+function createEnemy(){
+  const enemy = document.createElement('div');
+  enemy.classList.add('enemy');
+  enemy.style.left = Math.random()*90 + 'vw';
+  enemy.dataset.speed = 2 + Math.random()*3;
+  gameArea.appendChild(enemy);
 }
 
-// ゲームループ
-function gameLoop() {
-
-    // プレイヤー移動
-    if (moveLeft)  playerX -= 1.5;
-    if (moveRight) playerX += 1.5;
-    playerX = Math.max(0, Math.min(90, playerX));
-    player.style.left = playerX + "vw";
-
-    // 敵移動
-    const enemies = document.querySelectorAll(".enemy");
-    enemies.forEach(enemy => {
-        const y = enemy.offsetTop + Number(enemy.dataset.speed) + speed * 0.2;
-        enemy.style.top = y + "px";
-
-        // 当たり判定
-        const p = player.getBoundingClientRect();
-        const e = enemy.getBoundingClientRect();
-        if (!(p.right < e.left || p.left > e.right || p.bottom < e.top || p.top > e.bottom)) {
-            alert("Game Over!\nScore: " + score);
-            location.reload();
-        }
-
-        if (y > window.innerHeight) enemy.remove();
-    });
-
-    // スコア更新
-    score++;
-    scoreText.innerText = "Score: " + score;
-
-    // 難易度上昇
-    if (score % 400 === 0) speed++;
-
-    requestAnimationFrame(gameLoop);
+/* 相手からのイベントで呼ばれる：追加の敵を作る */
+function spawnExtraEnemyFromRemote(){
+  // 少しランダムで難度高めの敵を作る
+  const enemy = document.createElement('div');
+  enemy.classList.add('enemy');
+  enemy.style.left = Math.random()*90 + 'vw';
+  enemy.dataset.speed = 4 + Math.random()*2; // 速め
+  gameArea.appendChild(enemy);
 }
 
+/* ズーム禁止 & 高さ調整（既存の完全無効化コードを利用） */
+document.documentElement.style.fontSize = "16px";
+function adjustHeight(){
+  document.body.style.height = window.innerHeight + 'px';
+  gameArea.style.height = window.innerHeight + 'px';
+}
+window.addEventListener('resize', adjustHeight);
+window.addEventListener('orientationchange', adjustHeight);
+adjustHeight();
+['gesturestart','gesturechange','gestureend'].forEach(ev=>{
+  document.addEventListener(ev, e=>e.preventDefault(), {passive:false});
+});
+let lastT = 0;
+document.addEventListener('touchend', e=>{
+  const now = Date.now();
+  if(now - lastT < 350) e.preventDefault();
+  lastT = now;
+},{passive:false});
+document.addEventListener('touchstart', e=>{
+  if(e.touches.length > 1) e.preventDefault();
+},{passive:false});
+
+/* ゲームループ（敵移動・当たり判定） */
+function gameLoop(){
+  // プレイヤー移動
+  if(moveLeft) playerX -= 1.5;
+  if(moveRight) playerX += 1.5;
+  playerX = Math.max(0, Math.min(90, playerX));
+  player.style.left = playerX + 'vw';
+
+  // 敵移動
+  const enemies = document.querySelectorAll('.enemy');
+  enemies.forEach(enemy=>{
+    const y = enemy.offsetTop + Number(enemy.dataset.speed) + speed*0.2;
+    enemy.style.top = y + 'px';
+
+    const p = player.getBoundingClientRect();
+    const e = enemy.getBoundingClientRect();
+    if(!(p.right < e.left || p.left > e.right || p.bottom < e.top || p.top > e.bottom)){
+      alert('Game Over!\nScore: ' + score);
+      if(currentRoom) leaveRoom();
+      location.reload();
+    }
+    if(y > window.innerHeight) enemy.remove();
+  });
+
+  // スコア
+  score++;
+  scoreText.innerText = 'Score: ' + score;
+
+  // 難易度上昇
+  if(score % 400 === 0) speed++;
+
+  // ここで「スコアに応じて相手に送る」判定を行う
+  // 例：300点ごとに1体送る（調整可）
+  handleSendEnemyByScore();
+
+  requestAnimationFrame(gameLoop);
+}
 setInterval(createEnemy, 700);
 gameLoop();
-</script>
 
+/* ------------------- 対戦ロジック：スコアで相手に送り付ける ------------------- */
+let lastSentCheckpoint = 0;
+const SEND_INTERVAL = 300; // 何点ごとに送るか（ここを変えると強さ調整可能）
+
+function handleSendEnemyByScore(){
+  if(!currentRoom) return;          // ルームに入ってないなら送らない
+  if(otherPlayerCount <= 0) return; // 相手が居ないなら無駄に送らない
+
+  const checkpoint = Math.floor(score / SEND_INTERVAL);
+  if(checkpoint > lastSentCheckpoint){
+    // 送信：target を相手の想定IDにする（簡易実装：送信先は「自分以外のプレイヤー」へ）
+    // まず相手IDを取得（取れなければ broadcast して、相手処理で targetチェック）
+    db.ref(`rooms/${currentRoom}/players`).once('value').then(snap=>{
+      const players = snap.val() || {};
+      const ids = Object.keys(players).filter(id=>id !== playerId);
+      if(ids.length === 0) return; // 念のため
+      // ここでは単純に最初の相手を target にする（2人プレイを想定）
+      const targetId = ids[0];
+
+      // push event
+      const ev = { type:'addEnemy', from: playerId, target: targetId, ts: Date.now() };
+      db.ref(`rooms/${currentRoom}/events`).push(ev);
+
+      lastSentCheckpoint = checkpoint;
+    }).catch(err=>{ console.warn('error getting players', err); });
+  }
+}
+</script>
 </body>
 </html>
