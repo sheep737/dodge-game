@@ -1,148 +1,156 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<title>Dodge Battle</title>
-
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Realtime Message Display</title>
 <style>
-    body {
-        margin: 0;
-        background: #222;
-        overflow: hidden;
-        touch-action: none;
-        -webkit-user-select: none;
-        user-select: none;
-    }
+  html,body{
+    height:100%;
+    margin:0;
+    padding:0;
+    background:#111;
+    -webkit-user-select:none;
+    user-select:none;
+    overflow:hidden;
+    font-family: system-ui, -apple-system, "Helvetica Neue", Arial;
+  }
 
-    #gameArea {
-        position: absolute;
-        width: 100vw;
-        height: 100vh;
-        background: #333;
-        overflow: hidden;
-    }
+  /* ルーム入力画面（最初表示） */
+  #roomPanel {
+    position:fixed;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(0,0,0,0.85);
+    z-index:30;
+    flex-direction:column;
+    gap:1.5rem;
+  }
+  #roomPanel input{
+    font-size:5vw;
+    padding:0.8rem 1rem;
+    width:70vw;
+    box-sizing:border-box;
+  }
+  #roomPanel button{
+    font-size:5vw;
+    padding:0.6rem 1.2rem;
+  }
 
-    #ui {
-        position: absolute;
-        top: 2vw;
-        left: 2vw;
-        z-index: 10;
-        color: #fff;
-        font-size: 4vw;
-    }
+  /* メイン画面 */
+  #app {
+    width:100%;
+    height:100%;
+    position:relative;
+    display:flex;
+    flex-direction:column;
+  }
 
-    #player {
-        position: absolute;
-        width: 10vw;
-        height: 10vw;
-        max-width: 60px;
-        max-height: 60px;
-        background: #4af;
-        bottom: 5vh;
-        left: 45vw;
-    }
+  #topBar {
+    position:absolute;
+    top:1vh;
+    left:1vw;
+    z-index:20;
+    color:#fff;
+    font-size:4vw;
+    background:rgba(0,0,0,0.3);
+    padding:0.6vh 1vw;
+    border-radius:8px;
+  }
 
-    .enemy {
-        position: absolute;
-        width: 10vw;
-        height: 10vw;
-        max-width: 60px;
-        max-height: 60px;
-        background: #2f5; 
-        top: -10vw;
-    }
+  /* 表示領域（相手に見せる大きい文字） */
+  #displayArea {
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#fff;
+    padding:4vw;
+    text-align:center;
+  }
 
-    #controls {
-        position: absolute;
-        bottom: 0;
-        width: 100%;
-        height: 20vh;
-        display: flex;
-    }
-    .btn {
-        flex: 1;
-        background: rgba(255,255,255,0.1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 10vw;
-        color: #fff;
-    }
-    .btn:active {
-        background: rgba(255,255,255,0.3);
-    }
+  #displayText {
+    font-size:10vw;            /* 大きく表示 */
+    line-height:1.0;
+    max-width:96%;
+    word-wrap:break-word;
+  }
 
-    /* ルーム入力ボックス */
-    #roomPanel {
-        position: absolute;
-        top: 30vh;
-        left: 50%;
-        transform: translateX(-50%);
-        text-align: center;
-        z-index: 20;
-    }
-    #roomInput {
-        font-size: 6vw;
-        padding: 1vw 2vw;
-    }
-    #joinBtn {
-        font-size: 6vw;
-        margin-top: 2vw;
-        padding: 1vw 2vw;
-    }
+  /* 入力領域（下） */
+  #inputBar {
+    position:absolute;
+    bottom:0;
+    left:0;
+    width:100%;
+    display:flex;
+    gap:0.6rem;
+    padding:3vw;
+    box-sizing:border-box;
+    background: linear-gradient(0deg, rgba(0,0,0,0.5), transparent);
+  }
+  #messageInput{
+    flex:1;
+    font-size:5vw;
+    padding:0.8rem 1rem;
+    border-radius:8px;
+    border: none;
+    outline: none;
+    box-sizing:border-box;
+  }
+  #sendBtn{
+    font-size:5vw;
+    padding:0.6rem 1rem;
+  }
+
+  /* small devices tweak */
+  @media (min-width:600px){
+    #displayText { font-size:48px; }
+    #roomPanel input, #roomPanel button { font-size:18px; }
+    #topBar { font-size:16px; }
+  }
 </style>
 </head>
 <body>
 
+<!-- ルーム入力 -->
 <div id="roomPanel">
-    <div style="color:white; font-size:6vw;">Room ID を入力</div>
-    <input id="roomInput" placeholder="例: room123">
-    <br>
+  <div style="color:#fff; font-size:6vw;">Room ID を入力して Join</div>
+  <input id="roomInput" placeholder="例: room123" />
+  <div>
     <button id="joinBtn">Join</button>
+    <button id="newBtn">Create Random</button>
+  </div>
+  <div style="color:#bbb; font-size:3.8vw;">同じ Room ID を使った相手の画面に表示されます</div>
 </div>
 
-<div id="gameArea" style="display:none;">
-    <div id="ui">
-        <div>Room: <span id="roomIdText"></span></div>
-        <div>Players: <span id="playerCount">0</span></div>
-        <button id="startGameBtn" disabled>Start Game</button>
-        <div>Score: <span id="score">0</span></div>
-    </div>
+<!-- メインアプリ -->
+<div id="app" style="display:none;">
+  <div id="topBar">
+    Room: <span id="roomLabel">—</span>
+    &nbsp; • &nbsp;
+    Players: <span id="playerCount">0</span>
+  </div>
 
-    <div id="player"></div>
+  <div id="displayArea">
+    <div id="displayText">待機中…</div>
+  </div>
 
-    <div id="controls">
-        <div class="btn" id="leftBtn">◀</div>
-        <div class="btn" id="rightBtn">▶</div>
-    </div>
+  <div id="inputBar">
+    <input id="messageInput" placeholder="ここに送る文章を入力" />
+    <button id="sendBtn">Send</button>
+  </div>
 </div>
 
-<script>
-/* ▼ 完全ズーム禁止 */
-document.addEventListener("gesturestart", e => e.preventDefault(), {passive:false});
-document.addEventListener("gesturechange", e => e.preventDefault(), {passive:false});
-document.addEventListener("gestureend", e => e.preventDefault(), {passive:false});
-let lastTouch = 0;
-document.addEventListener("touchend", e => {
-    const now = Date.now();
-    if (now - lastTouch < 350) e.preventDefault();
-    lastTouch = now;
-}, {passive:false});
-document.addEventListener("touchstart", e => {
-    if (e.touches.length > 1) e.preventDefault();
-}, {passive:false});
-document.documentElement.style.fontSize = "16px";
-</script>
-
-<!-- ▼ Firebase -->
+<!-- Firebase (モジュール版) -->
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, set, onValue, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getDatabase, ref, set, onValue, push, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-const firebaseConfig = {
-        apiKey: "AIzaSyAs8DqxHiRzveAMJ7j-UMBWKp6ztGF-hd8",
+  // ===== ここをあなたのFirebase設定に差し替えてください =====
+  const firebaseConfig = {
+    apiKey: "AIzaSyAs8DqxHiRzveAMJ7j-UMBWKp6ztGF-hd8",
     authDomain: "ddgame-6f5f8.firebaseapp.com",
     databaseURL: "https://ddgame-6f5f8-default-rtdb.firebaseio.com",
     projectId: "ddgame-6f5f8",
@@ -150,133 +158,142 @@ const firebaseConfig = {
     messagingSenderId: "172945824128",
     appId: "1:172945824128:web:e3c7333928e1545aa1c965",
     measurementId: "G-FG0645HHZD"
-};
+  };
+  // ==========================================================
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
 
-/* ▼ HTML */
-const joinBtn = document.getElementById("joinBtn");
-const roomInput = document.getElementById("roomInput");
-const roomPanel = document.getElementById("roomPanel");
-const gameArea = document.getElementById("gameArea");
-const startBtn = document.getElementById("startGameBtn");
-const roomIdText = document.getElementById("roomIdText");
-const playerCountText = document.getElementById("playerCount");
-const player = document.getElementById("player");
-const scoreText = document.getElementById("score");
+  // UI elements
+  const roomPanel = document.getElementById('roomPanel');
+  const roomInput = document.getElementById('roomInput');
+  const joinBtn = document.getElementById('joinBtn');
+  const newBtn = document.getElementById('newBtn');
 
-let roomId = null;
-let myRef = null;
-let playerX = 45;
-let score = 0;
-let moveLeft = false;
-let moveRight = false;
-let gameStarted = false;
+  const appRoot = document.getElementById('app');
+  const roomLabel = document.getElementById('roomLabel');
+  const playerCount = document.getElementById('playerCount');
+  const displayText = document.getElementById('displayText');
+  const messageInput = document.getElementById('messageInput');
+  const sendBtn = document.getElementById('sendBtn');
 
-/* ▼ Join で好きな部屋に入る */
-joinBtn.addEventListener("click", () => {
-    roomId = roomInput.value.trim();
-    if (!roomId) {
-        alert("Room ID を入力してください");
-        return;
-    }
+  // small id for this client
+  function genId(n=6){
+    const r = "abcdefghijklmnopqrstuvwxyz0123456789";
+    let s="";
+    for(let i=0;i<n;i++) s+=r[Math.floor(Math.random()*r.length)];
+    return s;
+  }
+  const clientId = genId(8);
 
-    roomIdText.innerText = roomId;
+  let roomId = null;
+  let playersRef = null;
+  let messageRef = null;
+  let myPlayerRef = null;
 
-    // プレイヤー登録
-    const playersRef = ref(db, roomId + "/players");
-    myRef = push(playersRef);
-    set(myRef, { alive: true });
+  // helper: show app after join
+  function enterRoom(id){
+    roomId = id;
+    roomLabel.innerText = id;
+    roomPanel.style.display = 'none';
+    appRoot.style.display = 'block';
 
-    // プレイヤー数監視
+    // refs
+    playersRef = ref(db, `rooms/${roomId}/players`);
+    messageRef = ref(db, `rooms/${roomId}/message`);
+
+    // register player (push)
+    myPlayerRef = push(playersRef);
+    set(myPlayerRef, { id: clientId, ts: Date.now() });
+    onDisconnect(myPlayerRef).remove();
+
+    // monitor player count
     onValue(playersRef, snap => {
-        const players = snap.val() || {};
-        const count = Object.keys(players).length;
-        playerCountText.innerText = count;
-
-        startBtn.disabled = (count < 2);
+      const o = snap.val() || {};
+      playerCount.innerText = Object.keys(o).length;
     });
 
-    // 敵受信
-    onChildAdded(ref(db, roomId + "/enemies"), snap => {
-        const data = snap.val();
-        createEnemy(data.x);
-    });
-
-    roomPanel.style.display = "none";
-    gameArea.style.display = "block";
-});
-
-/* ▼ 敵送信 */
-function sendEnemy() {
-    const x = Math.random() * 90;
-    push(ref(db, roomId + "/enemies"), { x: x, t: Date.now() });
-}
-
-/* ▼ 敵生成 */
-function createEnemy(x = Math.random()*90) {
-    const enemy = document.createElement("div");
-    enemy.classList.add("enemy");
-    enemy.style.left = x + "vw";
-    enemy.dataset.speed = 2 + Math.random()*3;
-    gameArea.appendChild(enemy);
-}
-
-/* ▼ Start ボタン */
-startBtn.addEventListener("click", ()=> {
-    gameStarted = true;
-    startBtn.disabled = true;
-});
-
-/* ▼ 操作 */
-leftBtn.addEventListener("touchstart", ()=> moveLeft = true);
-leftBtn.addEventListener("touchend", ()=> moveLeft = false);
-rightBtn.addEventListener("touchstart", ()=> moveRight = true);
-rightBtn.addEventListener("touchend", ()=> moveRight = false);
-
-/* ▼ ゲームループ */
-function gameLoop(){
-    if (!gameStarted) {
-        requestAnimationFrame(gameLoop);
+    // listen for message changes (real-time)
+    onValue(messageRef, snap => {
+      const data = snap.val();
+      if(!data || !data.text) {
+        displayText.innerText = "待機中…";
         return;
-    }
+      }
+      // 表示
+      const who = data.from || 'Anonymous';
+      const t = new Date(data.t || Date.now());
+      displayText.innerText = data.text;
 
-    if (moveLeft)  playerX -= 1.5;
-    if (moveRight) playerX += 1.5;
-    playerX = Math.max(0, Math.min(90, playerX));
-    player.style.left = playerX + "vw";
+      // optional: small subtle flash animation
+      displayText.style.transition = 'none';
+      displayText.style.opacity = '0.2';
+      requestAnimationFrame(()=>{
+        displayText.style.transition = 'opacity 300ms';
+        displayText.style.opacity = '1';
+      });
+    });
+  }
 
-    const enemies = document.querySelectorAll(".enemy");
-    enemies.forEach(enemy => {
-        const y = enemy.offsetTop + Number(enemy.dataset.speed);
-        enemy.style.top = y + "px";
+  // join button
+  joinBtn.addEventListener('click', ()=>{
+    const id = (roomInput.value||'').trim();
+    if(!id){ alert('Room ID を入力してください'); return; }
+    enterRoom(id);
+  });
 
-        const p = player.getBoundingClientRect();
-        const e = enemy.getBoundingClientRect();
+  // create random room
+  newBtn.addEventListener('click', ()=>{
+    const id = 'room-' + Math.floor(Math.random()*100000);
+    roomInput.value = id;
+    enterRoom(id);
+  });
 
-        if (!(p.right < e.left || p.left > e.right || p.bottom < e.top || p.top > e.bottom)) {
-            alert("Game Over!\nScore: " + score);
-            location.reload();
-        }
-
-        if (y > window.innerHeight) enemy.remove();
+  // send message: set the message node (overwrite)
+  sendBtn.addEventListener('click', ()=>{
+    const text = (messageInput.value||'').trim();
+    if(!text) return;
+    if(!roomId){ alert('先に Room に入ってください'); return; }
+    set(messageRef, {
+      text: text,
+      from: clientId,
+      t: Date.now()
+    }).catch(err=>{
+      console.error('send error', err);
+      alert('送信エラー: ' + err.message);
     });
 
-    score++;
-    scoreText.innerText = score;
+    // clear input optionally
+    messageInput.value = '';
+  });
 
-    if (score % 300 === 0) sendEnemy();
+  // enter by pressing Enter key on input
+  messageInput.addEventListener('keydown', e=>{
+    if(e.key === 'Enter'){
+      sendBtn.click();
+      e.preventDefault();
+    }
+  });
 
-    requestAnimationFrame(gameLoop);
-}
+  // prevent pinch/doubletap zoom and fix height (iPhone fixes)
+  document.addEventListener('gesturestart', e=>e.preventDefault(), {passive:false});
+  let lastTouch = 0;
+  document.addEventListener('touchend', e=>{
+    const now = Date.now();
+    if(now - lastTouch < 350) e.preventDefault();
+    lastTouch = now;
+  }, {passive:false});
+  document.addEventListener('touchstart', e=>{
+    if(e.touches && e.touches.length > 1) e.preventDefault();
+  }, {passive:false});
+  // apply true height to avoid 100vh issues
+  function fixHeight(){
+    document.body.style.height = window.innerHeight + 'px';
+  }
+  window.addEventListener('resize', fixHeight);
+  window.addEventListener('orientationchange', fixHeight);
+  fixHeight();
 
-setInterval(()=> {
-    if (gameStarted) createEnemy();
-}, 700);
-
-gameLoop();
 </script>
-
 </body>
 </html>
