@@ -2,29 +2,36 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>Dodge Game (Full Mobile Version)</title>
+<title>Dodge Game (iPhone Fullscreen Final)</title>
 
-<!-- iPhoneズーム防止（ダブルタップ・ピンチ無効） -->
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<!-- iPhone のアドレスバー回避 + ズーム完全禁止 -->
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
 <style>
-    body {
-        background: #222;
+    html, body {
         margin: 0;
+        padding: 0;
         overflow: hidden;
+        background: #000;
+        height: 100%;
         touch-action: none;
         -webkit-user-select: none;
         user-select: none;
     }
+
+    /* ★ iPhone のアドレスバー対策：実際の画面高さにフィット */
     #gameArea {
-        position: absolute;
+        position: fixed;
+        left: 0;
+        top: 0;
         width: 100vw;
-        height: 100vh;
-        background: #333;
+        height: 100vh; /* 初期値 */
+        background: #222;
         overflow: hidden;
     }
 
-    /* 画面に合わせてサイズ可変 */
     .player, .enemy {
         position: absolute;
         width: 10vw;
@@ -37,11 +44,13 @@
         background: #4af;
         bottom: 5vh;
         left: 45vw;
+        border-radius: 10px;
     }
 
     .enemy {
         background: #f44;
         top: -10vw;
+        border-radius: 10px;
     }
 
     #score {
@@ -52,7 +61,6 @@
         color: #fff;
     }
 
-    /* スマホ操作ボタン */
     #controls {
         position: absolute;
         bottom: 0;
@@ -60,6 +68,7 @@
         height: 20vh;
         display: flex;
     }
+
     .btn {
         flex: 1;
         background: rgba(255,255,255,0.15);
@@ -87,17 +96,42 @@
 </div>
 
 <script>
-/* --- iPhoneのダブルタップズームを完全無効化 --- */
+/* ---------------------------------------------------
+   ★ iPhoneアドレスバー対策：実際の高さを JS で強制適用
+--------------------------------------------------- */
+function fixHeight() {
+    const h = window.innerHeight;
+    document.getElementById("gameArea").style.height = h + "px";
+}
+window.addEventListener("resize", fixHeight);
+window.addEventListener("orientationchange", fixHeight);
+fixHeight();
+
+/* ---------------------------------------------------
+   ★ ダブルタップズーム完全無効化
+--------------------------------------------------- */
 let lastTouchEnd = 0;
-document.addEventListener('touchend', function (event) {
+document.addEventListener("touchend", function (event) {
     const now = new Date().getTime();
-    if (now - lastTouchEnd <= 300) {
+    if (now - lastTouchEnd <= 350) {
         event.preventDefault();
     }
     lastTouchEnd = now;
-}, false);
+}, { passive: false });
 
-/* --- ゲーム処理 --- */
+/* ---------------------------------------------------
+   ★ ピンチズーム完全無効化
+--------------------------------------------------- */
+document.addEventListener("gesturestart", (e) => e.preventDefault());
+document.addEventListener("touchmove", (e) => {
+    if (e.scale !== undefined && e.scale !== 1) {
+        e.preventDefault();
+    }
+}, { passive: false });
+
+/* ---------------------------------------------------
+   ★ ゲーム処理
+--------------------------------------------------- */
 const gameArea = document.getElementById("gameArea");
 const player = document.getElementById("player");
 const scoreText = document.getElementById("score");
@@ -107,7 +141,6 @@ let speed = 2;
 let moveLeft = false;
 let moveRight = false;
 
-// プレイヤーの位置(%)
 let playerX = 45;
 
 /* タッチ操作 */
@@ -126,25 +159,22 @@ function createEnemy() {
     gameArea.appendChild(enemy);
 }
 
-/* ゲームループ */
+/* メインループ */
 function gameLoop() {
-
-    // プレイヤー移動
     if (moveLeft)  playerX -= 1.5;
     if (moveRight) playerX += 1.5;
 
     playerX = Math.max(0, Math.min(90, playerX));
     player.style.left = playerX + "vw";
 
-    // 敵の移動
     const enemies = document.querySelectorAll(".enemy");
     enemies.forEach(enemy => {
         const y = enemy.offsetTop + Number(enemy.dataset.speed) + speed * 0.2;
         enemy.style.top = y + "px";
 
-        // 当たり判定
         const p = player.getBoundingClientRect();
         const e = enemy.getBoundingClientRect();
+
         if (!(p.right < e.left || p.left > e.right || p.bottom < e.top || p.top > e.bottom)) {
             alert("Game Over!\nScore: " + score);
             location.reload();
@@ -153,11 +183,9 @@ function gameLoop() {
         if (y > window.innerHeight) enemy.remove();
     });
 
-    // スコア
     score++;
     scoreText.innerText = "Score: " + score;
 
-    // 難易度上昇
     if (score % 400 === 0) speed++;
 
     requestAnimationFrame(gameLoop);
