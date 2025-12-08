@@ -2,154 +2,52 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>Realtime Message Display</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+<title>Auto Duel — 2P Auto Battle</title>
 <style>
-  html,body{
-    height:100%;
-    margin:0;
-    padding:0;
-    background:#111;
-    -webkit-user-select:none;
-    user-select:none;
-    overflow:hidden;
-    font-family: system-ui, -apple-system, "Helvetica Neue", Arial;
-  }
-
-  /* ルーム入力画面（最初表示） */
-  #roomPanel {
-    position:fixed;
-    inset:0;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:rgba(0,0,0,0.85);
-    z-index:30;
-    flex-direction:column;
-    gap:1.5rem;
-  }
-  #roomPanel input{
-    font-size:5vw;
-    padding:0.8rem 1rem;
-    width:70vw;
-    box-sizing:border-box;
-  }
-  #roomPanel button{
-    font-size:5vw;
-    padding:0.6rem 1.2rem;
-  }
-
-  /* メイン画面 */
-  #app {
-    width:100%;
-    height:100%;
-    position:relative;
-    display:flex;
-    flex-direction:column;
-  }
-
-  #topBar {
-    position:absolute;
-    top:1vh;
-    left:1vw;
-    z-index:20;
-    color:#fff;
-    font-size:4vw;
-    background:rgba(0,0,0,0.3);
-    padding:0.6vh 1vw;
-    border-radius:8px;
-  }
-
-  /* 表示領域（相手に見せる大きい文字） */
-  #displayArea {
-    flex:1;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    color:#fff;
-    padding:4vw;
-    text-align:center;
-  }
-
-  #displayText {
-    font-size:10vw;            /* 大きく表示 */
-    line-height:1.0;
-    max-width:96%;
-    word-wrap:break-word;
-  }
-
-  /* 入力領域（下） */
-  #inputBar {
-    position:absolute;
-    bottom:0;
-    left:0;
-    width:100%;
-    display:flex;
-    gap:0.6rem;
-    padding:3vw;
-    box-sizing:border-box;
-    background: linear-gradient(0deg, rgba(0,0,0,0.5), transparent);
-  }
-  #messageInput{
-    flex:1;
-    font-size:5vw;
-    padding:0.8rem 1rem;
-    border-radius:8px;
-    border: none;
-    outline: none;
-    box-sizing:border-box;
-  }
-  #sendBtn{
-    font-size:5vw;
-    padding:0.6rem 1rem;
-  }
-
-  /* small devices tweak */
-  @media (min-width:600px){
-    #displayText { font-size:48px; }
-    #roomPanel input, #roomPanel button { font-size:18px; }
-    #topBar { font-size:16px; }
-  }
+  html,body{height:100%;margin:0;padding:0;overflow:hidden;background:#111;font-family:system-ui,-apple-system,Segoe UI,Roboto;}
+  /* ルーム入力 */
+  #roomPanel{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem;background:rgba(0,0,0,0.85);z-index:50}
+  #roomPanel input{font-size:5vw;padding:0.6rem 0.8rem;width:70vw;box-sizing:border-box}
+  #roomPanel button{font-size:5vw;padding:0.6rem 1rem}
+  /* ゲーム */
+  #stage{position:fixed;left:0;top:0;width:100vw;height:100vh;background:#222;overflow:hidden}
+  #hud{position:absolute;left:4vw;top:3vw;color:#fff;z-index:40;font-size:4vw;background:rgba(0,0,0,0.3);padding:0.6vw;border-radius:6px}
+  .ship{position:absolute;width:10vw;height:10vw;max-width:70px;max-height:70px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#000;font-weight:bold;z-index:30}
+  #me{background:#4af;left:45vw;bottom:10vh}
+  #enemy{background:#f55;left:45vw;top:10vh;display:none}
+  .bullet{position:absolute;width:3vw;height:1.5vw;max-width:20px;max-height:10px;border-radius:3px;background:#ffd;z-index:20}
+  #msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:8vw;z-index:60;pointer-events:none}
 </style>
 </head>
 <body>
 
-<!-- ルーム入力 -->
+<!-- ルーム選択 -->
 <div id="roomPanel">
-  <div style="color:#fff; font-size:6vw;">Room ID を入力して Join</div>
-  <input id="roomInput" placeholder="例: room123" />
+  <div style="color:#fff;font-size:6vw">Room ID を入力して Join</div>
+  <input id="roomInput" placeholder="例: duel123" />
   <div>
     <button id="joinBtn">Join</button>
-    <button id="newBtn">Create Random</button>
+    <button id="createBtn">Create Random</button>
   </div>
-  <div style="color:#bbb; font-size:3.8vw;">同じ Room ID を使った相手の画面に表示されます</div>
+  <div style="color:#bbb;font-size:3.8vw">同じ Room ID の相手と自動対戦します</div>
 </div>
 
-<!-- メインアプリ -->
-<div id="app" style="display:none;">
-  <div id="topBar">
-    Room: <span id="roomLabel">—</span>
-    &nbsp; • &nbsp;
-    Players: <span id="playerCount">0</span>
-  </div>
-
-  <div id="displayArea">
-    <div id="displayText">待機中…</div>
-  </div>
-
-  <div id="inputBar">
-    <input id="messageInput" placeholder="ここに送る文章を入力" />
-    <button id="sendBtn">Send</button>
-  </div>
+<!-- ステージ -->
+<div id="stage" style="display:none;">
+  <div id="hud">Room: <span id="roomLabel">—</span> &nbsp; Players: <span id="pcount">0</span></div>
+  <div id="msg"></div>
+  <div id="me" class="ship">ME<br><small id="hpMe">100</small></div>
+  <div id="enemy" class="ship">OP<br><small id="hpOp">—</small></div>
 </div>
 
-<!-- Firebase (モジュール版) -->
+<!-- Firebase (module) -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getDatabase, ref, set, onValue, push, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, set, push, onValue, onChildAdded, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-  // ===== ここをあなたのFirebase設定に差し替えてください =====
-  const firebaseConfig = {
+/* ====== ここをあなたの Firebase 設定に置き換えてください ====== */
+const firebaseConfig = {
     apiKey: "AIzaSyAs8DqxHiRzveAMJ7j-UMBWKp6ztGF-hd8",
     authDomain: "ddgame-6f5f8.firebaseapp.com",
     databaseURL: "https://ddgame-6f5f8-default-rtdb.firebaseio.com",
@@ -158,142 +56,318 @@
     messagingSenderId: "172945824128",
     appId: "1:172945824128:web:e3c7333928e1545aa1c965",
     measurementId: "G-FG0645HHZD"
-  };
-  // ==========================================================
+};
+/* =============================================================== */
 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
-  // UI elements
-  const roomPanel = document.getElementById('roomPanel');
-  const roomInput = document.getElementById('roomInput');
-  const joinBtn = document.getElementById('joinBtn');
-  const newBtn = document.getElementById('newBtn');
+/* ----------------- UI 要素 ----------------- */
+const roomPanel = document.getElementById('roomPanel');
+const roomInput = document.getElementById('roomInput');
+const joinBtn = document.getElementById('joinBtn');
+const createBtn = document.getElementById('createBtn');
 
-  const appRoot = document.getElementById('app');
-  const roomLabel = document.getElementById('roomLabel');
-  const playerCount = document.getElementById('playerCount');
-  const displayText = document.getElementById('displayText');
-  const messageInput = document.getElementById('messageInput');
-  const sendBtn = document.getElementById('sendBtn');
+const stage = document.getElementById('stage');
+const roomLabel = document.getElementById('roomLabel');
+const pcount = document.getElementById('pcount');
+const msg = document.getElementById('msg');
 
-  // small id for this client
-  function genId(n=6){
-    const r = "abcdefghijklmnopqrstuvwxyz0123456789";
-    let s="";
-    for(let i=0;i<n;i++) s+=r[Math.floor(Math.random()*r.length)];
-    return s;
-  }
-  const clientId = genId(8);
+const meEl = document.getElementById('me');
+const enemyEl = document.getElementById('enemy');
+const hpMe = document.getElementById('hpMe');
+const hpOp = document.getElementById('hpOp');
 
-  let roomId = null;
-  let playersRef = null;
-  let messageRef = null;
-  let myPlayerRef = null;
+let roomId = null;
+let myId = Math.random().toString(36).slice(2,10);
+let playerRef = null;
+let playersRef = null;
+let bulletsRef = null;
+let myState = { x:50, y:80, hp:100 }; // x:vw, y:vh
+let enemyState = null;
+let localBullets = {}; // key -> DOM
 
-  // helper: show app after join
-  function enterRoom(id){
-    roomId = id;
-    roomLabel.innerText = id;
-    roomPanel.style.display = 'none';
-    appRoot.style.display = 'block';
+/* ----------------- 高さ修正 & ズーム無効 ----------------- */
+function fixHeight(){ document.body.style.height = window.innerHeight + 'px'; stage.style.height = window.innerHeight + 'px'; }
+window.addEventListener('resize', fixHeight);
+window.addEventListener('orientationchange', fixHeight);
+fixHeight();
+['gesturestart','gesturechange','gestureend'].forEach(ev=>document.addEventListener(ev,e=>e.preventDefault(),{passive:false}));
+let lt=0; document.addEventListener('touchend', e=>{ const now=Date.now(); if(now-lt<350) e.preventDefault(); lt=now; }, {passive:false});
+document.addEventListener('touchstart', e=>{ if(e.touches && e.touches.length>1) e.preventDefault(); }, {passive:false});
+document.documentElement.style.fontSize = '16px';
 
-    // refs
-    playersRef = ref(db, `rooms/${roomId}/players`);
-    messageRef = ref(db, `rooms/${roomId}/message`);
+/* ----------------- Join / Create ----------------- */
+createBtn.addEventListener('click', ()=>{
+  const id = 'room-' + Math.floor(Math.random()*100000);
+  roomInput.value = id;
+});
+joinBtn.addEventListener('click', async ()=>{
+  const id = (roomInput.value||'').trim();
+  if(!id){ alert('Room ID を入力してください'); return; }
+  await joinRoom(id);
+});
 
-    // register player (push)
-    myPlayerRef = push(playersRef);
-    set(myPlayerRef, { id: clientId, ts: Date.now() });
-    onDisconnect(myPlayerRef).remove();
+async function joinRoom(id){
+  roomId = id;
+  roomLabel.innerText = roomId;
+  roomPanel.style.display = 'none';
+  stage.style.display = 'block';
 
-    // monitor player count
-    onValue(playersRef, snap => {
-      const o = snap.val() || {};
-      playerCount.innerText = Object.keys(o).length;
-    });
+  // refs
+  playersRef = ref(db, `rooms/${roomId}/players`);
+  bulletsRef = ref(db, `rooms/${roomId}/bullets`);
+  const myRef = push(playersRef); playerRef = myRef;
+  set(myRef, { id: myId, x: myState.x, y: myState.y, hp: myState.hp, ts: Date.now() });
+  onDisconnect(myRef).remove();
 
-    // listen for message changes (real-time)
-    onValue(messageRef, snap => {
-      const data = snap.val();
-      if(!data || !data.text) {
-        displayText.innerText = "待機中…";
-        return;
-      }
-      // 表示
-      const who = data.from || 'Anonymous';
-      const t = new Date(data.t || Date.now());
-      displayText.innerText = data.text;
-
-      // optional: small subtle flash animation
-      displayText.style.transition = 'none';
-      displayText.style.opacity = '0.2';
-      requestAnimationFrame(()=>{
-        displayText.style.transition = 'opacity 300ms';
-        displayText.style.opacity = '1';
-      });
-    });
-  }
-
-  // join button
-  joinBtn.addEventListener('click', ()=>{
-    const id = (roomInput.value||'').trim();
-    if(!id){ alert('Room ID を入力してください'); return; }
-    enterRoom(id);
-  });
-
-  // create random room
-  newBtn.addEventListener('click', ()=>{
-    const id = 'room-' + Math.floor(Math.random()*100000);
-    roomInput.value = id;
-    enterRoom(id);
-  });
-
-  // send message: set the message node (overwrite)
-  sendBtn.addEventListener('click', ()=>{
-    const text = (messageInput.value||'').trim();
-    if(!text) return;
-    if(!roomId){ alert('先に Room に入ってください'); return; }
-    set(messageRef, {
-      text: text,
-      from: clientId,
-      t: Date.now()
-    }).catch(err=>{
-      console.error('send error', err);
-      alert('送信エラー: ' + err.message);
-    });
-
-    // clear input optionally
-    messageInput.value = '';
-  });
-
-  // enter by pressing Enter key on input
-  messageInput.addEventListener('keydown', e=>{
-    if(e.key === 'Enter'){
-      sendBtn.click();
-      e.preventDefault();
+  // 監視：プレイヤー一覧
+  onValue(playersRef, snap=>{
+    const v = snap.val()||{};
+    const keys = Object.keys(v);
+    pcount.innerText = keys.length;
+    // find opponent
+    const opp = keys.find(k=> v[k].id !== myId );
+    if(opp){
+      enemyState = v[opp];
+      enemyEl.style.display = 'block';
+      hpOp.innerText = Math.max(0, Math.floor(enemyState.hp));
+    } else {
+      enemyState = null;
+      enemyEl.style.display = 'none';
+      hpOp.innerText = '—';
     }
   });
 
-  // prevent pinch/doubletap zoom and fix height (iPhone fixes)
-  document.addEventListener('gesturestart', e=>e.preventDefault(), {passive:false});
-  let lastTouch = 0;
-  document.addEventListener('touchend', e=>{
-    const now = Date.now();
-    if(now - lastTouch < 350) e.preventDefault();
-    lastTouch = now;
-  }, {passive:false});
-  document.addEventListener('touchstart', e=>{
-    if(e.touches && e.touches.length > 1) e.preventDefault();
-  }, {passive:false});
-  // apply true height to avoid 100vh issues
-  function fixHeight(){
-    document.body.style.height = window.innerHeight + 'px';
-  }
-  window.addEventListener('resize', fixHeight);
-  window.addEventListener('orientationchange', fixHeight);
-  fixHeight();
+  // 監視：弾受信
+  onChildAdded(bulletsRef, snap=>{
+    const b = snap.val();
+    const key = snap.key;
+    // ignore bullets fired by myself (we render them locally)
+    if(b.from === myId) return;
+    spawnRemoteBullet(key, b.x, b.y, b.vx, b.vy);
+    // auto-remove after some time (or DB cleanup)
+    setTimeout(()=> { /* optionally remove bullet from DB later */ }, 10000);
+  });
 
+  // start local loops
+  updateLoop();
+  bulletLoop();
+  aiLoop();
+}
+
+/* ----------------- AI：自動で動き＆攻撃 ----------------- */
+function aiLoop(){
+  // every 200ms update desired direction
+  setInterval(()=>{
+    // move: if enemy known, try to approach but with some randomness
+    if(enemyState){
+      const ex = enemyState.x;
+      const ey = enemyState.y;
+      // move toward with jitter
+      const dx = ex - myState.x;
+      const dy = ey - myState.y;
+      const dist = Math.hypot(dx,dy) || 1;
+      const nx = (dx/dist) * (Math.random()*0.8 + 0.6); // speed factor
+      const ny = (dy/dist) * (Math.random()*0.2 - 0.1); // slight vertical jitter
+      myState.x += nx * 0.8;
+      myState.y += ny * 0.4;
+    } else {
+      // roam
+      myState.x += (Math.random()-0.5)*2;
+      myState.y += (Math.random()-0.5)*1;
+    }
+    // bounds
+    myState.x = Math.max(5, Math.min(95, myState.x));
+    myState.y = Math.max(5, Math.min(90, myState.y));
+  }, 200);
+
+  // shoot interval
+  setInterval(()=>{
+    // create a bullet toward enemy if exists, or random direction
+    let angle = Math.random()*Math.PI*2;
+    if(enemyState){
+      const dx = (enemyState.x - myState.x);
+      const dy = (enemyState.y - myState.y);
+      angle = Math.atan2(dy, dx);
+    }
+    const speed = 0.9 + Math.random()*0.9;
+    const vx = Math.cos(angle)*speed;
+    const vy = Math.sin(angle)*speed;
+    fireBullet(myState.x, myState.y, vx, vy);
+  }, 900 + Math.random()*300);
+}
+
+/* ----------------- bullets handling ----------------- */
+function fireBullet(x, y, vx, vy){
+  // push to DB
+  push(bulletsRef, { from: myId, x:x, y:y, vx: vx, vy: vy, t: Date.now() });
+  // also spawn local bullet for immediate feedback
+  spawnLocalBullet(x,y,vx,vy);
+}
+
+function spawnLocalBullet(x,y,vx,vy){
+  const id = 'b-' + Math.random().toString(36).slice(2,9);
+  const el = document.createElement('div');
+  el.className = 'bullet';
+  el.style.left = (x) + 'vw';
+  el.style.top = (y) + 'vh';
+  document.body.appendChild(el);
+  localBullets[id] = { el, x, y, vx, vy, from: myId };
+  // auto remove after 6s
+  setTimeout(()=>{ if(localBullets[id]) { el.remove(); delete localBullets[id]; } }, 7000);
+}
+
+function spawnRemoteBullet(key,x,y,vx,vy){
+  const id = 'r-' + key;
+  const el = document.createElement('div');
+  el.className = 'bullet';
+  el.style.left = (x) + 'vw';
+  el.style.top = (y) + 'vh';
+  document.body.appendChild(el);
+  localBullets[id] = { el, x, y, vx, vy, from: 'remote' };
+  setTimeout(()=>{ if(localBullets[id]) { el.remove(); delete localBullets[id]; } }, 7000);
+}
+
+/* ----------------- update/render loop ----------------- */
+function updateLoop(){
+  // sync my state to DB periodically
+  setInterval(()=>{
+    if(!playerRef) return;
+    set(playerRef, { id: myId, x: myState.x, y: myState.y, hp: myState.hp, ts: Date.now() });
+  }, 300);
+
+  // render/update local bullets & check collisions
+  function step(){
+    // render ships
+    meEl.style.left = (myState.x) + 'vw';
+    meEl.style.top = (myState.y) + 'vh';
+    hpMe.innerText = Math.max(0, Math.floor(myState.hp));
+
+    if(enemyState){
+      enemyEl.style.left = (enemyState.x) + 'vw';
+      enemyEl.style.top = (enemyState.y) + 'vh';
+      hpOp.innerText = Math.max(0, Math.floor(enemyState.hp));
+    }
+
+    // bullets move
+    for(const id in localBullets){
+      const b = localBullets[id];
+      b.x += b.vx;
+      b.y += b.vy;
+      if(b.el){
+        b.el.style.left = (b.x) + 'vw';
+        b.el.style.top = (b.y) + 'vh';
+      }
+      // collision: if bullet not from me and hits me -> take damage
+      if(b.from !== myId){
+        const bx = (b.x/100) * window.innerWidth;
+        const by = (b.y/100) * window.innerHeight;
+        const pRect = meEl.getBoundingClientRect();
+        if(bx >= pRect.left && bx <= pRect.right && by >= pRect.top && by <= pRect.bottom){
+          // hit me
+          myState.hp -= 12 + Math.random()*6;
+          // remove bullet
+          if(b.el) { b.el.remove(); }
+          delete localBullets[id];
+          // report HP to DB immediately
+          if(playerRef) set(playerRef, { id: myId, x: myState.x, y: myState.y, hp: myState.hp, ts: Date.now() });
+          // check death
+          if(myState.hp <= 0){ announce('You Lose'); endGame(true); }
+        }
+      }
+      // also check if bullet from me hits remote (we approximate using enemyState snapshot)
+      if(b.from === myId && enemyState){
+        const bx = (b.x/100) * window.innerWidth;
+        const by = (b.y/100) * window.innerHeight;
+        const eRect = enemyEl.getBoundingClientRect();
+        if(bx >= eRect.left && bx <= eRect.right && by >= eRect.top && by <= eRect.bottom){
+          // notify DB to reduce enemy HP (naive: write to opponent node)
+          // We cannot directly modify opponent node safely; instead push a 'hit' event
+          push(ref(db, `rooms/${roomId}/hits`), { target: enemyState.id, damage: 12, from: myId, t: Date.now() });
+          if(b.el) { b.el.remove(); }
+          delete localBullets[id];
+        }
+      }
+
+      // remove out-of-bounds bullets
+      if(b.x < -5 || b.x > 105 || b.y < -5 || b.y > 105){
+        if(b.el) b.el.remove();
+        delete localBullets[id];
+      }
+    }
+
+    requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+/* ----------------- bulletLoop: server-side-ish hits processing ----------------- */
+/*
+   We listen to hits node and if a hit targets me, apply damage.
+   Also clean hits after processing (simple).
+*/
+onChildAdded(ref(db, `rooms/${roomId}/hits`), snap=>{
+  const h = snap.val();
+  const key = snap.key;
+  if(!h) return;
+  // if I'm the target, apply damage
+  // we need to fetch current players to map id->key
+  onValue(playersRef, s=>{
+    const players = s.val() || {};
+    for(const nodeKey in players){
+      if(players[nodeKey].id === myId){
+        // my nodeKey matches; check if target equals myId
+        if(h.target === myId){
+          myState.hp -= h.damage || 10;
+          if(playerRef) set(playerRef, { id: myId, x: myState.x, y: myState.y, hp: myState.hp, ts: Date.now() });
+          if(myState.hp <= 0){ announce('You Lose'); endGame(true); }
+        }
+      } else {
+        // not me
+      }
+    }
+    // remove hit event to avoid reprocessing
+    remove(ref(db, `rooms/${roomId}/hits/${key}`));
+  }, { onlyOnce:true });
+});
+
+/* ----------------- helper: announce & end ----------------- */
+function announce(text){
+  msg.innerText = text;
+  msg.style.opacity = 1;
+  setTimeout(()=>{ msg.style.opacity = 0; }, 3000);
+}
+
+function endGame(youLost){
+  // push gameover record once
+  push(ref(db, `rooms/${roomId}/gameover`), { winner: youLost ? 'opponent' : myId, ts: Date.now() });
+  // cleanup: remove my player node
+  if(playerRef) remove(playerRef);
+  // stop activity by halting ai loops is non-trivial here; reload for simplicity
+  setTimeout(()=>{ location.reload(); }, 3000);
+}
+
+/* ----------------- sync opponent node updates (map id->state) ----------------- */
+onValue(playersRef, snap=>{
+  const v = snap.val() || {};
+  // find opponent by id != myId and map to enemyState
+  for(const nodeKey in v){
+    const p = v[nodeKey];
+    if(p.id !== myId){
+      enemyState = p;
+      enemyEl.style.display = 'block';
+      hpOp.innerText = Math.max(0, Math.floor(enemyState.hp));
+      return;
+    }
+  }
+  enemyState = null;
+  enemyEl.style.display = 'none';
+  hpOp.innerText = '—';
+});
+
+/* ----------------- Safety notes ----------------- */
+console.log('joined as', myId);
 </script>
 </body>
 </html>
