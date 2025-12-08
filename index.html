@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-<title>Auto Duel — Start Sync (Random AI)</title>
+<title>Duel — Manual Control (Buttons)</title>
 <style>
   html,body{height:100%;margin:0;padding:0;overflow:hidden;background:#111;font-family:system-ui,-apple-system,Segoe UI,Roboto;}
   /* ルーム入力 */
@@ -18,8 +18,15 @@
   #enemy{background:#f55;left:45vw;top:10vh;display:none}
   .bullet{position:absolute;width:3vw;height:1.5vw;max-width:20px;max-height:10px;border-radius:3px;background:#ffd;z-index:20}
   #msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:8vw;z-index:60;pointer-events:none}
-  #controls { position: absolute; right: 3vw; top: 3vw; z-index:60; display:flex; gap:0.6rem; }
-  button.ui { font-size:4vw; padding:0.6rem 0.8rem; }
+  #controls { position: absolute; left:50%; transform:translateX(-50%); bottom:3vh; z-index:60; display:flex; gap:3vw; align-items:center; }
+  .ctrl-btn { width:18vw; height:12vw; max-width:120px; max-height:80px; border-radius:12px; background:rgba(255,255,255,0.08); color:#fff; font-size:5vw; display:flex; align-items:center; justify-content:center; user-select:none; -webkit-user-select:none; }
+  .ctrl-btn:active { background:rgba(255,255,255,0.2); }
+  #startBtn { font-size:4vw; padding:0.6rem 0.8rem; }
+  @media (min-width:600px){
+    .ctrl-btn { width:120px; height:60px; font-size:20px; }
+    #roomPanel input { font-size:18px; }
+    #roomPanel button { font-size:18px; }
+  }
 </style>
 </head>
 <body>
@@ -32,7 +39,7 @@
     <button id="joinBtn">Join</button>
     <button id="createBtn">Create Random</button>
   </div>
-  <div style="color:#bbb;font-size:3.8vw">同じ Room ID の相手と自動対戦（Startボタンで同時開始）</div>
+  <div style="color:#bbb;font-size:3.8vw">同じ Room ID の相手と対戦（Start で同時開始）</div>
 </div>
 
 <!-- ステージ -->
@@ -42,18 +49,23 @@
   <div id="me" class="ship">ME<br><small id="hpMe">100</small></div>
   <div id="enemy" class="ship">OP<br><small id="hpOp">—</small></div>
 
+  <!-- ボタン操作 -->
   <div id="controls" style="display:none;">
-    <button id="startBtn" class="ui">Start</button>
-    <button id="leaveBtn" class="ui">Leave</button>
+    <div id="leftBtn" class="ctrl-btn">◀</div>
+    <div id="fireBtn" class="ctrl-btn">FIRE</div>
+    <div id="rightBtn" class="ctrl-btn">▶</div>
+    &nbsp;
+    <button id="startBtn" class="ui" style="margin-left:2vw">Start</button>
+    <button id="leaveBtn" class="ui" style="margin-left:1vw">Leave</button>
   </div>
 </div>
 
 <!-- Firebase (module) -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, set, push, onValue, onChildAdded, remove, onDisconnect, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, set, push, onValue, onChildAdded, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-/* ====== ここをあなたの Firebase 設定に置き換えてください ====== */
+/* ====== あなたの Firebase 設定（既に提供されたものを使用） ====== */
 const firebaseConfig = {
     apiKey: "AIzaSyAs8DqxHiRzveAMJ7j-UMBWKp6ztGF-hd8",
     authDomain: "ddgame-6f5f8.firebaseapp.com",
@@ -86,6 +98,9 @@ const hpMe = document.getElementById('hpMe');
 const hpOp = document.getElementById('hpOp');
 
 const controls = document.getElementById('controls');
+const leftBtn = document.getElementById('leftBtn');
+const rightBtn = document.getElementById('rightBtn');
+const fireBtn = document.getElementById('fireBtn');
 const startBtn = document.getElementById('startBtn');
 const leaveBtn = document.getElementById('leaveBtn');
 
@@ -99,9 +114,8 @@ let myState = { id: myId, x:50, y:80, hp:100 }; // x: vw, y: vh
 let enemyState = null;
 let localBullets = {}; // id -> {el,x,y,vx,vy,from}
 let gameStarted = false;
-let startListenerUnsub = null;
 
-/* ----------------- 高さ修正 & ズーム無効 ----------------- */
+/* ----------------- iPhone 高さ修正 & ズーム無効 ----------------- */
 function fixHeight(){ document.body.style.height = window.innerHeight + 'px'; stage.style.height = window.innerHeight + 'px'; }
 window.addEventListener('resize', fixHeight);
 window.addEventListener('orientationchange', fixHeight);
@@ -190,7 +204,6 @@ async function joinRoom(id){
   });
 
   // enable start button only when at least 2 players present
-  // (we already update pcount above; use a separate listener to enable button)
   onValue(playersRef, snap=>{
     const v = snap.val()||{};
     const count = Object.keys(v).length;
@@ -201,53 +214,54 @@ async function joinRoom(id){
 /* ----------------- Start synchronization ----------------- */
 startBtn.addEventListener('click', async ()=>{
   if(!roomId) return;
-  // write start timestamp to DB if not set
   const startRef = ref(db, `rooms/${roomId}/start`);
   set(startRef, { t: Date.now(), by: myId }).catch(err=>console.error(err));
-  // local begin also handled via onValue listener
 });
 
 /* ----------------- leave */
 leaveBtn.addEventListener('click', ()=>{
   if(playerRef) remove(playerRef);
-  // optionally remove room nodes if empty (not implemented)
   location.reload();
 });
 
-/* ----------------- AI：ランダム方向（あなたが選択） ----------------- */
-function aiLoop(){
-  // every 700ms choose random small velocity
-  setInterval(()=>{
-    if(!gameStarted) return;
-    // random angle
-    const angle = (Math.random()*2 - 1) * Math.PI; // -PI..PI
-    const speed = 0.5 + Math.random()*1.0; // vw per tick
-    // convert to vx, vy in vw/vh scale: we'll update myState by vx,vy every 200ms
-    myState.vx = Math.cos(angle) * speed;
-    myState.vy = Math.sin(angle) * (speed * 0.5); // vertical movement smaller
-  }, 700);
-  // shooting interval
-  setInterval(()=>{
-    if(!gameStarted) return;
-    // fire toward opponent if exists else random
-    let angle = Math.random()*Math.PI*2;
-    if(enemyState){
-      const dx = (enemyState.x - myState.x);
-      const dy = (enemyState.y - myState.y);
-      angle = Math.atan2(dy, dx);
-    }
-    const sp = 1.0 + Math.random()*0.8;
-    const vx = Math.cos(angle)*sp;
-    const vy = Math.sin(angle)*sp;
-    fireBullet(myState.x, myState.y, vx, vy);
-  }, 900 + Math.random()*400);
+/* ----------------- Manual controls (no AI) ----------------- */
+let moveLeft = false;
+let moveRight = false;
+const MOVE_SPEED = 0.9; // vw per tick (tune as needed)
+
+/* touch / mouse handling for left/right buttons */
+function bindControl(btn, startCb, endCb){
+  btn.addEventListener('touchstart', (e)=>{ e.preventDefault(); startCb(); }, {passive:false});
+  btn.addEventListener('touchend', (e)=>{ e.preventDefault(); endCb(); }, {passive:false});
+  btn.addEventListener('mousedown', (e)=>{ e.preventDefault(); startCb(); });
+  btn.addEventListener('mouseup', (e)=>{ e.preventDefault(); endCb(); });
+  btn.addEventListener('mouseleave', (e)=>{ e.preventDefault(); endCb(); });
+}
+
+bindControl(leftBtn, ()=> moveLeft = true, ()=> moveLeft = false);
+bindControl(rightBtn, ()=> moveRight = true, ()=> moveRight = false);
+
+/* fire button: single-shot on press */
+bindControl(fireBtn, ()=> { if(gameStarted) doFire(); }, ()=>{ /* no-op on release */ });
+
+function doFire(){
+  // calculate direction toward enemy if known, else upward
+  let angle = -Math.PI/2; // upward default (negative y)
+  if(enemyState){
+    const dx = (enemyState.x - myState.x);
+    const dy = (enemyState.y - myState.y);
+    angle = Math.atan2(dy, dx);
+  }
+  const sp = 1.6; // bullet speed
+  const vx = Math.cos(angle)*sp;
+  const vy = Math.sin(angle)*sp;
+  fireBullet(myState.x, myState.y, vx, vy);
 }
 
 /* ----------------- bullets handling ----------------- */
 function fireBullet(x,y,vx,vy){
-  // push to DB for other to see
+  if(!bulletsRef) return;
   push(bulletsRef, { from: myId, x: x, y: y, vx: vx, vy: vy, t: Date.now() });
-  // spawn local immediately
   spawnLocalBullet('local-'+Math.random().toString(36).slice(2,9), x,y,vx,vy, myId);
 }
 
@@ -266,18 +280,16 @@ function spawnRemoteBullet(key,x,y,vx,vy){
   spawnLocalBullet(id,x,y,vx,vy, 'remote');
 }
 
-/* ----------------- update/render loop ----------------- */
+/* ----------------- update/render loop (manual movement) ----------------- */
 function beginGame(){
   if(gameStarted) return;
   gameStarted = true;
   announce('Battle!');
-  // initialize velocities
+  // ensure velocities cleared
   myState.vx = 0; myState.vy = 0;
-  aiLoop();
   updateLoop();
 }
 
-/* updateLoop syncs state, renders ships, moves bullets, does collision detection */
 function updateLoop(){
   // sync my state to DB periodically
   setInterval(()=>{
@@ -288,9 +300,10 @@ function updateLoop(){
   // main render step
   function step(){
     if(gameStarted){
-      // apply velocity to position
-      if(typeof myState.vx === 'number'){ myState.x += myState.vx * 0.15; myState.y += myState.vy * 0.15; }
-      // bounds
+      // manual move
+      if(moveLeft) myState.x -= MOVE_SPEED;
+      if(moveRight) myState.x += MOVE_SPEED;
+      // clamp
       myState.x = Math.max(3, Math.min(97, myState.x));
       myState.y = Math.max(3, Math.min(92, myState.y));
 
@@ -322,8 +335,7 @@ function updateLoop(){
           const pRect = meEl.getBoundingClientRect();
           if(bx >= pRect.left && bx <= pRect.right && by >= pRect.top && by <= pRect.bottom){
             myState.hp -= 12 + Math.random()*6;
-            // remove bullet
-            if(b.el) { b.el.remove(); }
+            if(b.el) b.el.remove();
             delete localBullets[id];
             if(playerRef) set(playerRef, { id: myId, x: myState.x, y: myState.y, hp: myState.hp, ts: Date.now() });
             if(myState.hp <= 0){ announce('You Lose'); endGame(true); }
@@ -331,15 +343,14 @@ function updateLoop(){
           }
         }
 
-        // if bullet from me hits enemy (approximate) -> push hit event
+        // if bullet from me hits enemy -> push hit event
         if(b.from === myId && enemyState){
           const bx = (b.x/100) * window.innerWidth;
           const by = (b.y/100) * window.innerHeight;
           const eRect = enemyEl.getBoundingClientRect();
           if(bx >= eRect.left && bx <= eRect.right && by >= eRect.top && by <= eRect.bottom){
-            // push a hit event to DB
             push(ref(db, `rooms/${roomId}/hits`), { target: enemyState.id, damage: 10 + Math.floor(Math.random()*8), from: myId, t: Date.now() });
-            if(b.el) { b.el.remove(); }
+            if(b.el) b.el.remove();
             delete localBullets[id];
             continue;
           }
@@ -358,7 +369,7 @@ function updateLoop(){
 }
 
 /* ----------------- hits processing (already implemented earlier) ----------------- */
-/* Note: In joinRoom we already set listener to apply hits that target me. */
+/* joinRoom added listener to hitsRef that modifies myState.hp if target === myId */
 
 /* ----------------- announce & end ----------------- */
 function announce(text){
@@ -374,13 +385,6 @@ function endGame(youLost){
   if(playerRef) remove(playerRef);
   setTimeout(()=>{ location.reload(); }, 2500);
 }
-
-/* ----------------- map players -> enemyState updates (keep snapshot fresh) ----------------- */
-onValue(()=>{}, {onlyOnce:true}); // no-op to satisfy static checks
-
-// keep enemyState mapping updated by watching playersRef (we already set onValue in joinRoom)
-// but add global listener in case joinRoom not used path
-function safeLog(v){ console.log(v); }
 
 /* ----------------- debug log id */
 console.log('client id', myId);
