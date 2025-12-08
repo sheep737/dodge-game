@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />
-<title>VS Paddle Duel</title>
+<title>VS Paddle Duel – Fixed</title>
 <style>
   html,body { margin:0; padding:0; height:100%; background:#111; overflow:hidden; }
   #roomPanel { position:fixed; inset:0; background:#000c; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:1.4rem; z-index:20; }
@@ -82,7 +82,6 @@ import {
   getDatabase, ref, set, onValue, push, onDisconnect
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-/* ===== Firebase設定（そのままでOK） ===== */
 const firebaseConfig = {
     apiKey: "AIzaSyAs8DqxHiRzveAMJ7j-UMBWKp6ztGF-hd8",
     authDomain: "ddgame-6f5f8.firebaseapp.com",
@@ -93,7 +92,6 @@ const firebaseConfig = {
     appId: "1:172945824128:web:e3c7333928e1545aa1c965",
     measurementId: "G-FG0645HHZD"
 };
-/* ========================================= */
 
 const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
@@ -116,12 +114,13 @@ const rightBtn = document.getElementById("rightBtn");
 /* 状態 */
 let roomId=null;
 let myId = Math.random().toString(36).slice(2,10);
+let hostId=null;
 let playersRef=null;
 let ballRef=null;
 let myX=50, opX=50;
 let bx=50, by=50, vx=0.6, vy=0.9;
 let moveLeft=false, moveRight=false;
-let gameReady=false;
+let gameStarted=false;
 
 /* ===== Join / Create ===== */
 createBtn.onclick=()=>{
@@ -142,32 +141,41 @@ function joinRoom(id){
   playersRef = ref(db,`rooms/${roomId}/players`);
   ballRef    = ref(db,`rooms/${roomId}/ball`);
 
+  // 誰もいなければ自分がホスト
+  onValue(playersRef, snap=>{
+    const v = snap.val()||{};
+    const keys = Object.keys(v);
+    hostId = keys.length === 0 ? myId : keys[0];
+  },{onlyOnce:true});
+
   // 自分登録
   const myRef = ref(db,`rooms/${roomId}/players/${myId}`);
   set(myRef,{x:50});
   onDisconnect(myRef).remove();
 
-  // 相手の位置を取得
+  // 相手の位置
   onValue(playersRef, snap=>{
     const v = snap.val()||{};
-    for(const k in v){
-      if(k!==myId) opX = v[k].x;
-    }
+    for(const k in v) if(k!==myId) opX=v[k].x;
   });
 
-  // ボール位置を同期
+  // ボール同期
   onValue(ballRef, snap=>{
-    const v = snap.val();
+    const v=snap.val();
     if(!v) return;
     bx=v.bx; by=v.by; vx=v.vx; vy=v.vy;
+    gameStarted = true;  // ← 初回ボール受信で開始
   });
 
-  // 初期ボール設置（ホストのみ）
-  set(ballRef,{bx:50,by:50,vx,vy});
+  // ホストは初期ボール生成
+  if(hostId===myId){
+    set(ballRef,{bx:50,by:50,vx,vy});
+  }
+
   gameLoop();
 }
 
-/* ===== 操作ボタン（スマホ/PC両対応） ===== */
+/* ボタン入力 */
 function bindBtn(btn, on, off){
   btn.addEventListener("touchstart", on);
   btn.addEventListener("touchend", off);
@@ -180,53 +188,51 @@ bindBtn(rightBtn, ()=>moveRight=true, ()=>moveRight=false);
 /* ===== ゲームループ ===== */
 function gameLoop(){
 
-  // 自パドル移動
   if(moveLeft)  myX -= 1.2;
   if(moveRight) myX += 1.2;
   myX = Math.max(5, Math.min(95, myX));
   me.style.left = myX+"vw";
 
-  // 相手のパドル
   op.style.left = opX+"vw";
 
-  // DBに自パドル送信
-  if(playersRef) set(ref(db,`rooms/${roomId}/players/${myId}`),{x:myX});
+  // パドル更新
+  set(ref(db,`rooms/${roomId}/players/${myId}`),{x:myX});
 
-  // ---- ボール移動 ----
-  bx += vx;
-  by += vy;
+  if(gameStarted){
 
-  // 壁跳ね返り
-  if(bx<0||bx>100) vx*=-1;
-  if(by<0) vy*=-1;
+    // ホストのみボールを動かす
+    if(myId === hostId){
+      bx += vx;  
+      by += vy;
 
-  /* === パドル反射 === */
-  const paddleY=16;  // bottom:16vh に合わせる
+      if(bx<0||bx>100) vx*=-1;
+      if(by<0) vy*=-1;
 
-  // 相手上部の反射
-  if(by <= 16+3 && by >= 16-3){
-    if(Math.abs(bx - opX) < 12) vy *= -1;
+      // パドル反射
+      const py = 16;
+
+      if(by >= py-3 && by <= py+3){
+        if(Math.abs(bx - myX) < 12) vy*=-1;
+      }
+      if(by <= 16+3 && by >= 16-3){
+        if(Math.abs(bx - opX) < 12) vy*=-1;
+      }
+
+      // 負け判定（ホストのみ行う）
+      if(by > py+8){
+        msg.textContent = "YOU LOSE";
+        msg.style.opacity=1;
+        setTimeout(()=>location.reload(),2000);
+        return;
+      }
+
+      set(ballRef,{bx,by,vx,vy});
+    }
+
+    // ボール表示（全員）
+    ball.style.left = bx+"vw";
+    ball.style.top  = by+"vh";
   }
-
-  // 自分の反射
-  if(by >= paddleY-3 && by <= paddleY+3){
-    if(Math.abs(bx - myX) < 12) vy *= -1;
-  }
-
-  /* === 負け判定 === */
-  if(by > paddleY+8){
-    msg.textContent="YOU LOSE";
-    msg.style.opacity=1;
-    setTimeout(()=>location.reload(),2000);
-    return;
-  }
-
-  // ボール表示
-  ball.style.left = bx+"vw";
-  ball.style.top  = by+"vh";
-
-  // ホストのみボール位置を送信
-  set(ballRef,{bx,by,vx,vy});
 
   requestAnimationFrame(gameLoop);
 }
