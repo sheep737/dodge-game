@@ -16,13 +16,11 @@
     background:#222;display:none;overflow:hidden;
   }
 
-  /* 右上タイトル */
   #title{
     position:fixed;right:3vw;top:2vw;
     font-size:5vw;color:white;z-index:100;
   }
 
-  /* Room UI */
   #roomPanel{
     position:fixed;inset:0;background:#000c;
     display:flex;flex-direction:column;
@@ -36,27 +34,23 @@
     font-size:6vw;padding:1rem 2rem;
   }
 
-  /* HUD */
   #hud{
     position:fixed;left:3vw;top:2vw;color:#fff;
     font-size:4vw;z-index:100;
   }
 
-  /* パドル */
   .paddle{
     position:absolute;width:22vw;height:3vh;
     background:#4af;border-radius:8px;
   }
-  #enemyPaddle{background:#f55;top:5vh;} /* ← 上 */
-  #myPaddle{bottom:8vh;}               /* ← 下（正しい位置） */
+  #enemyPaddle{background:#f55;top:5vh;}
+  #myPaddle{bottom:8vh;}
 
-  /* ボール */
   #ball{
     position:absolute;width:4vw;height:4vw;border-radius:50%;
     background:#ffd;display:none;
   }
 
-  /* Start / Leave */
   #topControls{
     position:fixed;right:3vw;bottom:20vh;
     display:flex;flex-direction:column;
@@ -67,7 +61,6 @@
     padding:.8rem 1.4rem;font-size:5vw;border-radius:8px;
   }
 
-  /* メッセージ */
   #msg{
     position:fixed;inset:0;display:flex;
     justify-content:center;align-items:center;
@@ -75,7 +68,6 @@
     opacity:0;transition:opacity .3s;
   }
 
-  /* パドル移動ボタン */
   #controls{
     position:fixed;left:0;right:0;
     bottom:env(safe-area-inset-bottom,20px);
@@ -121,15 +113,16 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, set, onValue, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-/* ★ Firebase 設定をあなたのものに変更 ★ */
+/* ★ ここだけ自分の Firebase に書き換える ★ */
 const firebaseConfig = {
-  apiKey: "YOUR_KEY",
-  authDomain: "your.firebaseapp.com",
-  databaseURL: "https://your-default-rtdb.firebaseio.com",
-  projectId: "your",
-  storageBucket: "your.appspot.com",
-  messagingSenderId: "xxx",
-  appId: "xxx"
+    apiKey: "AIzaSyAs8DqxHiRzveAMJ7j-UMBWKp6ztGF-hd8",
+    authDomain: "ddgame-6f5f8.firebaseapp.com",
+    databaseURL: "https://ddgame-6f5f8-default-rtdb.firebaseio.com",
+    projectId: "ddgame-6f5f8",
+    storageBucket: "ddgame-6f5f8.firebasestorage.app",
+    messagingSenderId: "172945824128",
+    appId: "1:172945824128:web:e3c7333928e1545aa1c965",
+    measurementId: "G-FG0645HHZD"
 };
 
 const app=initializeApp(firebaseConfig);
@@ -164,7 +157,7 @@ let ballX=50, ballY=50, vx=0, vy=0;
 
 let moveLeft=false, moveRight=false;
 
-/* 安定タッチ */
+/* パドルボタン操作 */
 function bind(btn,on,off){
   btn.addEventListener("pointerdown",e=>{e.preventDefault();on();});
   btn.addEventListener("pointerup",off);
@@ -193,6 +186,7 @@ function joinRoom(id){
   set(meRef,{id:myId,x:myX});
   onDisconnect(meRef).remove();
 
+  /* Player list */
   onValue(playersRef,snap=>{
     const v=snap.val()||{};
     const keys=Object.keys(v);
@@ -202,23 +196,27 @@ function joinRoom(id){
     if(enemyId && v[enemyId]) enemyX=v[enemyId].x;
   });
 
+  /* Ball update */
   onValue(ballRef,snap=>{
     const b=snap.val();
     if(!b) return;
     ballX=b.x; ballY=b.y;
   });
 
+  /* Start signal（←今回の重要ポイント） */
   onValue(startRef,snap=>{
-    if(snap.val() && !gameStarted){
+    const dat=snap.val();
+    if(dat?.go && !gameStarted){
       beginGame();
     }
   });
 }
 
-/* Start */
+/* Start ボタン */
 startBtn.onclick=()=>{
   if(!roomId) return;
-  set(startRef,{go:true});
+  /* 部屋全員に確実に signal を送る */
+  set(startRef,{go:true,t:Date.now()});
 };
 
 /* Leave */
@@ -231,10 +229,10 @@ function beginGame(){
   gameStarted=true;
   announce("Start!");
 
-  vx = (Math.random()*0.5+0.3)*(Math.random()<0.5?-1:1);
-  vy = -0.55;    /* 最初は相手側へ */
-
   ball.style.display="block";
+
+  vx = (Math.random()*0.4+0.3)*(Math.random()<0.5?-1:1);
+  vy = -0.5;    /* 最初は相手方向へ */
 
   loop();
 }
@@ -246,6 +244,7 @@ function announce(t){
   setTimeout(()=>msg.style.opacity=0,1500);
 }
 
+/* Game Loop */
 function loop(){
   if(!gameStarted){ requestAnimationFrame(loop); return; }
 
@@ -259,36 +258,34 @@ function loop(){
   /* 敵パドル */
   if(enemyId) opP.style.left=enemyX+"vw";
 
-  /* ホストがボール更新 */
-  if(myId < (enemyId||"zzzzzzzz")){
+  /* Host がボールを動かす */
+  if(!enemyId || myId < enemyId){
 
     ballX+=vx;
     ballY+=vy;
 
-    /* 左右反射 */
+    /* 壁反射 */
     if(ballX<0 || ballX>96) vx*=-1;
 
-    /* 衝突：敵パドル（上） */
-    if(ballY<10){
-      if(ballX>enemyX-2 && ballX<enemyX+22){
-        vy*=-1;
-      }
+    /* 敵パドル反射 */
+    if(ballY<10 && ballX>enemyX-2 && ballX<enemyX+22){
+      vy*=-1;
     }
 
-    /* 衝突：味方パドル（下） */
-    if(ballY>80){
-      if(ballX>myX-2 && ballX<myX+22){
-        vy*=-1;
-      }
+    /* 自パドル反射 */
+    if(ballY>80 && ballX>myX-2 && ballX<myX+22){
+      vy*=-1;
     }
 
-    /* 勝敗 */
-    if(ballY < -5){
-      announce("You Win!");
-      setTimeout(()=>location.reload(),1500);
-    }
+    /* 負け判定 */
     if(ballY > 100){
       announce("You Lose");
+      setTimeout(()=>location.reload(),1500);
+    }
+
+    /* 勝ち判定 */
+    if(ballY < -5){
+      announce("You Win!");
       setTimeout(()=>location.reload(),1500);
     }
 
