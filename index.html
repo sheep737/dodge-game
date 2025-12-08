@@ -3,58 +3,58 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />
-<title>Pong VS – Fixed Version</title>
+<title>Pong VS – Improved</title>
 <style>
   html,body { margin:0; padding:0; height:100%; background:#111; overflow:hidden; }
 
-  /* ▼ ルーム入力パネル */
+  /* ▼ バージョン表示 */
+  #versionTag{
+    position:fixed; top:1vh; right:2vw;
+    color:#fff; font-size:3vw; z-index:200;
+    opacity:0.7;
+  }
+
   #roomPanel {
     position:fixed; inset:0; background:#000c;
     display:flex; flex-direction:column;
     justify-content:center; align-items:center; gap:2rem;
     z-index:20;
   }
-  #roomPanel input {
-    font-size:5vw; padding:1rem; width:70vw;
-  }
-  #roomPanel button {
-    font-size:5vw; padding:1rem 2rem;
-  }
+  #roomPanel input { font-size:5vw; padding:1rem; width:70vw; }
+  #roomPanel button { font-size:5vw; padding:1rem 2rem; }
 
-  /* ▼ スタートボタン */
   #startBtn {
     position:fixed;
-    top:3vh; right:3vw;
-    z-index:50;
-    font-size:5vw; padding:1rem 2rem;
+    top:10vh; right:3vw;
+    font-size:6vw; padding:1rem 2rem;
+    z-index:150;
     display:none;
   }
 
-  /* ▼ ゲームステージ */
   #stage { position:fixed; inset:0; background:#222; display:none; }
 
-  #ball  {
+  #ball {
     position:absolute;
-    width:5vw; height:5vw; max-width:40px; max-height:40px;
+    width:30px; height:30px;
     background:#ff6; border-radius:50%;
   }
 
   .paddle {
     position:absolute;
-    width:20vw; height:3vh;
+    width:160px; height:20px;
     background:#4af; border-radius:8px;
   }
-  #me { bottom:16vh; left:40vw; }
-  #op { top:16vh; left:40vw; background:#f55; }
+  #me { bottom:80px; left:100px; }
+  #op { top:80px; left:100px; background:#f55; }
 
   #controls {
-    position:fixed; bottom:4vh;
-    left:0; right:0;
-    display:flex; justify-content:center; gap:12vw;
-    z-index:40;
+    position:fixed; bottom:40px;
+    left:0; right:0; display:flex;
+    justify-content:center; gap:20vw;
+    z-index:140;
   }
   .btn {
-    font-size:6vw; padding:1.2rem 1.6rem;
+    font-size:8vw; padding:1rem 2rem;
     background:#333; color:#fff;
     border:2px solid #fff; border-radius:8px;
     user-select:none;
@@ -63,16 +63,18 @@
   #msg {
     position:fixed; inset:0;
     display:flex; justify-content:center; align-items:center;
-    font-size:10vw; color:#fff;
+    font-size:9vw; color:#fff;
     opacity:0; transition:0.4s;
-    z-index:60;
+    z-index:170;
   }
 </style>
 </head>
 
 <body>
 
-<!-- ▼ Room 設定 -->
+<div id="versionTag">v1.0.3</div>
+
+<!-- Room 設定 -->
 <div id="roomPanel">
   <div style="color:#fff;font-size:6vw;">Room ID を入力</div>
   <input id="roomInput" placeholder="例: room123" />
@@ -84,7 +86,7 @@
 
 <button id="startBtn">START</button>
 
-<!-- ▼ ゲーム -->
+<!-- ゲーム -->
 <div id="stage">
   <div id="ball"></div>
   <div id="me" class="paddle"></div>
@@ -113,7 +115,6 @@ const firebaseConfig = {
   messagingSenderId: "172945824128",
   appId: "1:172945824128:web:e3c7333928e1545aa1c965"
 };
-
 const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
 
@@ -138,18 +139,17 @@ let roomId=null;
 let myId=Math.random().toString(36).slice(2,10);
 let hostId=null;
 
-let myX=50, opX=50;
-let bx=50, by=50;         // 0〜100%
-let vx=0.35, vy=0.55;     // ★ 遅くした
+let myX=150, opX=150;       // px
+let bx=150,  by=300;        // px
+let vx=2.2,  vy=3.4;        // ★ 遅め
 let moveLeft=false, moveRight=false;
 
 let playersRef=null;
 let ballRef=null;
 let controlRef=null;
-
 let gameRunning=false;
 
-/* ===== Room 作成ボタン ===== */
+/* ===== Random 作成 ===== */
 createBtn.onclick=()=>{
   roomInput.value="room-"+Math.floor(Math.random()*99999);
 };
@@ -171,25 +171,26 @@ function joinRoom(id){
   ballRef    = ref(db,`rooms/${roomId}/ball`);
   controlRef = ref(db,`rooms/${roomId}/control/start`);
 
-  /* 参加者登録 */
+  /* 自分を登録 */
   const myRef = ref(db,`rooms/${roomId}/players/${myId}`);
-  set(myRef,{x:50});
+  set(myRef,{x:myX});
   onDisconnect(myRef).remove();
 
-  /* ホスト決定 */
+  /* HOST 判定 */
   onValue(playersRef,s=>{
     const v=s.val()||{};
-    const keys=Object.keys(v);
-    hostId=keys[0];
+    hostId=Object.keys(v)[0];
   });
 
-  /* 相手の位置 */
+  /* 相手の位置更新 */
   onValue(playersRef,s=>{
     const v=s.val()||{};
-    for(const k in v) if(k!==myId) opX=v[k].x;
+    for(const k in v){
+      if(k!==myId) opX=v[k].x;
+    }
   });
 
-  /* スタート同期 */
+  /* START 同期 */
   onValue(controlRef,s=>{
     if(s.val()==="go"){
       startBtn.style.display="none";
@@ -218,81 +219,84 @@ startBtn.onclick=()=>{
   gameRunning=true;
 };
 
-/* ===== 移動ボタン ===== */
+/* ===== ボタン操作（ pointer に統一 ）===== */
 function bind(btn,on,off){
-  btn.addEventListener("touchstart",on);
-  btn.addEventListener("touchend",off);
-  btn.addEventListener("mousedown",on);
-  btn.addEventListener("mouseup",off);
+  btn.addEventListener("pointerdown",e=>{e.preventDefault(); on();});
+  btn.addEventListener("pointerup",e=>{e.preventDefault(); off();});
+  btn.addEventListener("pointerleave",off);
 }
 bind(leftBtn, ()=>moveLeft=true, ()=>moveLeft=false);
 bind(rightBtn,()=>moveRight=true,()=>moveRight=false);
 
 /* ===== ゲームループ ===== */
 function gameLoop(){
+  /* パドル移動 */
+  if(moveLeft)  myX -= 4;
+  if(moveRight) myX += 4;
+  myX = Math.max(0, Math.min(window.innerWidth-160, myX));
 
-  /* 自分の移動 */
-  if(moveLeft)  myX -= 1.5;
-  if(moveRight) myX += 1.5;
-  myX=Math.max(8,Math.min(92,myX));
-
-  me.style.left = myX+"vw";
+  me.style.left = myX+"px";
   set(ref(db,`rooms/${roomId}/players/${myId}`),{x:myX});
 
-  op.style.left = opX+"vw";
+  op.style.left = opX+"px";
 
   /* ボール */
   if(gameRunning){
 
-    /* ★ ホストだけ物理演算する */
+    /* HOST が物理計算 */
     if(myId===hostId){
       bx += vx;
       by += vy;
 
-      /* 壁 */
-      if(bx<1||bx>99) vx*=-1;
+      /* 壁反射 */
+      if(bx < 0 || bx > window.innerWidth-30) vx *= -1;
 
-      /* パドル判定 (±3%) */
-      const hitRange = 3;
+      /* ▼ 当たり判定（完全に修正） */
+      const bw=30, bh=30;
+      const pw=160, ph=20;
 
-      // 下側（自分）
-      if(by > 84 && by < 86){
-        if(Math.abs(bx - myX) < 15){
-          vy *= -1;
-        }
+      /* 自分のパドル */
+      if(
+        by+bh > window.innerHeight-80-20 && 
+        by <  window.innerHeight-80 &&
+        bx+bw > myX && bx < myX+pw
+      ){
+        vy = -Math.abs(vy);
       }
 
-      // 上側（相手）
-      if(by < 16 && by > 14){
-        if(Math.abs(bx - opX) < 15){
-          vy *= -1;
-        }
+      /* 相手のパドル */
+      if(
+        by < 80+20 &&
+        by+bh > 80 &&
+        bx+bw > opX && bx < opX+pw
+      ){
+        vy = Math.abs(vy);
       }
 
-      /* ★ Lose / Win 判定 */
-      if(by > 100){
+      /* Lose / Win */
+      if(by > window.innerHeight){
         msg.textContent="YOU LOSE";
         msg.style.opacity=1;
         setTimeout(()=>location.reload(),2000);
       }
-
-      if(by < 0){
+      if(by+bh < 0){
         msg.textContent="YOU WIN!";
         msg.style.opacity=1;
         setTimeout(()=>location.reload(),2000);
       }
 
-      /* 他の端末へ送信 */
+      /* 同期 */
       set(ballRef,{bx,by,vx,vy});
     }
 
     /* 描画 */
-    ball.style.left = bx+"vw";
-    ball.style.top  = by+"vh";
+    ball.style.left = bx+"px";
+    ball.style.top  = by+"px";
   }
 
   requestAnimationFrame(gameLoop);
 }
 </script>
+
 </body>
 </html>
