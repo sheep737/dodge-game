@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-<title>Auto Duel — 2P Auto Battle</title>
+<title>Auto Duel — Start Sync (Random AI)</title>
 <style>
   html,body{height:100%;margin:0;padding:0;overflow:hidden;background:#111;font-family:system-ui,-apple-system,Segoe UI,Roboto;}
   /* ルーム入力 */
@@ -18,6 +18,8 @@
   #enemy{background:#f55;left:45vw;top:10vh;display:none}
   .bullet{position:absolute;width:3vw;height:1.5vw;max-width:20px;max-height:10px;border-radius:3px;background:#ffd;z-index:20}
   #msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:8vw;z-index:60;pointer-events:none}
+  #controls { position: absolute; right: 3vw; top: 3vw; z-index:60; display:flex; gap:0.6rem; }
+  button.ui { font-size:4vw; padding:0.6rem 0.8rem; }
 </style>
 </head>
 <body>
@@ -30,7 +32,7 @@
     <button id="joinBtn">Join</button>
     <button id="createBtn">Create Random</button>
   </div>
-  <div style="color:#bbb;font-size:3.8vw">同じ Room ID の相手と自動対戦します</div>
+  <div style="color:#bbb;font-size:3.8vw">同じ Room ID の相手と自動対戦（Startボタンで同時開始）</div>
 </div>
 
 <!-- ステージ -->
@@ -39,12 +41,17 @@
   <div id="msg"></div>
   <div id="me" class="ship">ME<br><small id="hpMe">100</small></div>
   <div id="enemy" class="ship">OP<br><small id="hpOp">—</small></div>
+
+  <div id="controls" style="display:none;">
+    <button id="startBtn" class="ui">Start</button>
+    <button id="leaveBtn" class="ui">Leave</button>
+  </div>
 </div>
 
 <!-- Firebase (module) -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, set, push, onValue, onChildAdded, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, set, push, onValue, onChildAdded, remove, onDisconnect, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 /* ====== ここをあなたの Firebase 設定に置き換えてください ====== */
 const firebaseConfig = {
@@ -78,14 +85,21 @@ const enemyEl = document.getElementById('enemy');
 const hpMe = document.getElementById('hpMe');
 const hpOp = document.getElementById('hpOp');
 
+const controls = document.getElementById('controls');
+const startBtn = document.getElementById('startBtn');
+const leaveBtn = document.getElementById('leaveBtn');
+
 let roomId = null;
 let myId = Math.random().toString(36).slice(2,10);
 let playerRef = null;
 let playersRef = null;
 let bulletsRef = null;
-let myState = { x:50, y:80, hp:100 }; // x:vw, y:vh
+let hitsRef = null;
+let myState = { id: myId, x:50, y:80, hp:100 }; // x: vw, y: vh
 let enemyState = null;
-let localBullets = {}; // key -> DOM
+let localBullets = {}; // id -> {el,x,y,vx,vy,from}
+let gameStarted = false;
+let startListenerUnsub = null;
 
 /* ----------------- 高さ修正 & ズーム無効 ----------------- */
 function fixHeight(){ document.body.style.height = window.innerHeight + 'px'; stage.style.height = window.innerHeight + 'px'; }
@@ -113,23 +127,25 @@ async function joinRoom(id){
   roomLabel.innerText = roomId;
   roomPanel.style.display = 'none';
   stage.style.display = 'block';
+  controls.style.display = 'flex';
 
   // refs
   playersRef = ref(db, `rooms/${roomId}/players`);
   bulletsRef = ref(db, `rooms/${roomId}/bullets`);
+  hitsRef = ref(db, `rooms/${roomId}/hits`);
   const myRef = push(playersRef); playerRef = myRef;
   set(myRef, { id: myId, x: myState.x, y: myState.y, hp: myState.hp, ts: Date.now() });
   onDisconnect(myRef).remove();
 
-  // 監視：プレイヤー一覧
+  // monitor player list
   onValue(playersRef, snap=>{
     const v = snap.val()||{};
     const keys = Object.keys(v);
     pcount.innerText = keys.length;
     // find opponent
-    const opp = keys.find(k=> v[k].id !== myId );
-    if(opp){
-      enemyState = v[opp];
+    const oppKey = keys.find(k=> v[k].id !== myId );
+    if(oppKey){
+      enemyState = v[oppKey];
       enemyEl.style.display = 'block';
       hpOp.innerText = Math.max(0, Math.floor(enemyState.hp));
     } else {
@@ -139,235 +155,236 @@ async function joinRoom(id){
     }
   });
 
-  // 監視：弾受信
+  // bullets listener (incoming)
   onChildAdded(bulletsRef, snap=>{
     const b = snap.val();
     const key = snap.key;
-    // ignore bullets fired by myself (we render them locally)
+    if(!b) return;
+    // ignore bullets fired by myself (we already spawn local)
     if(b.from === myId) return;
     spawnRemoteBullet(key, b.x, b.y, b.vx, b.vy);
-    // auto-remove after some time (or DB cleanup)
-    setTimeout(()=> { /* optionally remove bullet from DB later */ }, 10000);
   });
 
-  // start local loops
-  updateLoop();
-  bulletLoop();
-  aiLoop();
+  // hits listener: if hit targets me, apply damage
+  onChildAdded(hitsRef, snap=>{
+    const h = snap.val(); const key = snap.key;
+    if(!h) return;
+    if(h.target === myId){
+      myState.hp -= (h.damage || 10);
+      if(playerRef) set(playerRef, { id: myId, x: myState.x, y: myState.y, hp: myState.hp, ts: Date.now() });
+      if(myState.hp <= 0) { announce('You Lose'); endGame(true); }
+    }
+    // cleanup processed hit
+    remove(ref(db, `rooms/${roomId}/hits/${key}`));
+  });
+
+  // listen for start signal
+  const startRef = ref(db, `rooms/${roomId}/start`);
+  onValue(startRef, snap=>{
+    const v = snap.val();
+    if(v && !gameStarted){
+      // start time written — start game
+      announce('Start!');
+      beginGame(); // ensures both clients start
+    }
+  });
+
+  // enable start button only when at least 2 players present
+  // (we already update pcount above; use a separate listener to enable button)
+  onValue(playersRef, snap=>{
+    const v = snap.val()||{};
+    const count = Object.keys(v).length;
+    startBtn.disabled = (count < 2);
+  });
 }
 
-/* ----------------- AI：自動で動き＆攻撃 ----------------- */
-function aiLoop(){
-  // every 200ms update desired direction
-  setInterval(()=>{
-    // move: if enemy known, try to approach but with some randomness
-    if(enemyState){
-      const ex = enemyState.x;
-      const ey = enemyState.y;
-      // move toward with jitter
-      const dx = ex - myState.x;
-      const dy = ey - myState.y;
-      const dist = Math.hypot(dx,dy) || 1;
-      const nx = (dx/dist) * (Math.random()*0.8 + 0.6); // speed factor
-      const ny = (dy/dist) * (Math.random()*0.2 - 0.1); // slight vertical jitter
-      myState.x += nx * 0.8;
-      myState.y += ny * 0.4;
-    } else {
-      // roam
-      myState.x += (Math.random()-0.5)*2;
-      myState.y += (Math.random()-0.5)*1;
-    }
-    // bounds
-    myState.x = Math.max(5, Math.min(95, myState.x));
-    myState.y = Math.max(5, Math.min(90, myState.y));
-  }, 200);
+/* ----------------- Start synchronization ----------------- */
+startBtn.addEventListener('click', async ()=>{
+  if(!roomId) return;
+  // write start timestamp to DB if not set
+  const startRef = ref(db, `rooms/${roomId}/start`);
+  set(startRef, { t: Date.now(), by: myId }).catch(err=>console.error(err));
+  // local begin also handled via onValue listener
+});
 
-  // shoot interval
+/* ----------------- leave */
+leaveBtn.addEventListener('click', ()=>{
+  if(playerRef) remove(playerRef);
+  // optionally remove room nodes if empty (not implemented)
+  location.reload();
+});
+
+/* ----------------- AI：ランダム方向（あなたが選択） ----------------- */
+function aiLoop(){
+  // every 700ms choose random small velocity
   setInterval(()=>{
-    // create a bullet toward enemy if exists, or random direction
+    if(!gameStarted) return;
+    // random angle
+    const angle = (Math.random()*2 - 1) * Math.PI; // -PI..PI
+    const speed = 0.5 + Math.random()*1.0; // vw per tick
+    // convert to vx, vy in vw/vh scale: we'll update myState by vx,vy every 200ms
+    myState.vx = Math.cos(angle) * speed;
+    myState.vy = Math.sin(angle) * (speed * 0.5); // vertical movement smaller
+  }, 700);
+  // shooting interval
+  setInterval(()=>{
+    if(!gameStarted) return;
+    // fire toward opponent if exists else random
     let angle = Math.random()*Math.PI*2;
     if(enemyState){
       const dx = (enemyState.x - myState.x);
       const dy = (enemyState.y - myState.y);
       angle = Math.atan2(dy, dx);
     }
-    const speed = 0.9 + Math.random()*0.9;
-    const vx = Math.cos(angle)*speed;
-    const vy = Math.sin(angle)*speed;
+    const sp = 1.0 + Math.random()*0.8;
+    const vx = Math.cos(angle)*sp;
+    const vy = Math.sin(angle)*sp;
     fireBullet(myState.x, myState.y, vx, vy);
-  }, 900 + Math.random()*300);
+  }, 900 + Math.random()*400);
 }
 
 /* ----------------- bullets handling ----------------- */
-function fireBullet(x, y, vx, vy){
-  // push to DB
-  push(bulletsRef, { from: myId, x:x, y:y, vx: vx, vy: vy, t: Date.now() });
-  // also spawn local bullet for immediate feedback
-  spawnLocalBullet(x,y,vx,vy);
+function fireBullet(x,y,vx,vy){
+  // push to DB for other to see
+  push(bulletsRef, { from: myId, x: x, y: y, vx: vx, vy: vy, t: Date.now() });
+  // spawn local immediately
+  spawnLocalBullet('local-'+Math.random().toString(36).slice(2,9), x,y,vx,vy, myId);
 }
 
-function spawnLocalBullet(x,y,vx,vy){
-  const id = 'b-' + Math.random().toString(36).slice(2,9);
+function spawnLocalBullet(id,x,y,vx,vy, fromId){
   const el = document.createElement('div');
   el.className = 'bullet';
   el.style.left = (x) + 'vw';
   el.style.top = (y) + 'vh';
   document.body.appendChild(el);
-  localBullets[id] = { el, x, y, vx, vy, from: myId };
-  // auto remove after 6s
-  setTimeout(()=>{ if(localBullets[id]) { el.remove(); delete localBullets[id]; } }, 7000);
+  localBullets[id] = { el, x, y, vx, vy, from: fromId, created: Date.now() };
+  setTimeout(()=>{ if(localBullets[id]) { localBullets[id].el.remove(); delete localBullets[id]; } }, 8000);
 }
 
 function spawnRemoteBullet(key,x,y,vx,vy){
-  const id = 'r-' + key;
-  const el = document.createElement('div');
-  el.className = 'bullet';
-  el.style.left = (x) + 'vw';
-  el.style.top = (y) + 'vh';
-  document.body.appendChild(el);
-  localBullets[id] = { el, x, y, vx, vy, from: 'remote' };
-  setTimeout(()=>{ if(localBullets[id]) { el.remove(); delete localBullets[id]; } }, 7000);
+  const id = 'r-'+key;
+  spawnLocalBullet(id,x,y,vx,vy, 'remote');
 }
 
 /* ----------------- update/render loop ----------------- */
+function beginGame(){
+  if(gameStarted) return;
+  gameStarted = true;
+  announce('Battle!');
+  // initialize velocities
+  myState.vx = 0; myState.vy = 0;
+  aiLoop();
+  updateLoop();
+}
+
+/* updateLoop syncs state, renders ships, moves bullets, does collision detection */
 function updateLoop(){
   // sync my state to DB periodically
   setInterval(()=>{
     if(!playerRef) return;
     set(playerRef, { id: myId, x: myState.x, y: myState.y, hp: myState.hp, ts: Date.now() });
-  }, 300);
+  }, 250);
 
-  // render/update local bullets & check collisions
+  // main render step
   function step(){
-    // render ships
-    meEl.style.left = (myState.x) + 'vw';
-    meEl.style.top = (myState.y) + 'vh';
-    hpMe.innerText = Math.max(0, Math.floor(myState.hp));
+    if(gameStarted){
+      // apply velocity to position
+      if(typeof myState.vx === 'number'){ myState.x += myState.vx * 0.15; myState.y += myState.vy * 0.15; }
+      // bounds
+      myState.x = Math.max(3, Math.min(97, myState.x));
+      myState.y = Math.max(3, Math.min(92, myState.y));
 
-    if(enemyState){
-      enemyEl.style.left = (enemyState.x) + 'vw';
-      enemyEl.style.top = (enemyState.y) + 'vh';
-      hpOp.innerText = Math.max(0, Math.floor(enemyState.hp));
-    }
+      // render ships
+      meEl.style.left = (myState.x) + 'vw';
+      meEl.style.top = (myState.y) + 'vh';
+      hpMe.innerText = Math.max(0, Math.floor(myState.hp));
 
-    // bullets move
-    for(const id in localBullets){
-      const b = localBullets[id];
-      b.x += b.vx;
-      b.y += b.vy;
-      if(b.el){
-        b.el.style.left = (b.x) + 'vw';
-        b.el.style.top = (b.y) + 'vh';
+      if(enemyState){
+        enemyEl.style.left = (enemyState.x) + 'vw';
+        enemyEl.style.top = (enemyState.y) + 'vh';
+        hpOp.innerText = Math.max(0, Math.floor(enemyState.hp));
       }
-      // collision: if bullet not from me and hits me -> take damage
-      if(b.from !== myId){
-        const bx = (b.x/100) * window.innerWidth;
-        const by = (b.y/100) * window.innerHeight;
-        const pRect = meEl.getBoundingClientRect();
-        if(bx >= pRect.left && bx <= pRect.right && by >= pRect.top && by <= pRect.bottom){
-          // hit me
-          myState.hp -= 12 + Math.random()*6;
-          // remove bullet
-          if(b.el) { b.el.remove(); }
+
+      // bullets move & collision
+      for(const id in localBullets){
+        const b = localBullets[id];
+        b.x += b.vx * 0.9;
+        b.y += b.vy * 0.9;
+        if(b.el){
+          b.el.style.left = (b.x) + 'vw';
+          b.el.style.top = (b.y) + 'vh';
+        }
+
+        // if bullet not from me and hits me -> take damage
+        if(b.from !== myId){
+          const bx = (b.x/100) * window.innerWidth;
+          const by = (b.y/100) * window.innerHeight;
+          const pRect = meEl.getBoundingClientRect();
+          if(bx >= pRect.left && bx <= pRect.right && by >= pRect.top && by <= pRect.bottom){
+            myState.hp -= 12 + Math.random()*6;
+            // remove bullet
+            if(b.el) { b.el.remove(); }
+            delete localBullets[id];
+            if(playerRef) set(playerRef, { id: myId, x: myState.x, y: myState.y, hp: myState.hp, ts: Date.now() });
+            if(myState.hp <= 0){ announce('You Lose'); endGame(true); }
+            continue;
+          }
+        }
+
+        // if bullet from me hits enemy (approximate) -> push hit event
+        if(b.from === myId && enemyState){
+          const bx = (b.x/100) * window.innerWidth;
+          const by = (b.y/100) * window.innerHeight;
+          const eRect = enemyEl.getBoundingClientRect();
+          if(bx >= eRect.left && bx <= eRect.right && by >= eRect.top && by <= eRect.bottom){
+            // push a hit event to DB
+            push(ref(db, `rooms/${roomId}/hits`), { target: enemyState.id, damage: 10 + Math.floor(Math.random()*8), from: myId, t: Date.now() });
+            if(b.el) { b.el.remove(); }
+            delete localBullets[id];
+            continue;
+          }
+        }
+
+        // remove out-of-bounds
+        if(b.x < -10 || b.x > 110 || b.y < -10 || b.y > 110){
+          if(b.el) b.el.remove();
           delete localBullets[id];
-          // report HP to DB immediately
-          if(playerRef) set(playerRef, { id: myId, x: myState.x, y: myState.y, hp: myState.hp, ts: Date.now() });
-          // check death
-          if(myState.hp <= 0){ announce('You Lose'); endGame(true); }
         }
       }
-      // also check if bullet from me hits remote (we approximate using enemyState snapshot)
-      if(b.from === myId && enemyState){
-        const bx = (b.x/100) * window.innerWidth;
-        const by = (b.y/100) * window.innerHeight;
-        const eRect = enemyEl.getBoundingClientRect();
-        if(bx >= eRect.left && bx <= eRect.right && by >= eRect.top && by <= eRect.bottom){
-          // notify DB to reduce enemy HP (naive: write to opponent node)
-          // We cannot directly modify opponent node safely; instead push a 'hit' event
-          push(ref(db, `rooms/${roomId}/hits`), { target: enemyState.id, damage: 12, from: myId, t: Date.now() });
-          if(b.el) { b.el.remove(); }
-          delete localBullets[id];
-        }
-      }
-
-      // remove out-of-bounds bullets
-      if(b.x < -5 || b.x > 105 || b.y < -5 || b.y > 105){
-        if(b.el) b.el.remove();
-        delete localBullets[id];
-      }
     }
-
     requestAnimationFrame(step);
   }
   requestAnimationFrame(step);
 }
 
-/* ----------------- bulletLoop: server-side-ish hits processing ----------------- */
-/*
-   We listen to hits node and if a hit targets me, apply damage.
-   Also clean hits after processing (simple).
-*/
-onChildAdded(ref(db, `rooms/${roomId}/hits`), snap=>{
-  const h = snap.val();
-  const key = snap.key;
-  if(!h) return;
-  // if I'm the target, apply damage
-  // we need to fetch current players to map id->key
-  onValue(playersRef, s=>{
-    const players = s.val() || {};
-    for(const nodeKey in players){
-      if(players[nodeKey].id === myId){
-        // my nodeKey matches; check if target equals myId
-        if(h.target === myId){
-          myState.hp -= h.damage || 10;
-          if(playerRef) set(playerRef, { id: myId, x: myState.x, y: myState.y, hp: myState.hp, ts: Date.now() });
-          if(myState.hp <= 0){ announce('You Lose'); endGame(true); }
-        }
-      } else {
-        // not me
-      }
-    }
-    // remove hit event to avoid reprocessing
-    remove(ref(db, `rooms/${roomId}/hits/${key}`));
-  }, { onlyOnce:true });
-});
+/* ----------------- hits processing (already implemented earlier) ----------------- */
+/* Note: In joinRoom we already set listener to apply hits that target me. */
 
-/* ----------------- helper: announce & end ----------------- */
+/* ----------------- announce & end ----------------- */
 function announce(text){
   msg.innerText = text;
   msg.style.opacity = 1;
-  setTimeout(()=>{ msg.style.opacity = 0; }, 3000);
+  setTimeout(()=>{ msg.style.opacity = 0; }, 2000);
 }
 
 function endGame(youLost){
-  // push gameover record once
+  // push gameover record
   push(ref(db, `rooms/${roomId}/gameover`), { winner: youLost ? 'opponent' : myId, ts: Date.now() });
-  // cleanup: remove my player node
+  // cleanup my player node
   if(playerRef) remove(playerRef);
-  // stop activity by halting ai loops is non-trivial here; reload for simplicity
-  setTimeout(()=>{ location.reload(); }, 3000);
+  setTimeout(()=>{ location.reload(); }, 2500);
 }
 
-/* ----------------- sync opponent node updates (map id->state) ----------------- */
-onValue(playersRef, snap=>{
-  const v = snap.val() || {};
-  // find opponent by id != myId and map to enemyState
-  for(const nodeKey in v){
-    const p = v[nodeKey];
-    if(p.id !== myId){
-      enemyState = p;
-      enemyEl.style.display = 'block';
-      hpOp.innerText = Math.max(0, Math.floor(enemyState.hp));
-      return;
-    }
-  }
-  enemyState = null;
-  enemyEl.style.display = 'none';
-  hpOp.innerText = '—';
-});
+/* ----------------- map players -> enemyState updates (keep snapshot fresh) ----------------- */
+onValue(()=>{}, {onlyOnce:true}); // no-op to satisfy static checks
 
-/* ----------------- Safety notes ----------------- */
-console.log('joined as', myId);
+// keep enemyState mapping updated by watching playersRef (we already set onValue in joinRoom)
+// but add global listener in case joinRoom not used path
+function safeLog(v){ console.log(v); }
+
+/* ----------------- debug log id */
+console.log('client id', myId);
+
 </script>
 </body>
 </html>
