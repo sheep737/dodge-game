@@ -1,107 +1,171 @@
+{"id":"67192","variant":"standard"}
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<title>対戦ブロック崩し</title>
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+<title>Duel Paddle Battle</title>
 
 <style>
-body {
-    margin: 0;
-    background: #111;
-    overflow: hidden;
-    user-select: none;
-    touch-action: none;
-}
+  html,body{
+    height:100%;
+    margin:0;
+    padding:0;
+    overflow:hidden;
+    background:#111;
+    touch-action:none;
+  }
 
-#game {
-    position: absolute;
-    width: 100vw;
-    height: 100vh;
-    background: #222;
-}
+  /* ルーム入力画面 */
+  #roomPanel{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.85);
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    gap:1.2rem;
+    z-index:10;
+  }
+  #roomPanel input{
+    width:70vw;
+    padding:0.6rem;
+    font-size:5vw;
+  }
+  #roomPanel button{
+    padding:0.6rem 1rem;
+    font-size:5vw;
+  }
 
-.paddle {
-    position: absolute;
-    width: 20vw;
-    height: 3vh;
-    background: #4af;
-}
+  /* ステージ */
+  #stage{
+    position:fixed;
+    inset:0;
+    background:#222;
+    overflow:hidden;
+    display:none;
+  }
 
-#me { bottom: 5vh; }
-#op { top: 5vh; background: #f55; }
+  #hud{
+    color:white;
+    background:rgba(0,0,0,0.3);
+    padding:0.6rem;
+    position:absolute;
+    left:3vw;
+    top:3vw;
+    font-size:4vw;
+    border-radius:6px;
+    z-index:20;
+  }
 
-#ball {
-    position: absolute;
-    width: 4vw;
-    height: 4vw;
-    max-width: 25px;
-    max-height: 25px;
-    border-radius: 50%;
-    background: #fff;
-    display: none;
-}
+  /* パドル */
+  .paddle{
+    position:absolute;
+    width:22vw;
+    height:3vh;
+    max-height:30px;
+    background:#4af;
+    border-radius:4px;
+  }
+  #me{
+    bottom:16vh; /* ← ← 修正済み: かなり上げた */
+    left:50vw;
+    transform:translateX(-50%);
+  }
+  #op{
+    top:8vh;
+    left:50vw;
+    background:#f55;
+    transform:translateX(-50%);
+  }
 
-/* UI */
-#ui {
-    position: absolute;
-    top: 1vh;
-    left: 2vw;
-    color: #fff;
-    font-size: 4vw;
-    z-index: 20;
-}
+  /* ボール */
+  #ball{
+    position:absolute;
+    width:4vw;
+    height:4vw;
+    max-width:25px;
+    max-height:25px;
+    border-radius:50%;
+    background:#fff;
+    display:none;
+    z-index:30;
+  }
 
-#startBtn {
-    font-size: 5vw;
-    padding: 1vw 3vw;
-    margin-top: 1vw;
-}
+  /* ボタン（下の方にあったのを上へ） */
+  #controls{
+    position:absolute;
+    bottom:3vh;      /* ← 上に移動 */
+    height:12vh;     /* ← 小さめに調整 */
+    width:100vw;
+    display:flex;
+    z-index:30;
+  }
+  .btn{
+    flex:1;
+    background:rgba(255,255,255,0.12);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:white;
+    font-size:10vw;
+  }
+  .btn:active{
+    background:rgba(255,255,255,0.3);
+  }
 
-#controls {
-    position: absolute;
-    bottom: 0;
-    height: 15vh;
-    width: 100vw;
-    display: flex;
-}
-.btn {
-    flex: 1;
-    background: rgba(255,255,255,0.1);
-    color: white;
-    font-size: 10vw;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.btn:active { background: rgba(255,255,255,0.3); }
+  /* メッセージ */
+  #msg{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:white;
+    font-size:8vw;
+    z-index:40;
+    opacity:0;
+    transition:opacity 0.4s;
+  }
 </style>
 </head>
 <body>
 
-<div id="game">
-    <div id="ui">
-        Room: <span id="roomText"></span><br>
-        Players: <span id="pCount">0</span><br>
-        <button id="startBtn" disabled>Start</button>
-    </div>
-
-    <div id="me" class="paddle"></div>
-    <div id="op" class="paddle"></div>
-    <div id="ball"></div>
-
-    <div id="controls">
-        <div id="left"  class="btn">◀</div>
-        <div id="right" class="btn">▶</div>
-    </div>
+<!-- ルーム入力 -->
+<div id="roomPanel">
+  <div style="color:white;font-size:6vw;">Room ID を入力</div>
+  <input id="roomInput" placeholder="例: paddle01" />
+  <button id="joinBtn">Join</button>
+  <button id="createBtn">Create Random</button>
+  <div style="color:#ccc;font-size:4vw;">同じIDの相手と同期対戦</div>
 </div>
 
-<script type="module">
-/* ----- Firebase ----- */
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, set, onValue, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+<!-- ゲーム画面 -->
+<div id="stage">
+  <div id="hud">
+    Room: <span id="roomLabel">-</span><br>
+    Players: <span id="pcount">0</span>
+  </div>
 
-/* ---- ここをあなたの Firebase に変更 ---- */
+  <div id="msg"></div>
+
+  <div id="me" class="paddle"></div>
+  <div id="op" class="paddle"></div>
+  <div id="ball"></div>
+
+  <div id="controls">
+    <div id="leftBtn" class="btn">◀</div>
+    <div id="rightBtn" class="btn">▶</div>
+  </div>
+</div>
+
+<!-- Firebase（あなたの設定をそのまま使用） -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, set, push, onValue, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+/* あなたの Firebase 設定 */
 const firebaseConfig = {
     apiKey: "AIzaSyAs8DqxHiRzveAMJ7j-UMBWKp6ztGF-hd8",
     authDomain: "ddgame-6f5f8.firebaseapp.com",
@@ -112,126 +176,146 @@ const firebaseConfig = {
     appId: "1:172945824128:web:e3c7333928e1545aa1c965",
     measurementId: "G-FG0645HHZD"
 };
-/* -------------------------------------- */
-
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-/* ----- ゲーム変数 ----- */
+/* --- UI参照 --- */
+const roomPanel = document.getElementById("roomPanel");
+const roomInput = document.getElementById("roomInput");
+const joinBtn = document.getElementById("joinBtn");
+const createBtn = document.getElementById("createBtn");
+
+const stage = document.getElementById("stage");
 const me = document.getElementById("me");
 const op = document.getElementById("op");
 const ball = document.getElementById("ball");
 
-let roomId = prompt("RoomID?") || "test";
-document.getElementById("roomText").innerText = roomId;
+const pcount = document.getElementById("pcount");
+const roomLabel = document.getElementById("roomLabel");
+const msg = document.getElementById("msg");
 
-let myId = Math.random().toString(36).slice(2,10);
-let myX = 40;
-let opX = 40;
+const leftBtn = document.getElementById("leftBtn");
+const rightBtn = document.getElementById("rightBtn");
 
-let ballX = 45;
-let ballY = 45;
-let vx = 1;   // ボール速度
-let vy = 1.5;
-
+/* --- 状態 --- */
+let roomId = "";
+let myId = Math.random().toString(36).slice(2, 10);
+let myX = 50;
+let opX = 50;
+let moveLeft = false;
+let moveRight = false;
 let gameStarted = false;
 
-/* ----- Firebase参照 ----- */
-const playersRef = ref(db, roomId + "/players");
-const ballRef = ref(db, roomId + "/ball");
+let vx = 0.4;
+let vy = -0.5;
+let bx = 50;
+let by = 50;
 
-/* ----- プレイヤー登録 ----- */
-const myRef = push(playersRef);
-set(myRef, { id: myId, x: myX });
-onValue(playersRef, snap => {
-    const val = snap.val() || {};
-    const keys = Object.keys(val);
-
-    document.getElementById("pCount").innerText = keys.length;
-
-    // 相手の位置更新
-    for (const k of keys) {
-        if (val[k].id !== myId) opX = val[k].x;
-    }
-
-    // 2人揃ったら Start を押せる
-    document.getElementById("startBtn").disabled = (keys.length < 2);
+/* --- ズーム禁止 --- */
+["gesturestart","gesturechange","gestureend"].forEach(ev=>{
+  document.addEventListener(ev,e=>e.preventDefault(),{passive:false});
 });
 
-/* ----- 操作 ----- */
-let leftDown = false, rightDown = false;
+/* --- Join処理 --- */
+createBtn.onclick = () => {
+  roomInput.value = "room-" + Math.floor(Math.random()*99999);
+};
+joinBtn.onclick = () => {
+  const id = roomInput.value.trim();
+  if(!id){ alert("Room ID を入力して"); return; }
+  joinRoom(id);
+};
 
-document.getElementById("left").addEventListener("touchstart", ()=> leftDown = true);
-document.getElementById("left").addEventListener("touchend", ()=> leftDown = false);
-document.getElementById("right").addEventListener("touchstart", ()=> rightDown = true);
-document.getElementById("right").addEventListener("touchend", ()=> rightDown = false);
+function joinRoom(id){
+  roomId = id;
+  roomLabel.innerText = id;
 
-/* ----- Start ----- */
-document.getElementById("startBtn").addEventListener("click", ()=>{
-    set(ballRef, { start: true });
-});
+  roomPanel.style.display = "none";
+  stage.style.display = "block";
 
-/* ----- ボール同期 ----- */
-onValue(ballRef, snap => {
-    const v = snap.val();
-    if (!v) return;
+  const myRef = ref(db, `rooms/${roomId}/players/${myId}`);
+  set(myRef, { x: myX });
 
-    if (v.start && !gameStarted) {
-        gameStarted = true;
-        ball.style.display = "block";
+  onDisconnect(myRef).remove();
+
+  const playersRef = ref(db, `rooms/${roomId}/players`);
+  onValue(playersRef, snap=>{
+    const v = snap.val() || {};
+    const keys = Object.keys(v);
+    pcount.textContent = keys.length;
+
+    const oppKey = keys.find(k => k !== myId);
+    if(oppKey){
+      opX = v[oppKey].x ?? 50;
     }
-});
+  });
 
-/* ----- メインループ ----- */
-function loop() {
-    if (gameStarted) {
-
-        /* パドルの移動 */
-        if (leftDown)  myX -= 1.5;
-        if (rightDown) myX += 1.5;
-        myX = Math.max(0, Math.min(80, myX));
-
-        me.style.left = myX + "vw";
-        op.style.left = opX + "vw";
-
-        // Firebaseへ送信
-        set(myRef, { id: myId, x: myX });
-
-        /* ボールの移動 */
-        ballX += vx;
-        ballY += vy;
-
-        ball.style.left = ballX + "vw";
-        ball.style.top  = ballY + "vh";
-
-        // 壁反射
-        if (ballX <= 0 || ballX >= 96) vx *= -1;
-
-        // 下のプレイヤーに当たる
-        if (ballY >= 83) {
-            if (ballX + 4 >= myX && ballX <= myX + 20) {
-                vy *= -1;
-            } else {
-                alert("あなたの負け！");
-                location.reload();
-            }
-        }
-
-        // 上のプレイヤーに当たる
-        if (ballY <= 8) {
-            if (ballX + 4 >= opX && ballX <= opX + 20) {
-                vy *= -1;
-            } else {
-                alert("あなたの勝ち！");
-                location.reload();
-            }
-        }
+  const startRef = ref(db, `rooms/${roomId}/start`);
+  onValue(startRef, snap=>{
+    if(snap.val() && !gameStarted){
+      startGame();
     }
+  });
 
-    requestAnimationFrame(loop);
+  set(startRef, Date.now());
 }
-loop();
 
+/* --- ゲーム開始 --- */
+function startGame(){
+  gameStarted = true;
+  msg.textContent = "START!";
+  msg.style.opacity = 1;
+  setTimeout(()=> msg.style.opacity = 0, 1200);
+
+  bx = 50;
+  by = 50;
+  ball.style.display = "block";
+
+  gameLoop();
+}
+
+/* --- 操作 --- */
+leftBtn.ontouchstart = ()=> moveLeft = true;
+leftBtn.ontouchend   = ()=> moveLeft = false;
+rightBtn.ontouchstart= ()=> moveRight = true;
+rightBtn.ontouchend  = ()=> moveRight = false;
+
+/* --- メインループ --- */
+function gameLoop(){
+  if(moveLeft) myX -= 1.2;
+  if(moveRight) myX += 1.2;
+  myX = Math.max(5, Math.min(95, myX));
+  me.style.left = myX + "vw";
+
+  set(ref(db, `rooms/${roomId}/players/${myId}`), { x: myX });
+
+  op.style.left = opX + "vw";
+
+  bx += vx;
+  by += vy;
+
+  if(bx < 0 || bx > 100) vx *= -1;
+
+  if(by < 0){
+    vy *= -1;
+  }
+
+  if(by > 88 && by < 92){
+    if(Math.abs(bx - myX) < 12){
+      vy *= -1;
+    } else if(by > 95){
+      msg.textContent = "YOU LOSE";
+      msg.style.opacity = 1;
+      setTimeout(()=>location.reload(), 2000);
+      return;
+    }
+  }
+
+  ball.style.left = bx + "vw";
+  ball.style.top = by + "vh";
+
+  requestAnimationFrame(gameLoop);
+}
 </script>
 </body>
 </html>
