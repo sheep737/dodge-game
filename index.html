@@ -3,38 +3,60 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />
-<title>Pong VS – Working Fixed Version</title>
+<title>Pong VS – Fixed Version</title>
 <style>
   html,body { margin:0; padding:0; height:100%; background:#111; overflow:hidden; }
-  #roomPanel { position:fixed; inset:0; background:#000c; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:1.4rem; z-index:20; }
-  #roomPanel input { font-size:5vw; padding:0.6rem 1rem; width:70vw; }
-  #roomPanel button { font-size:5vw; padding:0.6rem 1.2rem; }
 
-  #stage { position:fixed; inset:0; background:#222; display:none; overflow:hidden; }
-  #ball  { position:absolute; width:4vw; height:4vw; max-width:35px; max-height:35px; border-radius:50%; background:#ff6; z-index:5; }
+  /* ▼ ルーム入力パネル */
+  #roomPanel {
+    position:fixed; inset:0; background:#000c;
+    display:flex; flex-direction:column;
+    justify-content:center; align-items:center; gap:2rem;
+    z-index:20;
+  }
+  #roomPanel input {
+    font-size:5vw; padding:1rem; width:70vw;
+  }
+  #roomPanel button {
+    font-size:5vw; padding:1rem 2rem;
+  }
+
+  /* ▼ スタートボタン */
+  #startBtn {
+    position:fixed;
+    top:3vh; right:3vw;
+    z-index:50;
+    font-size:5vw; padding:1rem 2rem;
+    display:none;
+  }
+
+  /* ▼ ゲームステージ */
+  #stage { position:fixed; inset:0; background:#222; display:none; }
+
+  #ball  {
+    position:absolute;
+    width:5vw; height:5vw; max-width:40px; max-height:40px;
+    background:#ff6; border-radius:50%;
+  }
 
   .paddle {
     position:absolute;
     width:20vw; height:3vh;
-    background:#4af;
-    border-radius:8px;
+    background:#4af; border-radius:8px;
   }
-  #me    { bottom:14vh; left:40vw; }
-  #op    { top:14vh; left:40vw; background:#f55; }
+  #me { bottom:16vh; left:40vw; }
+  #op { top:16vh; left:40vw; background:#f55; }
 
   #controls {
-    position:fixed;
-    bottom:3vh;
+    position:fixed; bottom:4vh;
     left:0; right:0;
-    display:flex; justify-content:center; gap:10vw;
-    z-index:30;
+    display:flex; justify-content:center; gap:12vw;
+    z-index:40;
   }
   .btn {
-    font-size:6vw;
-    padding:1.2rem 1.6rem;
+    font-size:6vw; padding:1.2rem 1.6rem;
     background:#333; color:#fff;
-    border:2px solid #fff;
-    border-radius:8px;
+    border:2px solid #fff; border-radius:8px;
     user-select:none;
   }
 
@@ -42,24 +64,27 @@
     position:fixed; inset:0;
     display:flex; justify-content:center; align-items:center;
     font-size:10vw; color:#fff;
-    pointer-events:none;
     opacity:0; transition:0.4s;
-    z-index:40;
+    z-index:60;
   }
 </style>
 </head>
 
 <body>
 
+<!-- ▼ Room 設定 -->
 <div id="roomPanel">
   <div style="color:#fff;font-size:6vw;">Room ID を入力</div>
-  <input id="roomInput" placeholder="例: vs123" />
+  <input id="roomInput" placeholder="例: room123" />
   <div>
     <button id="joinBtn">Join</button>
     <button id="createBtn">Random</button>
   </div>
 </div>
 
+<button id="startBtn">START</button>
+
+<!-- ▼ ゲーム -->
 <div id="stage">
   <div id="ball"></div>
   <div id="me" class="paddle"></div>
@@ -74,58 +99,65 @@
 </div>
 
 <script type="module">
+/* ===== Firebase ===== */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import {
-  getDatabase, ref, set, onValue, onDisconnect
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, set, onValue, onDisconnect } 
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyAs8DqxHiRzveAMJ7j-UMBWKp6ztGF-hd8",
-    authDomain: "ddgame-6f5f8.firebaseapp.com",
-    databaseURL: "https://ddgame-6f5f8-default-rtdb.firebaseio.com",
-    projectId: "ddgame-6f5f8",
-    storageBucket: "ddgame-6f5f8.firebasestorage.app",
-    messagingSenderId: "172945824128",
-    appId: "1:172945824128:web:e3c7333928e1545aa1c965",
+  apiKey: "AIzaSyAs8DqxHiRzveAMJ7j-UMBWKp6ztGF-hd8",
+  authDomain: "ddgame-6f5f8.firebaseapp.com",
+  databaseURL: "https://ddgame-6f5f8-default-rtdb.firebaseio.com",
+  projectId: "ddgame-6f5f8",
+  storageBucket: "ddgame-6f5f8.firebasestorage.app",
+  messagingSenderId: "172945824128",
+  appId: "1:172945824128:web:e3c7333928e1545aa1c965"
 };
 
 const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
 
-/* UI */
+/* ===== UI ===== */
 const roomPanel=document.getElementById("roomPanel");
 const roomInput=document.getElementById("roomInput");
 const joinBtn=document.getElementById("joinBtn");
 const createBtn=document.getElementById("createBtn");
+const startBtn=document.getElementById("startBtn");
+
 const stage=document.getElementById("stage");
+const me=document.getElementById("me");
+const op=document.getElementById("op");
+const ball=document.getElementById("ball");
+const msg=document.getElementById("msg");
 
-const me = document.getElementById("me");
-const op = document.getElementById("op");
-const ball = document.getElementById("ball");
-const msg = document.getElementById("msg");
+const leftBtn=document.getElementById("leftBtn");
+const rightBtn=document.getElementById("rightBtn");
 
-const leftBtn = document.getElementById("leftBtn");
-const rightBtn = document.getElementById("rightBtn");
-
-/* 状態 */
+/* ===== 状態 ===== */
 let roomId=null;
-let myId = Math.random().toString(36).slice(2,10);
+let myId=Math.random().toString(36).slice(2,10);
 let hostId=null;
-let playersRef=null;
-let ballRef=null;
 
 let myX=50, opX=50;
-let bx=50, by=50;     // 0〜100 の「画面％」
-let vx=0.6, vy=1.0;
+let bx=50, by=50;         // 0〜100%
+let vx=0.35, vy=0.55;     // ★ 遅くした
 let moveLeft=false, moveRight=false;
-let gameStarted=false;
 
-/* ===== Join / Create ===== */
-createBtn.onclick=()=>roomInput.value="room-"+Math.floor(Math.random()*99999);
+let playersRef=null;
+let ballRef=null;
+let controlRef=null;
 
+let gameRunning=false;
+
+/* ===== Room 作成ボタン ===== */
+createBtn.onclick=()=>{
+  roomInput.value="room-"+Math.floor(Math.random()*99999);
+};
+
+/* ===== Join ===== */
 joinBtn.onclick=()=>{
-  const id = roomInput.value.trim();
-  if(!id) return alert("Room IDを入力");
+  const id=roomInput.value.trim();
+  if(!id) return alert("Room ID を入力");
   joinRoom(id);
 };
 
@@ -133,94 +165,128 @@ function joinRoom(id){
   roomId=id;
   roomPanel.style.display="none";
   stage.style.display="block";
+  startBtn.style.display="block";
 
   playersRef = ref(db,`rooms/${roomId}/players`);
   ballRef    = ref(db,`rooms/${roomId}/ball`);
+  controlRef = ref(db,`rooms/${roomId}/control/start`);
 
-  // ホスト決定
-  onValue(playersRef, snap=>{
-    const v=snap.val()||{};
-    const ks=Object.keys(v);
-    hostId= ks.length===0 ? myId : ks[0];
-  },{onlyOnce:true});
-
-  // 自分登録
+  /* 参加者登録 */
   const myRef = ref(db,`rooms/${roomId}/players/${myId}`);
   set(myRef,{x:50});
   onDisconnect(myRef).remove();
 
-  // 相手座標
-  onValue(playersRef, snap=>{
-    const v=snap.val()||{};
+  /* ホスト決定 */
+  onValue(playersRef,s=>{
+    const v=s.val()||{};
+    const keys=Object.keys(v);
+    hostId=keys[0];
+  });
+
+  /* 相手の位置 */
+  onValue(playersRef,s=>{
+    const v=s.val()||{};
     for(const k in v) if(k!==myId) opX=v[k].x;
   });
 
-  // ホストは初期ボール作成
-  onValue(ballRef, snap=>{
-    const v=snap.val();
-    if(!v){
-      if(myId===hostId){
-        set(ballRef,{bx:50,by:50,vx,vy});
-      }
-      return;
+  /* スタート同期 */
+  onValue(controlRef,s=>{
+    if(s.val()==="go"){
+      startBtn.style.display="none";
+      gameRunning=true;
     }
-    bx=v.bx; by=v.by; vx=v.vx; vy=v.vy;
-    gameStarted=true;
+  });
+
+  /* ボール同期 */
+  onValue(ballRef,s=>{
+    const v=s.val();
+    if(v){
+      bx=v.bx; by=v.by; vx=v.vx; vy=v.vy;
+    }
   });
 
   gameLoop();
 }
 
-/* ボタン */
+/* ===== START ===== */
+startBtn.onclick=()=>{
+  if(myId===hostId){
+    set(controlRef,"go");
+    set(ballRef,{bx,by,vx,vy});
+  }
+  startBtn.style.display="none";
+  gameRunning=true;
+};
+
+/* ===== 移動ボタン ===== */
 function bind(btn,on,off){
-  btn.addEventListener("touchstart", on);
-  btn.addEventListener("touchend", off);
-  btn.addEventListener("mousedown", on);
-  btn.addEventListener("mouseup", off);
+  btn.addEventListener("touchstart",on);
+  btn.addEventListener("touchend",off);
+  btn.addEventListener("mousedown",on);
+  btn.addEventListener("mouseup",off);
 }
 bind(leftBtn, ()=>moveLeft=true, ()=>moveLeft=false);
-bind(rightBtn, ()=>moveRight=true, ()=>moveRight=false);
+bind(rightBtn,()=>moveRight=true,()=>moveRight=false);
 
 /* ===== ゲームループ ===== */
 function gameLoop(){
 
+  /* 自分の移動 */
   if(moveLeft)  myX -= 1.5;
   if(moveRight) myX += 1.5;
-  myX = Math.max(8, Math.min(92, myX));
+  myX=Math.max(8,Math.min(92,myX));
+
   me.style.left = myX+"vw";
   set(ref(db,`rooms/${roomId}/players/${myId}`),{x:myX});
 
   op.style.left = opX+"vw";
 
-  if(gameStarted){
+  /* ボール */
+  if(gameRunning){
 
-    /* ホストだけがボールを動かす */
+    /* ★ ホストだけ物理演算する */
     if(myId===hostId){
       bx += vx;
       by += vy;
 
+      /* 壁 */
       if(bx<1||bx>99) vx*=-1;
 
-      const meY = 14;
-      const opY = 14;
+      /* パドル判定 (±3%) */
+      const hitRange = 3;
 
-      if(by > (100 - meY) - 2 && by < (100 - meY) + 2){
-        if(Math.abs(bx-myX)<15) vy*=-1;
-      }
-      if(by < opY+2 && by>opY-2){
-        if(Math.abs(bx-opX)<15) vy*=-1;
+      // 下側（自分）
+      if(by > 84 && by < 86){
+        if(Math.abs(bx - myX) < 15){
+          vy *= -1;
+        }
       }
 
-      // 負け
-      if(by>100){
+      // 上側（相手）
+      if(by < 16 && by > 14){
+        if(Math.abs(bx - opX) < 15){
+          vy *= -1;
+        }
+      }
+
+      /* ★ Lose / Win 判定 */
+      if(by > 100){
         msg.textContent="YOU LOSE";
         msg.style.opacity=1;
-        setTimeout(()=>location.reload(),1800);
+        setTimeout(()=>location.reload(),2000);
       }
 
+      if(by < 0){
+        msg.textContent="YOU WIN!";
+        msg.style.opacity=1;
+        setTimeout(()=>location.reload(),2000);
+      }
+
+      /* 他の端末へ送信 */
       set(ballRef,{bx,by,vx,vy});
     }
 
+    /* 描画 */
     ball.style.left = bx+"vw";
     ball.style.top  = by+"vh";
   }
