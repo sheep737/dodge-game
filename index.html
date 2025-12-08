@@ -1,71 +1,107 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-<title>Duel — Manual Control (Buttons)</title>
+<meta charset="UTF-8">
+<title>対戦ブロック崩し</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+
 <style>
-  html,body{height:100%;margin:0;padding:0;overflow:hidden;background:#111;font-family:system-ui,-apple-system,Segoe UI,Roboto;}
-  /* ルーム入力 */
-  #roomPanel{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem;background:rgba(0,0,0,0.85);z-index:50}
-  #roomPanel input{font-size:5vw;padding:0.6rem 0.8rem;width:70vw;box-sizing:border-box}
-  #roomPanel button{font-size:5vw;padding:0.6rem 1rem}
-  /* ゲーム */
-  #stage{position:fixed;left:0;top:0;width:100vw;height:100vh;background:#222;overflow:hidden}
-  #hud{position:absolute;left:4vw;top:3vw;color:#fff;z-index:40;font-size:4vw;background:rgba(0,0,0,0.3);padding:0.6vw;border-radius:6px}
-  .ship{position:absolute;width:10vw;height:10vw;max-width:70px;max-height:70px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#000;font-weight:bold;z-index:30}
-  #me{background:#4af;left:45vw;bottom:10vh}
-  #enemy{background:#f55;left:45vw;top:10vh;display:none}
-  .bullet{position:absolute;width:3vw;height:1.5vw;max-width:20px;max-height:10px;border-radius:3px;background:#ffd;z-index:20}
-  #msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:8vw;z-index:60;pointer-events:none}
-  #controls { position: absolute; left:50%; transform:translateX(-50%); bottom:3vh; z-index:60; display:flex; gap:3vw; align-items:center; }
-  .ctrl-btn { width:18vw; height:12vw; max-width:120px; max-height:80px; border-radius:12px; background:rgba(255,255,255,0.08); color:#fff; font-size:5vw; display:flex; align-items:center; justify-content:center; user-select:none; -webkit-user-select:none; }
-  .ctrl-btn:active { background:rgba(255,255,255,0.2); }
-  #startBtn { font-size:4vw; padding:0.6rem 0.8rem; }
-  @media (min-width:600px){
-    .ctrl-btn { width:120px; height:60px; font-size:20px; }
-    #roomPanel input { font-size:18px; }
-    #roomPanel button { font-size:18px; }
-  }
+body {
+    margin: 0;
+    background: #111;
+    overflow: hidden;
+    user-select: none;
+    touch-action: none;
+}
+
+#game {
+    position: absolute;
+    width: 100vw;
+    height: 100vh;
+    background: #222;
+}
+
+.paddle {
+    position: absolute;
+    width: 20vw;
+    height: 3vh;
+    background: #4af;
+}
+
+#me { bottom: 5vh; }
+#op { top: 5vh; background: #f55; }
+
+#ball {
+    position: absolute;
+    width: 4vw;
+    height: 4vw;
+    max-width: 25px;
+    max-height: 25px;
+    border-radius: 50%;
+    background: #fff;
+    display: none;
+}
+
+/* UI */
+#ui {
+    position: absolute;
+    top: 1vh;
+    left: 2vw;
+    color: #fff;
+    font-size: 4vw;
+    z-index: 20;
+}
+
+#startBtn {
+    font-size: 5vw;
+    padding: 1vw 3vw;
+    margin-top: 1vw;
+}
+
+#controls {
+    position: absolute;
+    bottom: 0;
+    height: 15vh;
+    width: 100vw;
+    display: flex;
+}
+.btn {
+    flex: 1;
+    background: rgba(255,255,255,0.1);
+    color: white;
+    font-size: 10vw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.btn:active { background: rgba(255,255,255,0.3); }
 </style>
 </head>
 <body>
 
-<!-- ルーム選択 -->
-<div id="roomPanel">
-  <div style="color:#fff;font-size:6vw">Room ID を入力して Join</div>
-  <input id="roomInput" placeholder="例: duel123" />
-  <div>
-    <button id="joinBtn">Join</button>
-    <button id="createBtn">Create Random</button>
-  </div>
-  <div style="color:#bbb;font-size:3.8vw">同じ Room ID の相手と対戦（Start で同時開始）</div>
+<div id="game">
+    <div id="ui">
+        Room: <span id="roomText"></span><br>
+        Players: <span id="pCount">0</span><br>
+        <button id="startBtn" disabled>Start</button>
+    </div>
+
+    <div id="me" class="paddle"></div>
+    <div id="op" class="paddle"></div>
+    <div id="ball"></div>
+
+    <div id="controls">
+        <div id="left"  class="btn">◀</div>
+        <div id="right" class="btn">▶</div>
+    </div>
 </div>
 
-<!-- ステージ -->
-<div id="stage" style="display:none;">
-  <div id="hud">Room: <span id="roomLabel">—</span> &nbsp; Players: <span id="pcount">0</span></div>
-  <div id="msg"></div>
-  <div id="me" class="ship">ME<br><small id="hpMe">100</small></div>
-  <div id="enemy" class="ship">OP<br><small id="hpOp">—</small></div>
-
-  <!-- ボタン操作 -->
-  <div id="controls" style="display:none;">
-    <div id="leftBtn" class="ctrl-btn">◀</div>
-    <div id="fireBtn" class="ctrl-btn">FIRE</div>
-    <div id="rightBtn" class="ctrl-btn">▶</div>
-    &nbsp;
-    <button id="startBtn" class="ui" style="margin-left:2vw">Start</button>
-    <button id="leaveBtn" class="ui" style="margin-left:1vw">Leave</button>
-  </div>
-</div>
-
-<!-- Firebase (module) -->
 <script type="module">
+/* ----- Firebase ----- */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, set, push, onValue, onChildAdded, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, set, onValue, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-/* ====== あなたの Firebase 設定（既に提供されたものを使用） ====== */
+/* ---- ここをあなたの Firebase に変更 ---- */
 const firebaseConfig = {
     apiKey: "AIzaSyAs8DqxHiRzveAMJ7j-UMBWKp6ztGF-hd8",
     authDomain: "ddgame-6f5f8.firebaseapp.com",
@@ -76,318 +112,125 @@ const firebaseConfig = {
     appId: "1:172945824128:web:e3c7333928e1545aa1c965",
     measurementId: "G-FG0645HHZD"
 };
-/* =============================================================== */
+/* -------------------------------------- */
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-/* ----------------- UI 要素 ----------------- */
-const roomPanel = document.getElementById('roomPanel');
-const roomInput = document.getElementById('roomInput');
-const joinBtn = document.getElementById('joinBtn');
-const createBtn = document.getElementById('createBtn');
+/* ----- ゲーム変数 ----- */
+const me = document.getElementById("me");
+const op = document.getElementById("op");
+const ball = document.getElementById("ball");
 
-const stage = document.getElementById('stage');
-const roomLabel = document.getElementById('roomLabel');
-const pcount = document.getElementById('pcount');
-const msg = document.getElementById('msg');
+let roomId = prompt("RoomID?") || "test";
+document.getElementById("roomText").innerText = roomId;
 
-const meEl = document.getElementById('me');
-const enemyEl = document.getElementById('enemy');
-const hpMe = document.getElementById('hpMe');
-const hpOp = document.getElementById('hpOp');
-
-const controls = document.getElementById('controls');
-const leftBtn = document.getElementById('leftBtn');
-const rightBtn = document.getElementById('rightBtn');
-const fireBtn = document.getElementById('fireBtn');
-const startBtn = document.getElementById('startBtn');
-const leaveBtn = document.getElementById('leaveBtn');
-
-let roomId = null;
 let myId = Math.random().toString(36).slice(2,10);
-let playerRef = null;
-let playersRef = null;
-let bulletsRef = null;
-let hitsRef = null;
-let myState = { id: myId, x:50, y:80, hp:100 }; // x: vw, y: vh
-let enemyState = null;
-let localBullets = {}; // id -> {el,x,y,vx,vy,from}
+let myX = 40;
+let opX = 40;
+
+let ballX = 45;
+let ballY = 45;
+let vx = 1;   // ボール速度
+let vy = 1.5;
+
 let gameStarted = false;
 
-/* ----------------- iPhone 高さ修正 & ズーム無効 ----------------- */
-function fixHeight(){ document.body.style.height = window.innerHeight + 'px'; stage.style.height = window.innerHeight + 'px'; }
-window.addEventListener('resize', fixHeight);
-window.addEventListener('orientationchange', fixHeight);
-fixHeight();
-['gesturestart','gesturechange','gestureend'].forEach(ev=>document.addEventListener(ev,e=>e.preventDefault(),{passive:false}));
-let lt=0; document.addEventListener('touchend', e=>{ const now=Date.now(); if(now-lt<350) e.preventDefault(); lt=now; }, {passive:false});
-document.addEventListener('touchstart', e=>{ if(e.touches && e.touches.length>1) e.preventDefault(); }, {passive:false});
-document.documentElement.style.fontSize = '16px';
+/* ----- Firebase参照 ----- */
+const playersRef = ref(db, roomId + "/players");
+const ballRef = ref(db, roomId + "/ball");
 
-/* ----------------- Join / Create ----------------- */
-createBtn.addEventListener('click', ()=>{
-  const id = 'room-' + Math.floor(Math.random()*100000);
-  roomInput.value = id;
-});
-joinBtn.addEventListener('click', async ()=>{
-  const id = (roomInput.value||'').trim();
-  if(!id){ alert('Room ID を入力してください'); return; }
-  await joinRoom(id);
-});
+/* ----- プレイヤー登録 ----- */
+const myRef = push(playersRef);
+set(myRef, { id: myId, x: myX });
+onValue(playersRef, snap => {
+    const val = snap.val() || {};
+    const keys = Object.keys(val);
 
-async function joinRoom(id){
-  roomId = id;
-  roomLabel.innerText = roomId;
-  roomPanel.style.display = 'none';
-  stage.style.display = 'block';
-  controls.style.display = 'flex';
+    document.getElementById("pCount").innerText = keys.length;
 
-  // refs
-  playersRef = ref(db, `rooms/${roomId}/players`);
-  bulletsRef = ref(db, `rooms/${roomId}/bullets`);
-  hitsRef = ref(db, `rooms/${roomId}/hits`);
-  const myRef = push(playersRef); playerRef = myRef;
-  set(myRef, { id: myId, x: myState.x, y: myState.y, hp: myState.hp, ts: Date.now() });
-  onDisconnect(myRef).remove();
-
-  // monitor player list
-  onValue(playersRef, snap=>{
-    const v = snap.val()||{};
-    const keys = Object.keys(v);
-    pcount.innerText = keys.length;
-    // find opponent
-    const oppKey = keys.find(k=> v[k].id !== myId );
-    if(oppKey){
-      enemyState = v[oppKey];
-      enemyEl.style.display = 'block';
-      hpOp.innerText = Math.max(0, Math.floor(enemyState.hp));
-    } else {
-      enemyState = null;
-      enemyEl.style.display = 'none';
-      hpOp.innerText = '—';
+    // 相手の位置更新
+    for (const k of keys) {
+        if (val[k].id !== myId) opX = val[k].x;
     }
-  });
 
-  // bullets listener (incoming)
-  onChildAdded(bulletsRef, snap=>{
-    const b = snap.val();
-    const key = snap.key;
-    if(!b) return;
-    // ignore bullets fired by myself (we already spawn local)
-    if(b.from === myId) return;
-    spawnRemoteBullet(key, b.x, b.y, b.vx, b.vy);
-  });
+    // 2人揃ったら Start を押せる
+    document.getElementById("startBtn").disabled = (keys.length < 2);
+});
 
-  // hits listener: if hit targets me, apply damage
-  onChildAdded(hitsRef, snap=>{
-    const h = snap.val(); const key = snap.key;
-    if(!h) return;
-    if(h.target === myId){
-      myState.hp -= (h.damage || 10);
-      if(playerRef) set(playerRef, { id: myId, x: myState.x, y: myState.y, hp: myState.hp, ts: Date.now() });
-      if(myState.hp <= 0) { announce('You Lose'); endGame(true); }
-    }
-    // cleanup processed hit
-    remove(ref(db, `rooms/${roomId}/hits/${key}`));
-  });
+/* ----- 操作 ----- */
+let leftDown = false, rightDown = false;
 
-  // listen for start signal
-  const startRef = ref(db, `rooms/${roomId}/start`);
-  onValue(startRef, snap=>{
+document.getElementById("left").addEventListener("touchstart", ()=> leftDown = true);
+document.getElementById("left").addEventListener("touchend", ()=> leftDown = false);
+document.getElementById("right").addEventListener("touchstart", ()=> rightDown = true);
+document.getElementById("right").addEventListener("touchend", ()=> rightDown = false);
+
+/* ----- Start ----- */
+document.getElementById("startBtn").addEventListener("click", ()=>{
+    set(ballRef, { start: true });
+});
+
+/* ----- ボール同期 ----- */
+onValue(ballRef, snap => {
     const v = snap.val();
-    if(v && !gameStarted){
-      // start time written — start game
-      announce('Start!');
-      beginGame(); // ensures both clients start
+    if (!v) return;
+
+    if (v.start && !gameStarted) {
+        gameStarted = true;
+        ball.style.display = "block";
     }
-  });
-
-  // enable start button only when at least 2 players present
-  onValue(playersRef, snap=>{
-    const v = snap.val()||{};
-    const count = Object.keys(v).length;
-    startBtn.disabled = (count < 2);
-  });
-}
-
-/* ----------------- Start synchronization ----------------- */
-startBtn.addEventListener('click', async ()=>{
-  if(!roomId) return;
-  const startRef = ref(db, `rooms/${roomId}/start`);
-  set(startRef, { t: Date.now(), by: myId }).catch(err=>console.error(err));
 });
 
-/* ----------------- leave */
-leaveBtn.addEventListener('click', ()=>{
-  if(playerRef) remove(playerRef);
-  location.reload();
-});
+/* ----- メインループ ----- */
+function loop() {
+    if (gameStarted) {
 
-/* ----------------- Manual controls (no AI) ----------------- */
-let moveLeft = false;
-let moveRight = false;
-const MOVE_SPEED = 0.9; // vw per tick (tune as needed)
+        /* パドルの移動 */
+        if (leftDown)  myX -= 1.5;
+        if (rightDown) myX += 1.5;
+        myX = Math.max(0, Math.min(80, myX));
 
-/* touch / mouse handling for left/right buttons */
-function bindControl(btn, startCb, endCb){
-  btn.addEventListener('touchstart', (e)=>{ e.preventDefault(); startCb(); }, {passive:false});
-  btn.addEventListener('touchend', (e)=>{ e.preventDefault(); endCb(); }, {passive:false});
-  btn.addEventListener('mousedown', (e)=>{ e.preventDefault(); startCb(); });
-  btn.addEventListener('mouseup', (e)=>{ e.preventDefault(); endCb(); });
-  btn.addEventListener('mouseleave', (e)=>{ e.preventDefault(); endCb(); });
-}
+        me.style.left = myX + "vw";
+        op.style.left = opX + "vw";
 
-bindControl(leftBtn, ()=> moveLeft = true, ()=> moveLeft = false);
-bindControl(rightBtn, ()=> moveRight = true, ()=> moveRight = false);
+        // Firebaseへ送信
+        set(myRef, { id: myId, x: myX });
 
-/* fire button: single-shot on press */
-bindControl(fireBtn, ()=> { if(gameStarted) doFire(); }, ()=>{ /* no-op on release */ });
+        /* ボールの移動 */
+        ballX += vx;
+        ballY += vy;
 
-function doFire(){
-  // calculate direction toward enemy if known, else upward
-  let angle = -Math.PI/2; // upward default (negative y)
-  if(enemyState){
-    const dx = (enemyState.x - myState.x);
-    const dy = (enemyState.y - myState.y);
-    angle = Math.atan2(dy, dx);
-  }
-  const sp = 1.6; // bullet speed
-  const vx = Math.cos(angle)*sp;
-  const vy = Math.sin(angle)*sp;
-  fireBullet(myState.x, myState.y, vx, vy);
-}
+        ball.style.left = ballX + "vw";
+        ball.style.top  = ballY + "vh";
 
-/* ----------------- bullets handling ----------------- */
-function fireBullet(x,y,vx,vy){
-  if(!bulletsRef) return;
-  push(bulletsRef, { from: myId, x: x, y: y, vx: vx, vy: vy, t: Date.now() });
-  spawnLocalBullet('local-'+Math.random().toString(36).slice(2,9), x,y,vx,vy, myId);
-}
+        // 壁反射
+        if (ballX <= 0 || ballX >= 96) vx *= -1;
 
-function spawnLocalBullet(id,x,y,vx,vy, fromId){
-  const el = document.createElement('div');
-  el.className = 'bullet';
-  el.style.left = (x) + 'vw';
-  el.style.top = (y) + 'vh';
-  document.body.appendChild(el);
-  localBullets[id] = { el, x, y, vx, vy, from: fromId, created: Date.now() };
-  setTimeout(()=>{ if(localBullets[id]) { localBullets[id].el.remove(); delete localBullets[id]; } }, 8000);
-}
-
-function spawnRemoteBullet(key,x,y,vx,vy){
-  const id = 'r-'+key;
-  spawnLocalBullet(id,x,y,vx,vy, 'remote');
-}
-
-/* ----------------- update/render loop (manual movement) ----------------- */
-function beginGame(){
-  if(gameStarted) return;
-  gameStarted = true;
-  announce('Battle!');
-  // ensure velocities cleared
-  myState.vx = 0; myState.vy = 0;
-  updateLoop();
-}
-
-function updateLoop(){
-  // sync my state to DB periodically
-  setInterval(()=>{
-    if(!playerRef) return;
-    set(playerRef, { id: myId, x: myState.x, y: myState.y, hp: myState.hp, ts: Date.now() });
-  }, 250);
-
-  // main render step
-  function step(){
-    if(gameStarted){
-      // manual move
-      if(moveLeft) myState.x -= MOVE_SPEED;
-      if(moveRight) myState.x += MOVE_SPEED;
-      // clamp
-      myState.x = Math.max(3, Math.min(97, myState.x));
-      myState.y = Math.max(3, Math.min(92, myState.y));
-
-      // render ships
-      meEl.style.left = (myState.x) + 'vw';
-      meEl.style.top = (myState.y) + 'vh';
-      hpMe.innerText = Math.max(0, Math.floor(myState.hp));
-
-      if(enemyState){
-        enemyEl.style.left = (enemyState.x) + 'vw';
-        enemyEl.style.top = (enemyState.y) + 'vh';
-        hpOp.innerText = Math.max(0, Math.floor(enemyState.hp));
-      }
-
-      // bullets move & collision
-      for(const id in localBullets){
-        const b = localBullets[id];
-        b.x += b.vx * 0.9;
-        b.y += b.vy * 0.9;
-        if(b.el){
-          b.el.style.left = (b.x) + 'vw';
-          b.el.style.top = (b.y) + 'vh';
+        // 下のプレイヤーに当たる
+        if (ballY >= 83) {
+            if (ballX + 4 >= myX && ballX <= myX + 20) {
+                vy *= -1;
+            } else {
+                alert("あなたの負け！");
+                location.reload();
+            }
         }
 
-        // if bullet not from me and hits me -> take damage
-        if(b.from !== myId){
-          const bx = (b.x/100) * window.innerWidth;
-          const by = (b.y/100) * window.innerHeight;
-          const pRect = meEl.getBoundingClientRect();
-          if(bx >= pRect.left && bx <= pRect.right && by >= pRect.top && by <= pRect.bottom){
-            myState.hp -= 12 + Math.random()*6;
-            if(b.el) b.el.remove();
-            delete localBullets[id];
-            if(playerRef) set(playerRef, { id: myId, x: myState.x, y: myState.y, hp: myState.hp, ts: Date.now() });
-            if(myState.hp <= 0){ announce('You Lose'); endGame(true); }
-            continue;
-          }
+        // 上のプレイヤーに当たる
+        if (ballY <= 8) {
+            if (ballX + 4 >= opX && ballX <= opX + 20) {
+                vy *= -1;
+            } else {
+                alert("あなたの勝ち！");
+                location.reload();
+            }
         }
-
-        // if bullet from me hits enemy -> push hit event
-        if(b.from === myId && enemyState){
-          const bx = (b.x/100) * window.innerWidth;
-          const by = (b.y/100) * window.innerHeight;
-          const eRect = enemyEl.getBoundingClientRect();
-          if(bx >= eRect.left && bx <= eRect.right && by >= eRect.top && by <= eRect.bottom){
-            push(ref(db, `rooms/${roomId}/hits`), { target: enemyState.id, damage: 10 + Math.floor(Math.random()*8), from: myId, t: Date.now() });
-            if(b.el) b.el.remove();
-            delete localBullets[id];
-            continue;
-          }
-        }
-
-        // remove out-of-bounds
-        if(b.x < -10 || b.x > 110 || b.y < -10 || b.y > 110){
-          if(b.el) b.el.remove();
-          delete localBullets[id];
-        }
-      }
     }
-    requestAnimationFrame(step);
-  }
-  requestAnimationFrame(step);
+
+    requestAnimationFrame(loop);
 }
-
-/* ----------------- hits processing (already implemented earlier) ----------------- */
-/* joinRoom added listener to hitsRef that modifies myState.hp if target === myId */
-
-/* ----------------- announce & end ----------------- */
-function announce(text){
-  msg.innerText = text;
-  msg.style.opacity = 1;
-  setTimeout(()=>{ msg.style.opacity = 0; }, 2000);
-}
-
-function endGame(youLost){
-  // push gameover record
-  push(ref(db, `rooms/${roomId}/gameover`), { winner: youLost ? 'opponent' : myId, ts: Date.now() });
-  // cleanup my player node
-  if(playerRef) remove(playerRef);
-  setTimeout(()=>{ location.reload(); }, 2500);
-}
-
-/* ----------------- debug log id */
-console.log('client id', myId);
+loop();
 
 </script>
 </body>
