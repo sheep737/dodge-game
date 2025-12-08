@@ -3,47 +3,97 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Paddle Duel — Start Fix</title>
+<title>Paddle Duel</title>
+
 <style>
-  html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#111;font-family:system-ui;}
-  #stage{position:fixed;left:0;top:0;width:100vw;height:100vh;background:#222;display:none;overflow:hidden;}
-  #title{position:fixed;right:3vw;top:2vw;font-size:5vw;color:white;z-index:100;}
-  #roomPanel{position:fixed;inset:0;background:#000c;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2rem;z-index:50;}
-  #roomPanel input{width:70vw;font-size:6vw;padding:1rem;}
-  #roomPanel button{font-size:6vw;padding:1rem 2rem;}
-  #hud{position:fixed;left:3vw;top:2vw;color:#fff;font-size:4vw;z-index:100;}
-  .paddle{position:absolute;width:22vw;height:3vh;background:#4af;border-radius:8px;}
+  html,body{
+    margin:0;padding:0;height:100%;overflow:hidden;
+    background:#111;font-family:system-ui;
+  }
+
+  #stage{
+    position:fixed;left:0;top:0;width:100vw;height:100vh;
+    background:#222;display:none;overflow:hidden;
+  }
+
+  #title{
+    position:fixed;right:3vw;top:2vw;
+    font-size:5vw;color:white;z-index:100;
+  }
+
+  #roomPanel{
+    position:fixed;inset:0;background:#000c;
+    display:flex;flex-direction:column;
+    justify-content:center;align-items:center;
+    gap:2rem;z-index:50;
+  }
+  #roomPanel input{
+    width:70vw;font-size:6vw;padding:1rem;
+  }
+  #roomPanel button{
+    font-size:6vw;padding:1rem 2rem;
+  }
+
+  #hud{
+    position:fixed;left:3vw;top:2vw;color:#fff;
+    font-size:4vw;z-index:100;
+  }
+
+  .paddle{
+    position:absolute;width:22vw;height:3vh;
+    background:#4af;border-radius:8px;
+  }
   #enemyPaddle{background:#f55;top:5vh;}
   #myPaddle{bottom:8vh;}
-  #ball{position:absolute;width:4vw;height:4vw;border-radius:50%;background:#ffd;display:none;}
-  #topControls{position:fixed;right:3vw;bottom:20vh;display:flex;flex-direction:column;gap:1rem;z-index:200;}
-  .tbtn{background:#333;color:#fff;border:2px solid #fff;padding:.8rem 1.4rem;font-size:5vw;border-radius:8px;}
-  #msg{position:fixed;inset:0;display:flex;justify-content:center;align-items:center;font-size:10vw;color:white;z-index:300;opacity:0;transition:opacity .3s;}
-  #controls{position:fixed;left:0;right:0;bottom:env(safe-area-inset-bottom,20px);display:flex;justify-content:center;gap:20vw;z-index:200;}
-  .btn{background:#333;color:white;border:2px solid #fff;padding:1rem 2rem;font-size:8vw;border-radius:10px;user-select:none;}
-  #ver{position:fixed; right:3vw; top:8vh; color:#fff; font-size:3.5vw; z-index:120;}
-  /* small screens gently shrink */
-  @media (min-width:600px){
-    .paddle{width:200px;height:18px;}
-    #myPaddle{left:calc(50% - 100px);}
-    #enemyPaddle{left:calc(50% - 100px);}
+
+  #ball{
+    position:absolute;width:4vw;height:4vw;border-radius:50%;
+    background:#ffd;display:none;
+  }
+
+  #topControls{
+    position:fixed;right:3vw;bottom:20vh;
+    display:flex;flex-direction:column;
+    gap:1rem;z-index:200;
+  }
+  .tbtn{
+    background:#333;color:#fff;border:2px solid #fff;
+    padding:.8rem 1.4rem;font-size:5vw;border-radius:8px;
+    user-select:none;
+  }
+
+  /* ← Start ボタンを押せるように修正 */
+  #msg{
+    position:fixed;inset:0;display:flex;
+    justify-content:center;align-items:center;
+    font-size:10vw;color:white;z-index:300;
+    opacity:0;transition:opacity .3s;
+    pointer-events:none;   /* ★透明の時は押せるように */
+  }
+
+  #controls{
+    position:fixed;left:0;right:0;
+    bottom:env(safe-area-inset-bottom,20px);
+    display:flex;justify-content:center;
+    gap:20vw;z-index:200;
+  }
+  .btn{
+    background:#333;color:white;border:2px solid #fff;
+    padding:1rem 2rem;font-size:8vw;border-radius:10px;
+    user-select:none;
   }
 </style>
 </head>
+
 <body>
 <div id="roomPanel">
   <div style="color:white;font-size:7vw;">Room ID</div>
   <input id="roomInput" placeholder="abc123">
-  <div>
-    <button id="joinBtn">Join</button>
-    <button id="createBtn">Random</button>
-  </div>
-  <div style="color:#ccc;font-size:3.8vw;">同じ Room ID の相手と対戦（Start を押すまで始まらない）</div>
+  <button id="joinBtn">Join</button>
 </div>
 
 <div id="stage">
-  <div id="title">Paddle Duel</div>
-  <div id="ver">v1.0.4</div>
+  <div id="title">Paddle Duel v1.1</div>
   <div id="hud">Players: <span id="pcount">1</span></div>
   <div id="msg"></div>
 
@@ -64,11 +114,9 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import {
-  getDatabase, ref, set, push, onValue, onChildAdded, remove, onDisconnect
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, set, onValue, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-/* ---------- Firebase 設定（あなたの既存設定を使用） ---------- */
+/* ↓あなたのFirebaseのまま↓ */
 const firebaseConfig = {
     apiKey: "AIzaSyAs8DqxHiRzveAMJ7j-UMBWKp6ztGF-hd8",
     authDomain: "ddgame-6f5f8.firebaseapp.com",
@@ -79,280 +127,169 @@ const firebaseConfig = {
     appId: "1:172945824128:web:e3c7333928e1545aa1c965",
     measurementId: "G-FG0645HHZD"
 };
-/* ---------------------------------------------------------- */
 
-const app = initializeApp(firebaseConfig);
-const db  = getDatabase(app);
+const app=initializeApp(firebaseConfig);
+const db=getDatabase(app);
 
-/* UI refs */
-const roomPanel = document.getElementById('roomPanel');
-const createBtn = document.getElementById('createBtn');
-const joinBtn   = document.getElementById('joinBtn');
-const stage     = document.getElementById('stage');
-const pcount    = document.getElementById('pcount');
-const msg       = document.getElementById('msg');
+const roomPanel=document.getElementById("roomPanel");
+const stage=document.getElementById("stage");
+const msg=document.getElementById("msg");
+const pcount=document.getElementById("pcount");
 
-const myPaddle  = document.getElementById('myPaddle');
-const opPaddle  = document.getElementById('enemyPaddle');
-const ballEl    = document.getElementById('ball');
+const myP=document.getElementById("myPaddle");
+const opP=document.getElementById("enemyPaddle");
+const ball=document.getElementById("ball");
 
-const startBtn  = document.getElementById('startBtn');
-const leaveBtn  = document.getElementById('leaveBtn');
-const leftBtn   = document.getElementById('leftBtn');
-const rightBtn  = document.getElementById('rightBtn');
+const startBtn=document.getElementById("startBtn");
+const leaveBtn=document.getElementById("leaveBtn");
+const leftBtn=document.getElementById("leftBtn");
+const rightBtn=document.getElementById("rightBtn");
 
-let roomId = null;
-let myId = Math.random().toString(36).slice(2,10);
+let roomId=null;
+let myId=Math.random().toString(36).slice(2,10);
 
-let playersRef = null;
-let ballRef = null;
-let eventsRef = null;
-let meRef = null;
+let playersRef,ballRef,startRef,meRef;
+let enemyId=null;
+let gameStarted=false;
 
-let enemyId = null; // opponent's player key
-let myX = 40;       // in vw (0..~78)
-let enemyX = 40;
+let myX=40;
+let enemyX=40;
+let ballX=50, ballY=50, vx=0, vy=0;
+
 let moveLeft=false, moveRight=false;
 
-let gameStarted=false;
-let isHost=false;
-
-/* safer pointer binding */
-function bindControl(elem, on, off){
-  elem.addEventListener('pointerdown', e=>{ e.preventDefault(); on(); });
-  elem.addEventListener('pointerup',    e=>{ e.preventDefault(); off(); });
-  elem.addEventListener('pointercancel', off);
-  elem.addEventListener('pointerleave',  off);
+function bind(btn,on,off){
+  btn.addEventListener("pointerdown",e=>{e.preventDefault();on();});
+  btn.addEventListener("pointerup",off);
+  btn.addEventListener("pointerleave",off);
 }
-bindControl(leftBtn, ()=>moveLeft=true, ()=>moveLeft=false);
-bindControl(rightBtn, ()=>moveRight=true, ()=>moveRight=false);
-
-/* Create random room id */
-createBtn.onclick = ()=> { document.getElementById('roomInput').value = 'room-' + Math.floor(Math.random()*99999); };
+bind(leftBtn,()=>moveLeft=true,()=>moveLeft=false);
+bind(rightBtn,()=>moveRight=true,()=>moveRight=false);
 
 /* Join */
-joinBtn.onclick = ()=>{
-  const id = document.getElementById('roomInput').value.trim();
-  if(!id){ alert('Room ID を入力してください'); return; }
+document.getElementById("joinBtn").onclick=()=>{
+  const id=document.getElementById("roomInput").value.trim();
+  if(!id){ alert("Room ID 必須"); return; }
   joinRoom(id);
 };
 
 function joinRoom(id){
-  roomId = id;
-  roomPanel.style.display = 'none';
-  stage.style.display = 'block';
+  roomId=id;
+  roomPanel.style.display="none";
+  stage.style.display="block";
 
-  playersRef = ref(db, `rooms/${roomId}/players`);
-  ballRef    = ref(db, `rooms/${roomId}/ball`);
-  eventsRef  = ref(db, `rooms/${roomId}/events`);
+  playersRef=ref(db,`rooms/${roomId}/players`);
+  ballRef=ref(db,`rooms/${roomId}/ball`);
+  startRef=ref(db,`rooms/${roomId}/start`);
 
-  // register myself under stable key = myId
-  meRef = ref(db, `rooms/${roomId}/players/${myId}`);
-  set(meRef, { id: myId, x: myX }).catch(e => console.error('set meRef failed', e));
+  meRef=ref(db,`rooms/${roomId}/players/${myId}`);
+  set(meRef,{id:myId,x:myX});
   onDisconnect(meRef).remove();
 
-  // update player list & host detection
-  onValue(playersRef, snap=>{
-    const v = snap.val() || {};
-    const keys = Object.keys(v);
-    pcount.innerText = keys.length;
-    // sort keys to pick deterministic host
-    keys.sort();
-    const hostKey = keys[0] || null;
-    isHost = (hostKey === myId);
-    // determine enemy id (any other key)
-    enemyId = keys.find(k => k !== myId) || null;
-    if(enemyId && v[enemyId]) enemyX = v[enemyId].x;
+  onValue(playersRef,snap=>{
+    const v=snap.val()||{};
+    const keys=Object.keys(v);
+    pcount.innerText=keys.length;
+
+    enemyId=keys.find(k=>k!==myId);
+    if(enemyId && v[enemyId]) enemyX=v[enemyId].x;
   });
 
-  // listen events (start will be pushed here)
-  onChildAdded(eventsRef, snap=>{
-    const ev = snap.val();
-    if(!ev) return;
-    console.log('event received', ev);
-    if(ev.type === 'start'){
-      // if this client is host and ball not set, host will set ball on its own when sending — but handle beginGame for all clients
-      if(!gameStarted){
-        // if event has initialBall and it's included, host may have set ballRef already. Wait a tiny bit to allow ballRef update.
-        setTimeout(()=> beginGame(), 50);
-      }
+  onValue(ballRef,snap=>{
+    const b=snap.val();
+    if(!b) return;
+    ballX=b.x; ballY=b.y;
+  });
+
+  /* ← Startが確実に作られる */
+  onValue(startRef,snap=>{
+    const dat=snap.val();
+    if(dat?.go && !gameStarted){
+      beginGame();
     }
   });
-
-  // Listen for ball updates (host writes ballRef)
-  onValue(ballRef, snap=>{
-    const b = snap.val();
-    if(!b) return;
-    // ball coordinates are stored as numbers 0..100 (vw/vh)
-    if(typeof b.x === 'number') { ballX = b.x; }
-    if(typeof b.y === 'number') { ballY = b.y; }
-    if(typeof b.vx === 'number') { vx = b.vx; }
-    if(typeof b.vy === 'number') { vy = b.vy; }
-  });
-
-  // also update enemy position live
-  onValue(playersRef, snap=>{
-    const v = snap.val() || {};
-    if(enemyId && v[enemyId]) enemyX = v[enemyId].x;
-  });
-
-  console.log('joined', roomId, 'myId', myId);
 }
 
-/* Events: use push to avoid overwrite issues */
-startBtn.addEventListener('click', async ()=>{
-  if(!roomId){ console.warn('no room'); return; }
-  try{
-    console.log('Start pressed, pushing event');
-    await push(eventsRef, { type:'start', by: myId, t: Date.now() });
-    console.log('start event pushed');
-    // host responsibility: if I'm host, also initialize ball state
-    // but to be safe, host will set ballRef right after writing event
-    if(isHost){
-      const initial = {
-        x:50,
-        y:50,
-        vx: (Math.random()*0.4+0.3) * (Math.random()<0.5?-1:1),
-        vy: (Math.random()*0.35+0.45) * (Math.random()<0.5?-1:1)
-      };
-      console.log('host initializing ball', initial);
-      await set(ballRef, initial);
-    }
-  }catch(err){
-    console.error('failed to push start event', err);
-    alert('Start write failed: ' + (err && err.message ? err.message : err));
-  }
-});
+/* Start ボタン */
+startBtn.onclick=()=>{
+  if(!roomId) return;
+  set(startRef,{go:true,t:Date.now()});
+};
 
 /* Leave */
-leaveBtn.addEventListener('click', ()=>{
-  if(meRef) remove(meRef).catch(()=>{});
+leaveBtn.onclick=()=>{
+  if(meRef) remove(meRef);
   location.reload();
-});
+};
 
-/* Message helper */
-function announce(text, ms=1500){
-  msg.innerText = text;
-  msg.style.opacity = 1;
-  setTimeout(()=> msg.style.opacity = 0, ms);
-}
-
-/* Game state (vw/vh coords) */
-let ballX = 50, ballY = 50, vx = 0, vy = 0;
-
-/* beginGame: show ball and start loop */
 function beginGame(){
-  if(gameStarted) return;
-  gameStarted = true;
-  announce('Start!');
-  ballEl.style.display = 'block';
-  // If host and no ball exists yet, host should initialize (this is redundant if host already set)
-  // Loop will be started below
-  requestAnimationFrame(loop);
+  gameStarted=true;
+  announce("Start!");
+
+  ball.style.display="block";
+
+  vx = (Math.random()*0.4+0.3)*(Math.random()<0.5?-1:1);
+  vy = -0.5;
+
+  loop();
 }
 
-/* paddle movement and synchronization */
-function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
+function announce(t){
+  msg.innerText=t;
+  msg.style.opacity=1;
+  msg.style.pointerEvents="auto";
 
-let lastSync = 0;
-function syncMyPaddle(){
-  // write myX every 150ms
-  const now = Date.now();
-  if(now - lastSync > 150){
-    lastSync = now;
-    set(meRef, { id: myId, x: myX }).catch(e=>console.error('set meRef failed', e));
-  }
+  setTimeout(()=>{
+    msg.style.opacity=0;
+    msg.style.pointerEvents="none";
+  },1500);
 }
 
-/* pointer controls (already bound above) */
-let prevTime = performance.now();
+function loop(){
+  if(!gameStarted){ requestAnimationFrame(loop); return; }
 
-/* host logic helper: stable host detection uses sorted keys earlier (isHost) */
+  if(moveLeft) myX-=0.9;
+  if(moveRight) myX+=0.9;
+  myX=Math.max(0,Math.min(78,myX));
+  set(meRef,{id:myId,x:myX});
+  myP.style.left=myX+"vw";
 
-/* precise collision detection in vw/vh coordinates:
-   paddles widths = 22 vw, paddle top = enemy ~5vh, bottom ~8vh from bottom (i.e. ~92vh)
-*/
-function loop(now){
-  // move paddle locally
-  if(moveLeft)  myX -= 0.9;
-  if(moveRight) myX += 0.9;
-  myX = clamp(myX, 0, 78);
-  myPaddle.style.left = myX + 'vw';
-  // update enemy paddle position visually (enemyX updated from DB)
-  opPaddle.style.left = enemyX + 'vw';
+  if(enemyId) opP.style.left=enemyX+"vw";
 
-  // send my paddle occasionally
-  syncMyPaddle();
+  /* Host がボールを動かす */
+  if(!enemyId || myId < enemyId){
 
-  if(gameStarted){
-    // Only host performs physics and writes ballRef
-    if(isHost){
-      ballX += vx;
-      ballY += vy;
+    ballX+=vx;
+    ballY+=vy;
 
-      // wall bounce
-      if(ballX < 0){ ballX = 0; vx = Math.abs(vx); }
-      if(ballX > 96){ ballX = 96; vx = -Math.abs(vx); }
+    if(ballX<0 || ballX>96) vx*=-1;
 
-      // convert paddle positions to vh for collision comparisons
-      // enemy paddle is at top ~5vh (we treat as y = ~5)
-      // my paddle is at bottom => around y = 92vh (100 - 8)
-      const topPaddleY = 5;   // approximate
-      const bottomPaddleY = 92; // approximate
-
-      // paddle width area
-      const pw = 22; // vw
-      // ball size approx 4 vw (we use center)
-      // collision top
-      if(ballY <= topPaddleY + 3){
-        if(ballX + 2 >= enemyX && ballX <= enemyX + pw){
-          // reflect downward
-          ballY = topPaddleY + 3;
-          vy = Math.abs(vy);
-        }
-      }
-
-      // collision bottom
-      if(ballY >= bottomPaddleY - 3){
-        if(ballX + 2 >= myX && ballX <= myX + pw){
-          ballY = bottomPaddleY - 3;
-          vy = -Math.abs(vy);
-        }
-      }
-
-      // lose/win check (host handles authoritative)
-      if(ballY > 105){
-        // ball passed bottom -> whoever next to bottom loses (host determines)
-        // if the bottom player is host? doesn't matter; just broadcast event and announce
-        announce('You Lose', 2000);
-        // push an event to notify all (optional)
-        push(eventsRef, { type:'gameover', result:'lose', by: myId, t: Date.now() }).catch(()=>{});
-        setTimeout(()=> location.reload(), 1800);
-        return;
-      }
-      if(ballY < -10){
-        announce('You Win!', 2000);
-        push(eventsRef, { type:'gameover', result:'win', by: myId, t: Date.now() }).catch(()=>{});
-        setTimeout(()=> location.reload(), 1800);
-        return;
-      }
-
-      // write ball state back to DB
-      set(ballRef, { x: ballX, y: ballY, vx: vx, vy: vy }).catch(e=>console.error('ball set failed', e));
+    if(ballY<10 && ballX>enemyX-2 && ballX<enemyX+22){
+      vy*=-1;
     }
 
-    // render ball for all clients (use last-known ballX/ballY)
-    ballEl.style.left = ballX + 'vw';
-    ballEl.style.top  = ballY + 'vh';
+    if(ballY>80 && ballX>myX-2 && ballX<myX+22){
+      vy*=-1;
+    }
+
+    if(ballY > 100){
+      announce("You Lose");
+      setTimeout(()=>location.reload(),1500);
+    }
+
+    if(ballY < -5){
+      announce("You Win!");
+      setTimeout(()=>location.reload(),1500);
+    }
+
+    set(ballRef,{x:ballX,y:ballY});
   }
+
+  ball.style.left=ballX+"vw";
+  ball.style.top=ballY+"vh";
 
   requestAnimationFrame(loop);
 }
-
-/* small debug console logs to aid diagnosis */
-console.log('Client ready. id=', myId);
-
-/* If user wants to see Firebase nodes, open Firebase console and check /rooms/<roomId>/events and /rooms/<roomId>/ball */
 </script>
 </body>
 </html>
