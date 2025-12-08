@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />
-<title>VS Paddle Duel – Fixed</title>
+<title>Pong VS – Working Fixed Version</title>
 <style>
   html,body { margin:0; padding:0; height:100%; background:#111; overflow:hidden; }
   #roomPanel { position:fixed; inset:0; background:#000c; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:1.4rem; z-index:20; }
@@ -19,8 +19,8 @@
     background:#4af;
     border-radius:8px;
   }
-  #me    { bottom:16vh; left:40vw; }
-  #op    { top:16vh; left:40vw; background:#f55; }
+  #me    { bottom:14vh; left:40vw; }
+  #op    { top:14vh; left:40vw; background:#f55; }
 
   #controls {
     position:fixed;
@@ -51,9 +51,8 @@
 
 <body>
 
-<!-- Room -->
 <div id="roomPanel">
-  <div style="color:#fff;font-size:6vw;">Room ID を入力して対戦</div>
+  <div style="color:#fff;font-size:6vw;">Room ID を入力</div>
   <input id="roomInput" placeholder="例: vs123" />
   <div>
     <button id="joinBtn">Join</button>
@@ -61,7 +60,6 @@
   </div>
 </div>
 
-<!-- Stage -->
 <div id="stage">
   <div id="ball"></div>
   <div id="me" class="paddle"></div>
@@ -75,11 +73,10 @@
   <div id="msg"></div>
 </div>
 
-<!-- Firebase -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
-  getDatabase, ref, set, onValue, push, onDisconnect
+  getDatabase, ref, set, onValue, onDisconnect
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 const firebaseConfig = {
@@ -90,7 +87,6 @@ const firebaseConfig = {
     storageBucket: "ddgame-6f5f8.firebasestorage.app",
     messagingSenderId: "172945824128",
     appId: "1:172945824128:web:e3c7333928e1545aa1c965",
-    measurementId: "G-FG0645HHZD"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -117,19 +113,19 @@ let myId = Math.random().toString(36).slice(2,10);
 let hostId=null;
 let playersRef=null;
 let ballRef=null;
+
 let myX=50, opX=50;
-let bx=50, by=50, vx=0.6, vy=0.9;
+let bx=50, by=50;     // 0〜100 の「画面％」
+let vx=0.6, vy=1.0;
 let moveLeft=false, moveRight=false;
 let gameStarted=false;
 
 /* ===== Join / Create ===== */
-createBtn.onclick=()=>{
-  roomInput.value = "room-"+Math.floor(Math.random()*99999);
-};
+createBtn.onclick=()=>roomInput.value="room-"+Math.floor(Math.random()*99999);
 
 joinBtn.onclick=()=>{
   const id = roomInput.value.trim();
-  if(!id) return alert("Room IDを入力してください");
+  if(!id) return alert("Room IDを入力");
   joinRoom(id);
 };
 
@@ -141,11 +137,11 @@ function joinRoom(id){
   playersRef = ref(db,`rooms/${roomId}/players`);
   ballRef    = ref(db,`rooms/${roomId}/ball`);
 
-  // 誰もいなければ自分がホスト
+  // ホスト決定
   onValue(playersRef, snap=>{
-    const v = snap.val()||{};
-    const keys = Object.keys(v);
-    hostId = keys.length === 0 ? myId : keys[0];
+    const v=snap.val()||{};
+    const ks=Object.keys(v);
+    hostId= ks.length===0 ? myId : ks[0];
   },{onlyOnce:true});
 
   // 自分登録
@@ -153,83 +149,78 @@ function joinRoom(id){
   set(myRef,{x:50});
   onDisconnect(myRef).remove();
 
-  // 相手の位置
+  // 相手座標
   onValue(playersRef, snap=>{
-    const v = snap.val()||{};
+    const v=snap.val()||{};
     for(const k in v) if(k!==myId) opX=v[k].x;
   });
 
-  // ボール同期
+  // ホストは初期ボール作成
   onValue(ballRef, snap=>{
     const v=snap.val();
-    if(!v) return;
+    if(!v){
+      if(myId===hostId){
+        set(ballRef,{bx:50,by:50,vx,vy});
+      }
+      return;
+    }
     bx=v.bx; by=v.by; vx=v.vx; vy=v.vy;
-    gameStarted = true;  // ← 初回ボール受信で開始
+    gameStarted=true;
   });
-
-  // ホストは初期ボール生成
-  if(hostId===myId){
-    set(ballRef,{bx:50,by:50,vx,vy});
-  }
 
   gameLoop();
 }
 
-/* ボタン入力 */
-function bindBtn(btn, on, off){
+/* ボタン */
+function bind(btn,on,off){
   btn.addEventListener("touchstart", on);
   btn.addEventListener("touchend", off);
   btn.addEventListener("mousedown", on);
   btn.addEventListener("mouseup", off);
 }
-bindBtn(leftBtn, ()=>moveLeft=true, ()=>moveLeft=false);
-bindBtn(rightBtn, ()=>moveRight=true, ()=>moveRight=false);
+bind(leftBtn, ()=>moveLeft=true, ()=>moveLeft=false);
+bind(rightBtn, ()=>moveRight=true, ()=>moveRight=false);
 
 /* ===== ゲームループ ===== */
 function gameLoop(){
 
-  if(moveLeft)  myX -= 1.2;
-  if(moveRight) myX += 1.2;
-  myX = Math.max(5, Math.min(95, myX));
+  if(moveLeft)  myX -= 1.5;
+  if(moveRight) myX += 1.5;
+  myX = Math.max(8, Math.min(92, myX));
   me.style.left = myX+"vw";
+  set(ref(db,`rooms/${roomId}/players/${myId}`),{x:myX});
 
   op.style.left = opX+"vw";
 
-  // パドル更新
-  set(ref(db,`rooms/${roomId}/players/${myId}`),{x:myX});
-
   if(gameStarted){
 
-    // ホストのみボールを動かす
-    if(myId === hostId){
-      bx += vx;  
+    /* ホストだけがボールを動かす */
+    if(myId===hostId){
+      bx += vx;
       by += vy;
 
-      if(bx<0||bx>100) vx*=-1;
-      if(by<0) vy*=-1;
+      if(bx<1||bx>99) vx*=-1;
 
-      // パドル反射
-      const py = 16;
+      const meY = 14;
+      const opY = 14;
 
-      if(by >= py-3 && by <= py+3){
-        if(Math.abs(bx - myX) < 12) vy*=-1;
+      if(by > (100 - meY) - 2 && by < (100 - meY) + 2){
+        if(Math.abs(bx-myX)<15) vy*=-1;
       }
-      if(by <= 16+3 && by >= 16-3){
-        if(Math.abs(bx - opX) < 12) vy*=-1;
+      if(by < opY+2 && by>opY-2){
+        if(Math.abs(bx-opX)<15) vy*=-1;
       }
 
-      // 負け判定（ホストのみ行う）
-      if(by > py+8){
-        msg.textContent = "YOU LOSE";
+      // 負け
+      if(by>100){
+        msg.textContent="YOU LOSE";
         msg.style.opacity=1;
-        setTimeout(()=>location.reload(),2000);
-        return;
+        setTimeout(()=>location.reload(),1800);
       }
 
       set(ballRef,{bx,by,vx,vy});
     }
 
-    // ボール表示（全員）
     ball.style.left = bx+"vw";
     ball.style.top  = by+"vh";
   }
@@ -237,6 +228,5 @@ function gameLoop(){
   requestAnimationFrame(gameLoop);
 }
 </script>
-
 </body>
 </html>
