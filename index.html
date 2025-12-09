@@ -60,8 +60,14 @@
 
     document.addEventListener("mousemove", (e) => {
       if (!isDown) return;
-      box.style.left = (e.pageX - offsetX) + "px";
-      box.style.top  = (e.pageY - offsetY) + "px";
+      
+      const x = e.pageX - offsetX;
+      const y = e.pageY - offsetY;
+      
+      box.style.left = x + "px";
+      box.style.top  = y + "px";
+
+      set(ref(db, "rooms/Q/box"), { left:x, top:y });
     });
 
     document.addEventListener("mouseup", () => {
@@ -72,6 +78,8 @@
     let textRef = ref(db, `rooms/Q/text`);
 　  onValue(textRef, snap => {
         const t = snap.val();
+        box.style.left = t.left + "px";
+        box.style.top  = t.top  + "px";
         displayArea.innerText = (t && t.trim()) ? t : "（空です）";
     });
         
