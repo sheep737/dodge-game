@@ -13,9 +13,6 @@
     text-align:center;
     padding:20px;
   }
-  #roomPanel {
-    margin-top:30vh;
-  }
   input, button {
     font-size:5vw;
     padding:10px;
@@ -30,13 +27,7 @@
 </head>
 <body>
 
-<div id="roomPanel">
-  <h2>Room ID を入力</h2>
-  <input id="roomInput" placeholder="abc123">
-  <button id="joinBtn">Join</button>
-</div>
-
-<div id="main" style="display:none;">
+<div id="main">
   <h2>あなたのメッセージ入力</h2>
   <input id="textInput" placeholder="メッセージ">
   <button id="sendBtn">送信</button>
@@ -65,31 +56,17 @@ const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
 
 /* UI */
-const roomPanel   = document.getElementById("roomPanel");
 const main        = document.getElementById("main");
-const joinBtn     = document.getElementById("joinBtn");
-const roomInput   = document.getElementById("roomInput");
 
 const textInput   = document.getElementById("textInput");
 const sendBtn     = document.getElementById("sendBtn");
 const displayArea = document.getElementById("displayArea");
 
-let roomId = null;
 let textRef = null;
 
 /* Join */
 joinBtn.onclick = () => {
-  const id = roomInput.value.trim();
-  if (!id) {
-    alert("Room ID を入力してください");
-    return;
-  }
-
-  roomId = id;
-  textRef = ref(db, `rooms/${roomId}/text`);
-
-  roomPanel.style.display = "none";
-  main.style.display = "block";
+  textRef = ref(db, `rooms/Q/text`);
 
   /* 部屋のテキストを常に監視（相手の入力もリアルタイム反映） */
   onValue(textRef, snap => {
