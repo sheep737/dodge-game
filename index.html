@@ -78,9 +78,14 @@
     let textRef = ref(db, `rooms/Q/text`);
 　  onValue(textRef, snap => {
         const t = snap.val();
-        box.style.left = t.left + "px";
-        box.style.top  = t.top  + "px";
         displayArea.innerText = (t && t.trim()) ? t : "（空です）";
+    });
+    let boxRef = ref(db, `rooms/Q/box`);
+　  onValue(boxRef, snap => {
+        const pos = snap.val();
+        if (!pos) return;
+        box.style.left = pos.left + "px";
+        box.style.top  = pos.top  + "px";
     });
         
     /* 送信ボタン：入力文字を Firebase に書き込む */
