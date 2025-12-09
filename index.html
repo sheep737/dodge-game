@@ -12,8 +12,7 @@
 <body>
   <!-- body -->
   <div id="roomPanel">
-    <input id="roomInput" placeholder="ver:11">
-    <button id="joinBtn">ver:11</button>
+    <button id="joinBtn">ver:12</button>
   </div>
 
   <div id="main" style="display:none;">
@@ -54,7 +53,6 @@
     /* Joinボタン押下 */
     joinBtn.onclick = () => {
       textRef = ref(db, `rooms/Q/text`);
-    
       roomPanel.style.display = "none";
       main.style.display = "block";
     
