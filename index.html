@@ -12,12 +12,12 @@
 <body>
   <!-- body -->
   <div id="roomPanel">
-    <button id="joinBtn">ver:13</button>
+    <button id="joinBtn">join</button>
   </div>
 
   <div id="main" style="display:block;">
     <input id="textInput">
-    <button id="sendBtn">送信</button>
+    <button id="sendBtn">ver:14</button>
     <div id="displayArea">(まだありません)</div>
   </div>
   
@@ -52,11 +52,9 @@
     
     /* Joinボタン押下 */
     joinBtn.onclick = () => {
-      textRef = ref(db, `rooms/Q/text`);
-      roomPanel.style.display = "none";
-      main.style.display = "block";
-    
+
       /* テキスト監視（リアルタイム反映） */
+      textRef = ref(db, `rooms/Q/text`);
       onValue(textRef, snap => {
         const t = snap.val();
         displayArea.innerText = (t && t.trim()) ? t : "（空です）";
@@ -65,9 +63,7 @@
     
     /* 送信ボタン：入力文字を Firebase に書き込む */
     sendBtn.onclick = () => {
-      const t = textInput.value;
-      const send = t.trim() ? t : "";
-      set(textRef, send);
+      set(textRef, textInput.value);
     };
   </script>
 
