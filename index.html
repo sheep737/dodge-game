@@ -12,10 +12,10 @@
 <body>
   <!-- body -->
   <div id="roomPanel">
-    <button id="joinBtn">ver:12</button>
+    <button id="joinBtn">ver:13</button>
   </div>
 
-  <div id="main" style="display:none;">
+  <div id="main" style="display:block;">
     <input id="textInput">
     <button id="sendBtn">送信</button>
     <div id="displayArea">(まだありません)</div>
@@ -28,14 +28,14 @@
     
     /* あなたの Firebase 設定 */
     const firebaseConfig = {
-        apiKey: "AIzaSyAs8DqxHiRzveAMJ7j-UMBWKp6ztGF-hd8",
-        authDomain: "ddgame-6f5f8.firebaseapp.com",
-        databaseURL: "https://ddgame-6f5f8-default-rtdb.firebaseio.com",
-        projectId: "ddgame-6f5f8",
-        storageBucket: "ddgame-6f5f8.firebasestorage.app",
+        apiKey:            "AIzaSyAs8DqxHiRzveAMJ7j-UMBWKp6ztGF-hd8",
+        authDomain:        "ddgame-6f5f8.firebaseapp.com",
+        databaseURL:       "https://ddgame-6f5f8-default-rtdb.firebaseio.com",
+        projectId:         "ddgame-6f5f8",
+        storageBucket:     "ddgame-6f5f8.firebasestorage.app",
         messagingSenderId: "172945824128",
-        appId: "1:172945824128:web:e3c7333928e1545aa1c965",
-        measurementId: "G-FG0645HHZD"
+        appId:             "1:172945824128:web:e3c7333928e1545aa1c965",
+        measurementId:     "G-FG0645HHZD"
     };
     const db  = getDatabase(initializeApp(firebaseConfig));
     
