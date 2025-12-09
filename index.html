@@ -36,7 +36,6 @@
         measurementId: "G-FG0645HHZD"
     };
     
-    
     const db  = getDatabase(initializeApp(firebaseConfig));
     
     /* UI */
@@ -55,10 +54,6 @@
     /* Join */
     joinBtn.onclick = () => {
       const id = roomInput.value.trim();
-      if (!id) {
-        alert("Room ID を入力してください");
-        return;
-      }
     
       roomId = id;
       textRef = ref(db, `rooms/${roomId}/text`);
