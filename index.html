@@ -2,22 +2,15 @@
 <html lang="ja">
 
 <head>
-  <!-- head -->
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />
-  <title>Shared Text</title>
-  <style> body { text-align:center; } </style>
 </head>
 
 <body>
-  <!-- body -->
-  <div id="roomPanel">
-    <button id="joinBtn">join</button>
-  </div>
-
   <div id="main" style="display:block;">
+    <button id="joinBtn">join</button>
     <input id="textInput">
-    <button id="sendBtn">ver:14</button>
+    <button id="sendBtn">ver:15</button>
     <div id="displayArea">(まだありません)</div>
   </div>
   
@@ -40,7 +33,6 @@
     const db  = getDatabase(initializeApp(firebaseConfig));
     
     /* 要素情報 */
-    const roomPanel   = document.getElementById("roomPanel");
     const main        = document.getElementById("main");
     const joinBtn     = document.getElementById("joinBtn");
     
