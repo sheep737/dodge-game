@@ -8,9 +8,8 @@
 
 <body>
   <div>
-    <button id="joinBtn">join</button>
     <input id="textInput">
-    <button id="sendBtn">ver:17</button>
+    <button id="sendBtn">ver:18</button>
     <div id="displayArea">(まだありません)</div>
   </div>
   
@@ -33,24 +32,17 @@
     const db  = getDatabase(initializeApp(firebaseConfig));
     
     /* 要素情報 */
-    const joinBtn     = document.getElementById("joinBtn");
     const textInput   = document.getElementById("textInput");
     const sendBtn     = document.getElementById("sendBtn");
     const displayArea = document.getElementById("displayArea");
-    let textRef = null;
     
-    /* Joinボタン押下 */
-    joinBtn.onclick = () => {
-
-      /* テキスト監視（リアルタイム反映） */
-      textRef = ref(db, `rooms/Q/text`);
-      onValue(textRef, snap => {
+    /* テキスト監視（リアルタイム反映） */
+    let textRef = ref(db, `rooms/Q/text`);
+　  onValue(textRef, snap => {
         const t = snap.val();
         displayArea.innerText = (t && t.trim()) ? t : "（空です）";
-      });
-      
-    };
-    
+    });
+        
     /* 送信ボタン：入力文字を Firebase に書き込む */
     sendBtn.onclick = () => {
       set(textRef, textInput.value);
