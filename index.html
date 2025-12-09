@@ -12,8 +12,8 @@
 <body>
   <!-- body -->
   <div id="roomPanel">
-    <input id="roomInput" placeholder="ver:10">
-    <button id="joinBtn">Join</button>
+    <input id="roomInput" placeholder="ver:11">
+    <button id="joinBtn">ver:11</button>
   </div>
 
   <div id="main" style="display:none;">
@@ -44,18 +44,15 @@
     const roomPanel   = document.getElementById("roomPanel");
     const main        = document.getElementById("main");
     const joinBtn     = document.getElementById("joinBtn");
-    const roomInput   = document.getElementById("roomInput");
     
     const textInput   = document.getElementById("textInput");
     const sendBtn     = document.getElementById("sendBtn");
     const displayArea = document.getElementById("displayArea");
     
-    let roomId = null;
     let textRef = null;
     
     /* Joinボタン押下 */
     joinBtn.onclick = () => {
-      roomId = roomInput.value.trim();
       textRef = ref(db, `rooms/Q/text`);
     
       roomPanel.style.display = "none";
