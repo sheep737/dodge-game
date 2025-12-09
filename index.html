@@ -2,6 +2,7 @@
 <html lang="ja">
 
 <head>
+  /* --- head --- */
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />
   <title>Shared Text</title>
@@ -9,8 +10,9 @@
 </head>
 
 <body>
+  /* --- body --- */
   <div id="roomPanel">
-    <input id="roomInput" placeholder="ver:6">
+    <input id="roomInput" placeholder="ver:8">
     <button id="joinBtn">Join</button>
   </div>
 
@@ -19,7 +21,8 @@
     <button id="sendBtn">送信</button>
     <div id="displayArea">(まだありません)</div>
   </div>
-
+  
+  /* --- script --- */
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
@@ -35,10 +38,9 @@
         appId: "1:172945824128:web:e3c7333928e1545aa1c965",
         measurementId: "G-FG0645HHZD"
     };
-    
     const db  = getDatabase(initializeApp(firebaseConfig));
     
-    /* UI */
+    /* --- 要素情報 --- */
     const roomPanel   = document.getElementById("roomPanel");
     const main        = document.getElementById("main");
     const joinBtn     = document.getElementById("joinBtn");
@@ -51,17 +53,15 @@
     let roomId = null;
     let textRef = null;
     
-    /* Join */
+    /* --- Joinボタン押下 --- */
     joinBtn.onclick = () => {
-      const id = roomInput.value.trim();
-    
-      roomId = id;
+      roomId = roomInput.value.trim();
       textRef = ref(db, `rooms/${roomId}/text`);
     
       roomPanel.style.display = "none";
       main.style.display = "block";
     
-      /* 部屋のテキストを常に監視（相手の入力もリアルタイム反映） */
+      /* テキスト監視（リアルタイム反映） */
       onValue(textRef, snap => {
         const t = snap.val();
         displayArea.innerText = (t && t.trim()) ? t : "（空です）";
@@ -71,10 +71,7 @@
     /* 送信ボタン：入力文字を Firebase に書き込む */
     sendBtn.onclick = () => {
       const t = textInput.value;
-    
-      // 空文字なら（空です）と送る必要はない → "empty" として空扱いにする
       const send = t.trim() ? t : "";
-    
       set(textRef, send);
     };
   </script>
