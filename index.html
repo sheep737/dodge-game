@@ -1,13 +1,31 @@
 <!DOCTYPE html>
 <html lang="ja">
-<head> <meta charset="UTF-8"> </head>
+<head> 
+  <meta charset="UTF-8"> 
+  <style>
+    #deckImage {
+      width: 80px;
+      height: 120px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #444, #222);
+      border: 3px solid #000;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
 <body>
   <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
   <!-- ■    画面構成              ■ -->
   <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
-  <button id="reset">リセット</button>
-  <button id="draw">カードを引く【Ver：9】</button>
-  <div id="deck"></div>
+  <div>
+    <button id="reset">リセット</button>
+  </div>
+  <button id="draw">カードを引く【Ver：10】</button>
+  <div id="deck">
+    <div id="deckImage"></div>
+    <div id="deckCount"></div>
+  </div>
   <div id="hand"></div>
   <div id="field"></div>
 
@@ -61,7 +79,10 @@
     // ●--------描画：デッキ--------●
     onValue(pv_db_deck, (lv_snapshot_deck) => {
       const lv_deck = lv_snapshot_deck.val() || [];
-      document.getElementById("deck").innerHTML = `残り：${lv_deck.length}枚`;
+      document.getElementById("deckCount").innerHTML = `残り：${lv_deck.length}枚`;
+
+      const img = document.getElementById("deckImage");
+      img.style.opacity = lv_deck.length === 0 ? "0.3" : "1"; // デッキが0なら薄くする
     });
 
     // ●--------描画：手札--------●
