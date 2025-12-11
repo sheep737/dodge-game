@@ -5,9 +5,10 @@
   <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
   <!-- ■    画面構成              ■ -->
   <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
-  <button id="draw">カードを引く【Ver：4】</button>
+  <button id="draw">カードを引く【Ver：5】</button>
   <div id="deck"></div>
   <div id="hand"></div>
+  <div id="field"></div>
 
   <script type="module">
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -41,7 +42,6 @@
     // ■    変数・定数            ■
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
     const roomId   = "room1";
-    const playerId = "playerA"; // ← playerB に変えると相手側になる
 
     // URLからプレイヤーIDを取得
     const pv_urlParams = new URLSearchParams(window.location.search);
@@ -50,20 +50,39 @@
     const roomRef = ref(db, `rooms/${roomId}`);
     const pv_db_deck = ref(db, `rooms/${roomId}/deck`);
     const pv_db_hand = ref(db, `rooms/${roomId}/hands/${pv_playerId}`);
+    const pv_db_field = ref(db, `rooms/${roomId}/field/${playerId}`);
 
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
     // ■    リアルタイム表示      ■
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
+    // ●--------描画：デッキ--------●
     onValue(pv_db_deck, (lv_snapshot_deck) => {
       const lv_deck = lv_snapshot_deck.val() || [];
       document.getElementById("deck").innerHTML = lv_deck.join(", ");
     });
 
+    // ●--------描画：手札--------●
     onValue(pv_db_hand, (lv_snapshot_hand) => {
       const lv_hand = lv_snapshot_hand.val() || [];
-      document.getElementById("hand").innerHTML = lv_hand.join(", ");
+      const handDiv = document.getElementById("hand");
+      handDiv.innerHTML = "";
+    
+      lv_hand.forEach((card, index) => {
+        const btn = document.createElement("button");
+        btn.textContent = card;
+    
+        btn.onclick = () => playCard(index);  // ← クリックで場に出す
+    
+        handDiv.appendChild(btn);
+      });
     });
 
+    // ●--------描画：場--------●
+    onValue(pv_db_field, (snap) => {
+      const field = snap.val() || [];
+      document.getElementById("field").innerText = field.join(", ");
+    });
+    
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
     // ■    ボタン動作            ■
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -94,7 +113,25 @@
         [`hands/${pv_playerId}`]: hand
       });
     }
+
+    // ●--------場に出す--------●
+    async function playCard(cardIndex) {
+      const handSnap = await get(pv_db_hand);
+      const fieldSnap = await get(pv_db_field);
     
+      let hand = handSnap.val() || [];
+      let field = fieldSnap.val() || [];
+    
+      if (!hand[cardIndex]) return;
+    
+      const card = hand.splice(cardIndex, 1)[0]; // 手札から削除
+      field.push(card);                           // 場に追加
+    
+      await update(roomRef, {
+        [`hands/${playerId}`]: hand,
+        [`field/${playerId}`]: field
+      });
+    }
   </script>
 </body>
 </html>
