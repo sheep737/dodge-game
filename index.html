@@ -5,7 +5,7 @@
   <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
   <!-- ■    画面構成              ■ -->
   <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
-  <button id="draw">カードを引く【Ver：2】</button>
+  <button id="draw">カードを引く【Ver：3】</button>
   <div id="deck"></div>
   <div id="hand"></div>
 
@@ -45,7 +45,7 @@
 
     // URLからプレイヤーIDを取得
     const pv_urlParams = new URLSearchParams(window.location.search);
-    const pv_playerId = urlParams.get("player") || "playerA"; // デフォルト playerA
+    const pv_playerId = pv_urlParams.get("player") || "playerA"; // デフォルト playerA
 
     const roomRef = ref(db, `rooms/${roomId}`);
     const pv_db_deck = ref(db, `rooms/${roomId}/deck`);
