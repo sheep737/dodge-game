@@ -5,7 +5,7 @@
   <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
   <!-- ■    画面構成              ■ -->
   <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
-  <button id="draw">カードを引く</button>
+  <button id="draw">カードを引く【Ver：1】</button>
   <div id="deck"></div>
   <div id="hand"></div>
 
@@ -44,20 +44,20 @@
     const playerId = "playerA"; // ← playerB に変えると相手側になる
 
     const roomRef = ref(db, `rooms/${roomId}`);
-    const deckRef = ref(db, `rooms/${roomId}/deck`);
-    const handRef = ref(db, `rooms/${roomId}/hands/${playerId}`);
+    const pv_db_deck = ref(db, `rooms/${roomId}/deck`);
+    const pv_db_hand = ref(db, `rooms/${roomId}/hands/${playerId}`);
 
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
     // ■    リアルタイム表示      ■
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
-    onValue(deckRef, (snapshot) => {
-      const deck = snapshot.val() || [];
-      document.getElementById("deck").innerHTML = deck.join(", ");
+    onValue(pv_db_deck, (lv_snapshot_deck) => {
+      const lv_deck = lv_snapshot_deck.val() || [];
+      document.getElementById("deck").innerHTML = lv_deck.join(", ");
     });
 
-    onValue(handRef, (snapshot) => {
-      const hand = snapshot.val() || [];
-      document.getElementById("hand").innerHTML = hand.join(", ");
+    onValue(pv_db_hand, (lv_snapshot_hand) => {
+      const lv_hand = lv_snapshot_hand.val() || [];
+      document.getElementById("hand").innerHTML = lv_hand.join(", ");
     });
 
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -70,8 +70,8 @@
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
     // ●--------カードを引く--------●
     async function drawCard() {
-      const deckSnap = await get(deckRef);
-      const handSnap = await get(handRef);
+      const deckSnap = await get(pv_db_deck);
+      const handSnap = await get(pv_db_hand);
 
       let deck = deckSnap.val() || [];
       let hand = handSnap.val() || [];
