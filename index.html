@@ -1,35 +1,28 @@
 <!DOCTYPE html>
 <html lang="ja">
-
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />
-  <style>
-    #box {
-      width: 50px;
-      height: 50px;
-      background: orange;
-      margin-top: 20px;
-      position: absolute;
-    }
-  </style>
-</head>
-
+<head> <meta charset="UTF-8"> </head>
 <body>
-  <div>
-    <input id="textInput">
-    <button id="sendBtn">ver:22</button>
-    <div id="displayArea">(まだありません)</div>
-    <div id="box"></div>
-  </div>
-  
-  <!-- script -->
+  <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
+  <!-- ■    画面構成              ■ -->
+  <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
+  <button id="draw">カードを引く</button>
+  <div id="deck"></div>
+  <div id="hand"></div>
+
   <script type="module">
-    
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-    
-    /* あなたの Firebase 設定 */
+    // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
+    // ■    Firebase設定         ■
+    // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+    import {
+      getDatabase,
+      ref,
+      get,
+      set,
+      update,
+      onValue
+    } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-database.js";
+
     const firebaseConfig = {
         apiKey:            "AIzaSyAs8DqxHiRzveAMJ7j-UMBWKp6ztGF-hd8",
         authDomain:        "ddgame-6f5f8.firebaseapp.com",
@@ -40,60 +33,64 @@
         appId:             "1:172945824128:web:e3c7333928e1545aa1c965",
         measurementId:     "G-FG0645HHZD"
     };
-    const db  = getDatabase(initializeApp(firebaseConfig));
+
+    const app = initializeApp(firebaseConfig);
+    const db  = getDatabase(app);
+
+    // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
+    // ■    変数・定数            ■
+    // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
+    const roomId   = "room1";
+    const playerId = "playerA"; // ← playerB に変えると相手側になる
+
+    const roomRef = ref(db, `rooms/${roomId}`);
+    const deckRef = ref(db, `rooms/${roomId}/deck`);
+    const handRef = ref(db, `rooms/${roomId}/hands/${playerId}`);
+
+    // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
+    // ■    リアルタイム表示      ■
+    // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
+    onValue(deckRef, (snapshot) => {
+      const deck = snapshot.val() || [];
+      document.getElementById("deck").innerHTML = deck.join(", ");
+    });
+
+    onValue(handRef, (snapshot) => {
+      const hand = snapshot.val() || [];
+      document.getElementById("hand").innerHTML = hand.join(", ");
+    });
+
+    // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
+    // ■    ボタン動作            ■
+    // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
+    document.getElementById("draw").addEventListener("click", drawCard);
     
-    /* 要素情報 */
-    const box         = document.getElementById("box");
-    const textInput   = document.getElementById("textInput");
-    const sendBtn     = document.getElementById("sendBtn");
-    const displayArea = document.getElementById("displayArea");
+    // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
+    // ■    関数                 ■
+    // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
+    // ●--------カードを引く--------●
+    async function drawCard() {
+      const deckSnap = await get(deckRef);
+      const handSnap = await get(handRef);
 
-    let isDown = false;
-    let offsetX = 0;
-    let offsetY = 0;
+      let deck = deckSnap.val() || [];
+      let hand = handSnap.val() || [];
 
-    box.addEventListener("mousedown", (e) => {
-      isDown = true;
-      offsetX = e.offsetX;
-      offsetY = e.offsetY;
-    });
+      if (deck.length === 0) {
+        alert("山札がありません");
+        return;
+      }
 
-    document.addEventListener("mousemove", (e) => {
-      if (!isDown) return;
-      
-      const x = e.pageX - offsetX;
-      const y = e.pageY - offsetY;
-      
-      box.style.left = x + "px";
-      box.style.top  = y + "px";
+      const card = deck.shift(); // 山札の一番上を引く
+      hand.push(card);           // 手札に追加
 
-      set(ref(db, "rooms/Q/box"), { left:x, top:y });
-    });
-
-    document.addEventListener("mouseup", () => {
-      isDown = false;
-    });
-    
-    /* テキスト監視（リアルタイム反映） */
-    let textRef = ref(db, `rooms/Q/text`);
-　  onValue(textRef, snap => {
-        const t = snap.val();
-        displayArea.innerText = (t && t.trim()) ? t : "（空です）";
-    });
-    let boxRef = ref(db, `rooms/Q/box`);
-　  onValue(boxRef, snap => {
-        const pos = snap.val();
-        if (!pos) return;
-        box.style.left = pos.left + "px";
-        box.style.top  = pos.top  + "px";
-    });
-        
-    /* 送信ボタン：入力文字を Firebase に書き込む */
-    sendBtn.onclick = () => {
-      set(textRef, textInput.value);
-    };
+      // --- データ更新（同時更新対策で update を使う） ---
+      await update(roomRef, {
+        deck: deck,
+        [`hands/${playerId}`]: hand
+      });
+    }
     
   </script>
-
 </body>
 </html>
