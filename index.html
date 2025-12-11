@@ -7,10 +7,28 @@
       width: 80px;
       height: 120px;
       border-radius: 10px;
-      background: linear-gradient(135deg, #444, #222);
+      background: repeating-linear-gradient(
+          45deg,
+          #2d2d7f,
+          #2d2d7f 10px,
+          #1a1a4f 10px,
+          #1a1a4f 20px
+        );
       border: 3px solid #000;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      box-shadow: 0 6px 8px rgba(0,0,0,0.4);
       margin-bottom: 5px;
+      transition: transform 0.2s, opacity 0.3s;
+    }
+    
+    /* マウスで浮く演出 */
+    #deckImage:hover {
+      transform: translateY(-5px);
+    }
+  
+    #deckCount {
+      margin-top: 5px;
+      font-size: 16px;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -19,9 +37,9 @@
   <!-- ■    画面構成              ■ -->
   <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
   <div>
-    <button id="reset">リセット</button>
+    <button id="reset">リセット【Ver：11】</button>
   </div>
-  <button id="draw">カードを引く【Ver：10】</button>
+  <button id="draw">カードを引く</button>
   <div id="deck">
     <div id="deckImage"></div>
     <div id="deckCount"></div>
