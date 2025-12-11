@@ -47,10 +47,10 @@
     const pv_urlParams = new URLSearchParams(window.location.search);
     const pv_playerId = pv_urlParams.get("player") || "playerA"; // デフォルト playerA
 
-    const roomRef = ref(db, `rooms/${roomId}`);
-    const pv_db_deck = ref(db, `rooms/${roomId}/deck`);
-    const pv_db_hand = ref(db, `rooms/${roomId}/hands/${pv_playerId}`);
-    const pv_db_field = ref(db, `rooms/${roomId}/field/${playerId}`);
+    const roomRef     = ref(db, `rooms/${roomId}`);
+    const pv_db_deck  = ref(db, `rooms/${roomId}/deck`);
+    const pv_db_hand  = ref(db, `rooms/${roomId}/hands/${pv_playerId}`);
+    const pv_db_field = ref(db, `rooms/${roomId}/field/${pv_playerId}`);
 
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
     // ■    リアルタイム表示      ■
