@@ -5,7 +5,8 @@
   <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
   <!-- ■    画面構成              ■ -->
   <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
-  <button id="draw">カードを引く【Ver：6】</button>
+  <button id="reset">リセット</button>
+  <button id="draw">カードを引く【Ver：8】</button>
   <div id="deck"></div>
   <div id="hand"></div>
   <div id="field"></div>
@@ -42,6 +43,7 @@
     // ■    変数・定数            ■
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
     const roomId   = "room1";
+    const initialDeck = ["A","B","C","D","E","F","G","H","I","J"]; // 初期デッキ
 
     // URLからプレイヤーIDを取得
     const pv_urlParams = new URLSearchParams(window.location.search);
@@ -58,7 +60,7 @@
     // ●--------描画：デッキ--------●
     onValue(pv_db_deck, (lv_snapshot_deck) => {
       const lv_deck = lv_snapshot_deck.val() || [];
-      document.getElementById("deck").innerHTML = lv_deck.join(", ");
+      document.getElementById("deck").innerHTML = `残り：${lv_deck.length}枚`;
     });
 
     // ●--------描画：手札--------●
@@ -86,8 +88,11 @@
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
     // ■    ボタン動作            ■
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
+    // ●--------ボタン：カードを引く--------●
     document.getElementById("draw").addEventListener("click", drawCard);
     
+    // ●--------ボタン：リセット--------●
+    document.getElementById("reset").addEventListener("click", resetGame);
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
     // ■    関数                 ■
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -131,6 +136,18 @@
         [`hands/${pv_playerId}`]: hand,
         [`field/${pv_playerId}`]: field
       });
+    }
+
+    // ●--------リセット--------●
+    async function resetGame() {
+      if (!confirm("ゲームをリセットしますか？")) return;
+    
+      await update(roomRef, {
+        deck: [...initialDeck],
+        hands: {},
+        field: {}
+      });
+    
     }
   </script>
 </body>
