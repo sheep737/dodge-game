@@ -6,7 +6,7 @@
   <!-- ■    画面構成              ■ -->
   <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
   <button id="reset">リセット</button>
-  <button id="draw">カードを引く【Ver：8】</button>
+  <button id="draw">カードを引く【Ver：9】</button>
   <div id="deck"></div>
   <div id="hand"></div>
   <div id="field"></div>
@@ -53,6 +53,7 @@
     const pv_db_deck  = ref(db, `rooms/${roomId}/deck`);
     const pv_db_hand  = ref(db, `rooms/${roomId}/hands/${pv_playerId}`);
     const pv_db_field = ref(db, `rooms/${roomId}/field/${pv_playerId}`);
+    const pv_db_field_all = ref(db, `rooms/${roomId}/field`);
 
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
     // ■    リアルタイム表示      ■
@@ -80,10 +81,22 @@
     });
 
     // ●--------描画：場--------●
-    onValue(pv_db_field, (snap) => {
-      const field = snap.val() || [];
-      document.getElementById("field").innerText = field.join(", ");
-    });
+    onValue(pv_db_field_all, (snap) => {
+      const fields = snap.val() || {};
+      const fieldDiv = document.getElementById("field");
+    
+      fieldDiv.innerHTML = "";
+    
+      // --- 全プレイヤーの場を描画 ---
+      Object.keys(fields).forEach(player => {
+        const cards = fields[player] || [];
+    
+        const p = document.createElement("div");
+        p.textContent = `${player}: ${cards.join(", ")}`;
+    
+        fieldDiv.appendChild(p);
+      });
+    }); 
     
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
     // ■    ボタン動作            ■
@@ -121,7 +134,7 @@
 
     // ●--------場に出す--------●
     async function playCard(cardIndex) {
-      const handSnap = await get(pv_db_hand);
+      const handSnap  = await get(pv_db_hand);
       const fieldSnap = await get(pv_db_field);
     
       let hand = handSnap.val() || [];
