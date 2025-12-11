@@ -30,6 +30,40 @@
       font-size: 16px;
       font-weight: bold;
     }
+    
+    #hand {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    
+    .cardButton {
+      width: 80px;
+      height: 120px;
+      margin: 5px;
+      border-radius: 10px;
+      border: 2px solid #000;
+      background: repeating-linear-gradient(
+          45deg,
+          #ffffff,
+          #ffffff 10px,
+          #e5e5e5 10px,
+          #e5e5e5 20px
+      );
+      font-size: 24px;
+      font-weight: bold;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+  
+    .cardButton:hover {
+      transform: translateY(-4px);
+    }
   </style>
 </head>
 <body>
@@ -37,7 +71,7 @@
   <!-- ■    画面構成              ■ -->
   <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
   <div>
-    <button id="reset">リセット【Ver：12】</button>
+    <button id="reset">リセット【Ver：13】</button>
   </div>
   <div id="deck">
     <div id="deckImage"></div>
@@ -109,11 +143,12 @@
       handDiv.innerHTML = "";
     
       lv_hand.forEach((card, index) => {
-        const btn = document.createElement("button");
+        const btn = document.createElement("div");
+        btn.className = "cardButton";
         btn.textContent = card;
-    
-        btn.onclick = () => playCard(index);  // ← クリックで場に出す
-    
+      
+        btn.onclick = () => playCard(index);  // カードを場に出す
+      
         handDiv.appendChild(btn);
       });
     });
