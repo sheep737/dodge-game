@@ -5,7 +5,7 @@
   <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
   <!-- ■    画面構成              ■ -->
   <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
-  <button id="draw">カードを引く【Ver：5】</button>
+  <button id="draw">カードを引く【Ver：6】</button>
   <div id="deck"></div>
   <div id="hand"></div>
   <div id="field"></div>
@@ -128,8 +128,8 @@
       field.push(card);                           // 場に追加
     
       await update(roomRef, {
-        [`hands/${playerId}`]: hand,
-        [`field/${playerId}`]: field
+        [`hands/${pv_playerId}`]: hand,
+        [`field/${pv_playerId}`]: field
       });
     }
   </script>
