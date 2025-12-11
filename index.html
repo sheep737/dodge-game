@@ -5,7 +5,7 @@
   <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
   <!-- ■    画面構成              ■ -->
   <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
-  <button id="draw">カードを引く【Ver：1】</button>
+  <button id="draw">カードを引く【Ver：2】</button>
   <div id="deck"></div>
   <div id="hand"></div>
 
@@ -43,9 +43,13 @@
     const roomId   = "room1";
     const playerId = "playerA"; // ← playerB に変えると相手側になる
 
+    // URLからプレイヤーIDを取得
+    const pv_urlParams = new URLSearchParams(window.location.search);
+    const pv_playerId = urlParams.get("player") || "playerA"; // デフォルト playerA
+
     const roomRef = ref(db, `rooms/${roomId}`);
     const pv_db_deck = ref(db, `rooms/${roomId}/deck`);
-    const pv_db_hand = ref(db, `rooms/${roomId}/hands/${playerId}`);
+    const pv_db_hand = ref(db, `rooms/${roomId}/hands/${pv_playerId}`);
 
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
     // ■    リアルタイム表示      ■
