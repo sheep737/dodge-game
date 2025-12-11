@@ -5,7 +5,7 @@
   <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
   <!-- ■    画面構成              ■ -->
   <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
-  <button id="draw">カードを引く【Ver：3】</button>
+  <button id="draw">カードを引く【Ver：4】</button>
   <div id="deck"></div>
   <div id="hand"></div>
 
@@ -91,7 +91,7 @@
       // --- データ更新（同時更新対策で update を使う） ---
       await update(roomRef, {
         deck: deck,
-        [`hands/${playerId}`]: hand
+        [`hands/${pv_playerId}`]: hand
       });
     }
     
