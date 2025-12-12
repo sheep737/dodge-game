@@ -82,6 +82,69 @@
       gap: 40px; /* デッキと場の間の余白 */
       margin-bottom: 20px;
     }
+
+    @media (max-width: 600px) {
+    
+      #topArea {
+        flex-direction: column;     /* デッキ → 場 を縦並びに */
+        gap: 20px;
+      }
+    
+      #deckImage {
+        width: 60px;
+        height: 90px;
+      }
+    
+      .cardButton {
+        width: 70px;
+        height: 100px;
+        font-size: 18px;
+        padding: 6px;
+        line-height: 1.1;
+      }
+    
+      .cardButton div:nth-child(1) {
+        font-size: 18px;
+      }
+    
+      .cardButton div:nth-child(2) {
+        font-size: 10px;
+      }
+    
+      #hand {
+        gap: 6px;
+      }
+      
+      #field {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+      }
+    
+      /* デッキも中央寄せ */
+      #deck {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      #reset {
+        font-size: 14px;
+        padding: 6px 10px;
+      }
+    
+      body {
+        zoom: 1.0; /* 拡大縮小の誤差防止 */
+        padding: 10px;
+        padding-top: 5px;
+      }
+
+      #deckImage:active,
+      .cardButton:active {
+        transform: translateY(2px) scale(0.97);
+        filter: brightness(0.95);
+      }
+    }
   </style>
 </head>
 <body>
@@ -89,7 +152,7 @@
   <!-- ■    画面構成              ■ -->
   <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
   <div>
-    <button id="reset">リセット【Ver：16】</button>
+    <button id="reset">リセット【Ver：17】</button>
   </div>
   <div id="topArea">
     <div id="deck">
@@ -177,7 +240,6 @@
       lv_hand.forEach((card, index) => {
         const btn = document.createElement("div");
         btn.className = "cardButton";
-        btn.textContent = card.name + "\n" + card.text;
         btn.innerHTML = `
           <div style="font-size:20px; font-weight:bold;">${card.name}</div>
           <div style="font-size:12px;">${card.text}</div>
