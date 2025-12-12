@@ -64,6 +64,13 @@
     .cardButton:hover {
       transform: translateY(-4px);
     }
+
+    #topArea {
+      display: flex;
+      align-items: center;
+      gap: 40px; /* デッキと場の間の余白 */
+      margin-bottom: 20px;
+    }
   </style>
 </head>
 <body>
@@ -71,14 +78,17 @@
   <!-- ■    画面構成              ■ -->
   <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
   <div>
-    <button id="reset">リセット【Ver：14】</button>
+    <button id="reset">リセット【Ver：15】</button>
   </div>
-  <div id="deck">
-    <div id="deckImage"></div>
-    <div id="deckCount"></div>
+  <div id="topArea">
+    <div id="deck">
+      <div id="deckImage"></div>
+      <div id="deckCount"></div>
+    </div>
+  
+    <div id="field"></div>
   </div>
   <div id="hand"></div>
-  <div id="field"></div>
 
   <script type="module">
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
