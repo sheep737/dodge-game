@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head> 
-  <meta charset="UTF-8"> 
+  <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8"> 
   <style>
     #deckImage {
       width: 80px;
@@ -86,23 +86,30 @@
     @media (max-width: 600px) {
     
       #topArea {
-        flex-direction: column;     /* デッキ → 場 を縦並びに */
+        flex-direction: column;
         gap: 20px;
       }
     
       #deckImage {
-        width: 60px;
-        height: 90px;
+        width: 30vw;
+        height: 45vw;
       }
     
       .cardButton {
-        width: 70px;
-        height: 100px;
-        font-size: 18px;
-        padding: 6px;
-        line-height: 1.1;
+        width: 30vw;
+        height: 45vw;
+        padding: 5px;
+        margin: 4px;
+      }
+      
+      .cardButton .cardName {
+        font-size: 5vw;
       }
     
+      .cardButton .cardText {
+        font-size: 3vw;
+      }
+      
       .cardButton div:nth-child(1) {
         font-size: 18px;
       }
@@ -144,6 +151,7 @@
         transform: translateY(2px) scale(0.97);
         filter: brightness(0.95);
       }
+      
     }
   </style>
 </head>
@@ -152,7 +160,7 @@
   <!-- ■    画面構成              ■ -->
   <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
   <div>
-    <button id="reset">リセット【Ver：17】</button>
+    <button id="reset">リセット【Ver：18】</button>
   </div>
   <div id="topArea">
     <div id="deck">
@@ -241,8 +249,8 @@
         const btn = document.createElement("div");
         btn.className = "cardButton";
         btn.innerHTML = `
-          <div style="font-size:20px; font-weight:bold;">${card.name}</div>
-          <div style="font-size:12px;">${card.text}</div>
+          <div class="cardName">${card.name}</div>
+          <div class="cardText">${card.text}</div>
         `;
         btn.onclick = () => playCard(index);  // カードを場に出す
       
