@@ -86,8 +86,10 @@
     @media (max-width: 600px) {
     
       #topArea {
-        flex-direction: column;
+        flex-direction: row;   /* ← 横並びのまま */
+        justify-content: center;
         gap: 20px;
+        width: 100%;
       }
     
       #deckImage {
@@ -160,7 +162,7 @@
   <!-- ■    画面構成              ■ -->
   <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
   <div>
-    <button id="reset">リセット【Ver：18】</button>
+    <button id="reset">リセット【Ver：19】</button>
   </div>
   <div id="topArea">
     <div id="deck">
