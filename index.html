@@ -162,8 +162,9 @@
   <!-- ■    画面構成              ■ -->
   <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
   <div>
-    <button id="reset">リセット【Ver：22】</button>
+    <button id="reset">リセット【Ver：23】</button>
     <button id="shuffleDeck">シャッフル</button>
+	<button id="returnToDeck">場を山札に戻す</button>
   </div>
   <div id="topArea">
     <div id="deck">
@@ -299,8 +300,10 @@
     
     // ●--------ボタン：シャッフル--------●
     document.getElementById("shuffleDeck").addEventListener("click", shuffleDeck);
-    
-    
+
+	// ●--------ボタン：場を山札に戻す--------●
+    document.getElementById("returnToDeck").addEventListener("click", returnFieldToDeck);
+
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
     // ■    関数                 ■
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -381,7 +384,31 @@
         [array[i], array[j]] = [array[j], array[i]];
       }
     }
-    
+
+	// ●--------場のカードを山札に戻す--------●
+	async function returnFieldToDeck() {
+	  if (!confirm("場のカードをすべて山札に戻しますか？")) return;
+	
+	  const deckSnap  = await get(pv_db_deck);
+	  const fieldSnap = await get(ref(db, `rooms/${roomId}/field`));
+	
+	  let deck  = deckSnap.val() || [];
+	  let field = fieldSnap.val() || [];
+	
+	  if (field.length === 0) {
+	    alert("場にカードがありません");
+	    return;
+	  }
+	
+	  // 場のカードを山札の下に戻す
+	  deck = deck.concat(field);
+	
+	  await update(roomRef, {
+	    deck: deck,
+	    field: []   // 場を空にする
+	  });
+	}
+   
   </script>
 </body>
 </html>
