@@ -162,7 +162,7 @@
   <!-- ■    画面構成              ■ -->
   <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
   <div>
-    <button id="reset">リセット【Ver：20】</button>
+    <button id="reset">リセット【Ver：21】</button>
     <button id="shuffleDeck">シャッフル</button>
   </div>
   <div id="topArea">
@@ -296,6 +296,11 @@
     
     // ●--------ボタン：リセット--------●
     document.getElementById("reset").addEventListener("click", resetGame);
+    
+    // ●--------ボタン：シャッフル--------●
+    document.getElementById("shuffleDeck").addEventListener("click", shuffleDeck);
+    
+    
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
     // ■    関数                 ■
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -351,6 +356,23 @@
         field: []
       });
     }
+    
+    // ●--------シャッフル実行--------●
+	async function shuffleDeck() {
+	  const deckSnap = await get(pv_db_deck);
+	  let deck = deckSnap.val() || [];
+
+	  if (deck.length <= 1) {
+	    alert("シャッフルするカードがありません");
+	    return;
+	  }
+
+	  shuffleArray(deck);
+
+	  await update(roomRef, {
+	    deck: deck
+	  });
+	}
     
     // ●--------デッキをシャッフル--------●
     function shuffleArray(array) {
