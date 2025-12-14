@@ -153,7 +153,15 @@
         transform: translateY(2px) scale(0.97);
         filter: brightness(0.95);
       }
-      
+
+	  #shopList {
+	    display: flex;
+	    flex-wrap: wrap;
+	    gap: 12px;
+	    margin-top: 20px;
+	    justify-content: center;
+	  }
+		
     }
   </style>
 </head>
@@ -162,7 +170,7 @@
   <!-- ■    画面構成              ■ -->
   <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
   <div>
-    <button id="reset">リセット【Ver：24】</button>
+    <button id="reset">リセット【Ver：25】</button>
     <button id="shuffleDeck">シャッフル</button>
 	<button id="returnToDeck">場を山札に戻す</button>
   </div>
@@ -175,6 +183,7 @@
     <div id="field"></div>
   </div>
   <div id="hand"></div>
+  <div id="shopList"></div>
 
   <script type="module">
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -224,7 +233,8 @@
     // URLからプレイヤーIDを取得
     const pv_urlParams = new URLSearchParams(window.location.search);
     const pv_playerId = pv_urlParams.get("player") || "playerA"; // デフォルト playerA
-
+	const isShop = pv_playerId === "shop";
+	
     const roomRef     = ref(db, `rooms/${roomId}`);
     const pv_db_deck  = ref(db, `rooms/${roomId}/deck`);
     const pv_db_hand  = ref(db, `rooms/${roomId}/hands/${pv_playerId}`);
@@ -245,6 +255,7 @@
 
     // ●--------描画：手札--------●
     onValue(pv_db_hand, (lv_snapshot_hand) => {
+	  if (isShop) return;
       const lv_hand = lv_snapshot_hand.val() || [];
       const handDiv = document.getElementById("hand");
       handDiv.innerHTML = "";
@@ -264,12 +275,14 @@
 
     // ●--------描画：場--------●
     onValue(ref(db, `rooms/${roomId}/field`), (snap) => {
+	  if (isShop) return;
+		
       const cards = snap.val() || [];
       const fieldDiv = document.getElementById("field");
       fieldDiv.innerHTML = "";
     
       const latestCard = cards.length > 0 ? cards[cards.length - 1] : null;
-    
+	
       if (latestCard) {
         const cardEl = document.createElement("div");
         cardEl.className = "cardButton";
@@ -304,6 +317,15 @@
 	// ●--------ボタン：場を山札に戻す--------●
     document.getElementById("returnToDeck").addEventListener("click", returnFieldToDeck);
 
+	if (isShop) {
+	  document.getElementById("deckImage").style.pointerEvents = "none";
+	  document.getElementById("deckImage").style.opacity = "0.5";
+	
+	  document.getElementById("reset").style.display = "none";
+	  document.getElementById("shuffleDeck").style.display = "none";
+	  document.getElementById("returnToDeck").style.display = "none";
+	}
+	  
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
     // ■    関数                 ■
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -408,7 +430,27 @@
 	    field: []   // 場を空にする
 	  });
 	}
-   
+
+	function renderShop() {
+	  const shopDiv = document.getElementById("shopList");
+	  shopDiv.innerHTML = "";
+	
+	  initialDeck.forEach(card => {
+	    const cardEl = document.createElement("div");
+	    cardEl.className = "cardButton";
+	    cardEl.innerHTML = `
+	      <div class="cardName">${card.name}</div>
+	      <div class="cardText">${card.text}</div>
+	    `;
+	    shopDiv.appendChild(cardEl);
+	  });
+	}
+
+	// shopモードならカード一覧を表示
+	if (isShop) {
+	  renderShop();
+	}
+
   </script>
 </body>
 </html>
