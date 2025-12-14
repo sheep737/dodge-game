@@ -170,7 +170,7 @@
   <!-- ■    画面構成              ■ -->
   <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
   <div>
-    <button id="reset">リセット【Ver：25】</button>
+    <button id="reset">リセット【Ver：26】</button>
     <button id="shuffleDeck">シャッフル</button>
 	<button id="returnToDeck">場を山札に戻す</button>
   </div>
@@ -229,7 +229,14 @@
       { name: "I", text: "自分のコイン１枚を身代わりコインにする" },
       { name: "J", text: "誰か１人のコインを２枚身代わりコインにする" }
     ];
-
+		  
+	const shopDeck = [
+	  { name: "a", text: "1人選び、コインを１枚奪う" },
+	  { name: "b", text: "全員がコインを１枚得る" },
+	  { name: "c", text: "身代わりコインを１枚得る" },
+	  { name: "d", text: "自分のコイン１枚を身代わりコインにする" }
+	];
+	  
     // URLからプレイヤーIDを取得
     const pv_urlParams = new URLSearchParams(window.location.search);
     const pv_playerId = pv_urlParams.get("player") || "playerA"; // デフォルト playerA
@@ -435,7 +442,7 @@
 	  const shopDiv = document.getElementById("shopList");
 	  shopDiv.innerHTML = "";
 	
-	  initialDeck.forEach(card => {
+	  shopDeck.forEach(card => {
 	    const cardEl = document.createElement("div");
 	    cardEl.className = "cardButton";
 	    cardEl.innerHTML = `
