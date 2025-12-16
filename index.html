@@ -179,7 +179,8 @@
   <!-- ■    画面構成              ■ -->
   <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
   <div>
-    <button id="reset">リセット【Ver：32】</button>
+    <button id="reset">リセット【Ver：33】</button>
+	<button id="leaveRoom">退室</button>
     <button id="shuffleDeck">シャッフル</button>
 	<button id="returnToDeck">場を山札に戻す</button>
   </div>
@@ -352,6 +353,7 @@
 
 	// ●--------ボタン：場を山札に戻す--------●
     document.getElementById("returnToDeck").addEventListener("click", returnFieldToDeck);
+	document.getElementById("leaveRoom").addEventListener("click", leaveRoom);
 
 	if (isShop) {
 	  document.getElementById("deckImage").style.pointerEvents = "none";
@@ -362,6 +364,7 @@
 	  document.getElementById("returnToDeck").style.display = "none";
 	  document.getElementById("topArea").style.display = "none";
 	  document.getElementById("hand").style.display = "none";	
+		document.getElementById("leaveRoom").style.display = "none";
 	}
 	  
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -555,8 +558,25 @@
 	    });
 	  }
 	}
-	
+
 	joinRoom();
+
+	async function leaveRoom() {
+	  if (!confirm("部屋から退室しますか？")) return;
+	
+	  const updates = {};
+	  updates[`players/${pv_playerId}`] = null;
+	  updates[`decks/${pv_playerId}`]   = null;
+	  updates[`hands/${pv_playerId}`]   = null;
+	
+	  await update(roomRef, updates);
+	
+	  alert("退室しました");
+	
+	  // 画面遷移（例）
+	  window.location.href = "./index.html";
+	}
+
   </script>
 </body>
 </html>
