@@ -174,7 +174,7 @@
   <!-- ■    画面構成              ■ -->
   <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
   <div>
-    <button id="reset">リセット【Ver：30】</button>
+    <button id="reset">リセット【Ver：31】</button>
     <button id="shuffleDeck">シャッフル</button>
 	<button id="returnToDeck">場を山札に戻す</button>
   </div>
@@ -247,25 +247,27 @@
     const pv_urlParams = new URLSearchParams(window.location.search);
     const pv_playerId = pv_urlParams.get("player") || "playerA"; // デフォルト playerA
 	const isShop = pv_playerId === "shop";
-	
-    const roomRef     = ref(db, `rooms/${roomId}`);
-    const pv_db_deck  = ref(db, `rooms/${roomId}/deck`);
+	const targetPlayer = pv_urlParams.get("target") || "playerA";
+
+	const roomRef     = ref(db, `rooms/${roomId}`);
+    const pv_db_deck = ref(db, `rooms/${roomId}/decks/${pv_playerId}`);
     const pv_db_hand  = ref(db, `rooms/${roomId}/hands/${pv_playerId}`);
     const pv_db_field = ref(db, `rooms/${roomId}/field/${pv_playerId}`);
     const pv_db_field_all = ref(db, `rooms/${roomId}/field`);
+	const pv_db_shopDeck = ref(db, `rooms/${roomId}/shopDeck`);
 
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
     // ■    リアルタイム表示      ■
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
     // ●--------描画：デッキ--------●
-    onValue(pv_db_deck, (lv_snapshot_deck) => {
-      const lv_deck = lv_snapshot_deck.val() || [];
-      document.getElementById("deckCount").innerHTML = `残り：${lv_deck.length}枚`;
-
-      const img = document.getElementById("deckImage");
-      img.style.opacity = lv_deck.length === 0 ? "0.3" : "1"; // デッキが0なら薄くする
-    });
-
+	onValue(pv_db_deck, (snap) => {
+	  const deck = snap.val() || [];
+	  document.getElementById("deckCount").innerText = `残り：${deck.length}枚`;
+	
+	  document.getElementById("deckImage").style.opacity =
+	    deck.length === 0 ? "0.3" : "1";
+	});
+	  
     // ●--------描画：手札--------●
     onValue(pv_db_hand, (lv_snapshot_hand) => {
 	  if (isShop) return;
@@ -343,27 +345,26 @@
     // ■    関数                 ■
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
     // ●--------カードを引く--------●
-    async function drawCard() {
-      const deckSnap = await get(pv_db_deck);
-      const handSnap = await get(pv_db_hand);
-
-      let deck = deckSnap.val() || [];
-      let hand = handSnap.val() || [];
-
-      if (deck.length === 0) {
-        alert("山札がありません");
-        return;
-      }
-
-      const card = deck.shift(); // 山札の一番上を引く
-      hand.push(card);           // 手札に追加
-
-      // --- データ更新（同時更新対策で update を使う） ---
-      await update(roomRef, {
-        deck: deck,
-        [`hands/${pv_playerId}`]: hand
-      });
-    }
+	async function drawCard() {
+	  const deckSnap = await get(pv_db_deck);
+	  const handSnap = await get(pv_db_hand);
+	
+	  let deck = deckSnap.val() || [];
+	  let hand = handSnap.val() || [];
+	
+	  if (deck.length === 0) {
+	    alert("山札がありません");
+	    return;
+	  }
+	
+	  const card = deck.shift();
+	  hand.push(card);
+	
+	  await update(roomRef, {
+	    [`decks/${pv_playerId}`]: deck,
+	    [`hands/${pv_playerId}`]: hand
+	  });
+	}
 
     // ●--------場に出す--------●
     async function playCard(cardIndex) {
@@ -385,15 +386,19 @@
     }
 
     // ●--------リセット--------●
-    async function resetGame() {
-      if (!confirm("ゲームをリセットしますか？")) return;
-    
-      await update(roomRef, {
-        deck: [...initialDeck],
-        hands: {},
-        field: []
-      });
-    }
+	async function resetGame() {
+	  if (!confirm("ゲームをリセットしますか？")) return;
+	
+	  await update(roomRef, {
+	    decks: {
+	      playerA: [...initialDeck],
+	      playerB: [...initialDeck]
+	    },
+	    hands: {},
+	    field: [],
+	    shopDeck: [...shopDeck]
+	  });
+	}
     
     // ●--------シャッフル実行--------●
 	async function shuffleDeck() {
@@ -401,15 +406,15 @@
 	  let deck = deckSnap.val() || [];
 
 	  if (deck.length <= 1) {
-	    alert("シャッフルするカードがありません");
-	    return;
+		alert("シャッフルするカードがありません");
+		return;
 	  }
 
 	  shuffleArray(deck);
 
 	  await update(roomRef, {
-	    deck: deck
-	  });
+  	    [`decks/${pv_playerId}`]: deck
+  	  });
 	}
     
     // ●--------デッキをシャッフル--------●
@@ -438,10 +443,10 @@
 	  // 場のカードを山札の下に戻す
 	  deck = deck.concat(field);
 	
-	  await update(roomRef, {
-	    deck: deck,
-	    field: []   // 場を空にする
-	  });
+		await update(roomRef, {
+		  [`decks/${pv_playerId}`]: deck,
+		  field: []
+		});
 	}
 
 	function renderShop() {
