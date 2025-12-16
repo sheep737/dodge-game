@@ -179,7 +179,7 @@
   <!-- ■    画面構成              ■ -->
   <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
   <div>
-    <button id="reset">リセット【Ver：33】</button>
+    <button id="reset">リセット【Ver：34】</button>
 	<button id="leaveRoom">退室</button>
     <button id="shuffleDeck">シャッフル</button>
 	<button id="returnToDeck">場を山札に戻す</button>
@@ -265,7 +265,8 @@
     const pv_db_hand  = ref(db, `rooms/${roomId}/hands/${pv_playerId}`);
     const pv_db_field_all = ref(db, `rooms/${roomId}/field`);
 	const pv_db_shopDeck = ref(db, `rooms/${roomId}/shopDeck`);
-
+	const pv_db_field = ref(db, `rooms/${roomId}/fields/${pv_playerId}`);
+	  
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
     // ■    リアルタイム表示      ■
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -300,33 +301,32 @@
     });
 
     // ●--------描画：場--------●
-    onValue(ref(db, `rooms/${roomId}/field`), (snap) => {
+	onValue(pv_db_field, (snap) => {
 	  if (isShop) return;
-		
-      const cards = snap.val() || [];
-      const fieldDiv = document.getElementById("field");
-      fieldDiv.innerHTML = "";
-    
-      const latestCard = cards.length > 0 ? cards[cards.length - 1] : null;
 	
-      if (latestCard) {
-        const cardEl = document.createElement("div");
-        cardEl.className = "cardButton";
-        cardEl.textContent = latestCard;
-        cardEl.innerHTML = `
-          <div style="font-size:20px; font-weight:bold;">${latestCard.name}</div>
-          <div style="font-size:12px;">${latestCard.text}</div>
-        `;
-        fieldDiv.appendChild(cardEl);
-      } else {
-        const empty = document.createElement("div");
-        empty.style.width = "80px";
-        empty.style.height = "120px";
-        empty.style.border = "2px dashed #aaa";
-        empty.style.borderRadius = "10px";
-        fieldDiv.appendChild(empty);
-      }
-    });
+	  const cards = snap.val() || [];
+	  const fieldDiv = document.getElementById("field");
+	  fieldDiv.innerHTML = "";
+	
+	  const latestCard = cards.length > 0 ? cards[cards.length - 1] : null;
+	
+	  if (latestCard) {
+	    const cardEl = document.createElement("div");
+	    cardEl.className = "cardButton";
+	    cardEl.innerHTML = `
+	      <div style="font-size:20px; font-weight:bold;">${latestCard.name}</div>
+	      <div style="font-size:12px;">${latestCard.text}</div>
+	    `;
+	    fieldDiv.appendChild(cardEl);
+	  } else {
+	    const empty = document.createElement("div");
+	    empty.style.width = "80px";
+	    empty.style.height = "120px";
+	    empty.style.border = "2px dashed #aaa";
+	    empty.style.borderRadius = "10px";
+	    fieldDiv.appendChild(empty);
+	  }
+	});
 	  
 	onValue(ref(db, `rooms/${roomId}/players`), snap => {
 	  const players = snap.val() || {};
@@ -395,7 +395,7 @@
     // ●--------場に出す--------●
     async function playCard(cardIndex) {
       const handSnap  = await get(pv_db_hand);
-      const fieldSnap = await get(ref(db, `rooms/${roomId}/field`));  // 共通の場に変更
+      const fieldSnap = await get(pv_db_field);
     
       let hand = handSnap.val() || [];
       let field = fieldSnap.val() || [];
@@ -405,10 +405,10 @@
       const card = hand.splice(cardIndex, 1)[0]; // 手札から削除
       field.push(card);                           // 共通の場に追加
     
-      await update(roomRef, {
-        [`hands/${pv_playerId}`]: hand,
-        field: field
-      });
+		await update(roomRef, {
+		  [`hands/${pv_playerId}`]: hand,
+		  [`fields/${pv_playerId}`]: field
+		});
     }
 
     // ●--------リセット--------●
@@ -418,18 +418,20 @@
 	  const playersSnap = await get(ref(db, `rooms/${roomId}/players`));
 	  const players = playersSnap.val() || {};
 	
-	  const decks = {};
-	  const hands = {};
-	
-	  Object.keys(players).forEach(pid => {
-	    decks[pid] = [...initialDeck];
-	    hands[pid] = [];
-	  });
+		const decks = {};
+		const hands = {};
+		const fields = {};
+
+		Object.keys(players).forEach(pid => {
+			decks[pid] = [...initialDeck];
+			hands[pid] = [];
+			fields[pid] = [];
+		});
 	
 	  await update(roomRef, {
 	    decks,
 	    hands,
-	    field: [],
+	    fields,
 	    shopDeck: [...shopDeck]
 	  });
 	}
@@ -463,9 +465,9 @@
 	async function returnFieldToDeck() {
 	  if (!confirm("場のカードをすべて山札に戻しますか？")) return;
 	
-	  const deckSnap  = await get(pv_db_deck);
-	  const fieldSnap = await get(ref(db, `rooms/${roomId}/field`));
-	
+		const deckSnap  = await get(pv_db_deck);
+		const fieldSnap = await get(pv_db_field);
+
 	  let deck  = deckSnap.val() || [];
 	  let field = fieldSnap.val() || [];
 	
@@ -478,8 +480,8 @@
 	  deck = deck.concat(field);
 	
 		await update(roomRef, {
-		  [`decks/${pv_playerId}`]: deck,
-		  field: []
+			[`decks/${pv_playerId}`]: deck,
+			[`fields/${pv_playerId}`]: []
 		});
 	}
 
