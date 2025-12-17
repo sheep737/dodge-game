@@ -90,7 +90,17 @@
 	  margin-top: 20px;
 	  justify-items: center;
 	}
-	  
+
+	/* ===== Shopカード専用 ===== */
+	#shopList .cardName {
+	  font-size: 14px;
+	}
+	
+	#shopList .cardText {
+	  font-size: 12px;
+	  line-height: 1.2;
+	}
+
 	#shopControl {
 	  margin-top: 10px;
 	  font-size: 16px;
@@ -137,9 +147,11 @@
         font-size: 3vw;
       }
       
-      .cardButton div:nth-child(1) {
-        font-size: 18px;
-      }
+		/* 通常カード（手札・場）だけ */
+		#hand .cardName,
+		#field .cardName {
+		  font-size: 20px;
+		}
     
       .cardButton div:nth-child(2) {
         font-size: 10px;
@@ -186,11 +198,34 @@
         filter: brightness(0.95);
       }
 
-	  #shopList {
-	    grid-template-columns: repeat(4, 1fr);
-	  }
-		
+      #shopList {
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      /* ★ Shopカードはvwを使わない */
+      #shopList .cardName {
+        font-size: 14px;
+      }
+    
+      #shopList .cardText {
+        font-size: 12px;
+      }
+
     }
+
+	/* ===== iPad横持ち：Shopカード ===== */
+	@media (min-width: 768px) and (max-width: 1366px) {
+	
+	  #shopList .cardName {
+	    font-size: 13px;
+	  }
+	
+	  #shopList .cardText {
+	    font-size: 11px;
+	  }
+	
+	}
+
   </style>
 </head>
 <body>
@@ -198,7 +233,7 @@
   <!-- ■    画面構成              ■ -->
   <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
   <div>
-    <button id="reset">リセット【Ver：40】</button>
+    <button id="reset">リセット【Ver：41】</button>
 	<button id="leaveRoom">退室</button>
     <button id="shuffleDeck">シャッフル</button>
 	<button id="returnToDeck">場を山札に戻す</button>
