@@ -233,7 +233,7 @@
   <!-- ■    画面構成              ■ -->
   <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
   <div>
-    <button id="reset">リセット【Ver：44】</button>
+    <button id="reset">リセット【Ver：45】</button>
 	<button id="leaveRoom">退室</button>
     <button id="shuffleDeck">シャッフル</button>
 	<button id="returnToDeck">場を山札に戻す</button>
@@ -487,7 +487,9 @@
 		const fields = {};
 
 		Object.keys(players).forEach(pid => {
-			decks[pid] = [...initialDeck];
+      const deck = [...initialDeck];
+      shuffleArray(deck);
+			decks[pid] = deck;
 			hands[pid] = [];
 			fields[pid] = [];
 		});
