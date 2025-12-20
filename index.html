@@ -117,6 +117,25 @@
 	  font-size: 14px;   /* ← 好みで 13〜15px */
 	}
 
+  #shopFields {
+    margin-top: 20px;
+  }
+  
+  .shopFieldBlock {
+    margin-bottom: 16px;
+  }
+  
+  .shopFieldTitle {
+    font-weight: bold;
+    margin-bottom: 6px;
+  }
+  
+  .shopFieldCards {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
 	@media (max-width: 600px) {
     
       #topArea {
@@ -233,7 +252,7 @@
   <!-- ■    画面構成              ■ -->
   <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
   <div>
-    <button id="reset">リセット【Ver：45】</button>
+    <button id="reset">リセット【Ver：46】</button>
 	<button id="leaveRoom">退室</button>
     <button id="shuffleDeck">シャッフル</button>
 	<button id="returnToDeck">場を山札に戻す</button>
@@ -252,6 +271,7 @@
 	  <select id="targetPlayerSelect"></select>
 	</div>
 	<div id="shopList"></div>
+  <div id="shopFields"></div>
 	<div id="playerList"></div>
 
   <script type="module">
@@ -342,6 +362,17 @@
 	    document.getElementById("deckImage").style.opacity =
 	      deck.length === 0 ? "0.3" : "1";
 	  });
+
+    const fieldsRef = ref(db, `rooms/${roomId}/fields`);
+    const playersRef = ref(db, `rooms/${roomId}/players`);
+  
+    onValue(fieldsRef, snap => {
+      renderShopFields(snap.val() || {});
+    });
+  
+    onValue(playersRef, snap => {
+      window.shopPlayers = Object.keys(snap.val() || {});
+    });
 	}
 	  
     // ●--------描画：手札--------●
@@ -644,6 +675,41 @@
 	  // 画面遷移（例）
 	  window.location.href = "./index.html";
 	}
+
+  function renderShopFields(fields) {
+    const root = document.getElementById("shopFields");
+    root.innerHTML = "<h3>各プレイヤーの場</h3>";
+  
+    const players = window.shopPlayers || [];
+  
+    players.forEach(pid => {
+      if (pid === "shop") return;
+  
+      const cards = fields[pid] || [];
+      const latest = cards.length ? cards[cards.length - 1] : null;
+  
+      const block = document.createElement("div");
+      block.className = "shopFieldBlock";
+  
+      block.innerHTML = `
+        <div class="shopFieldTitle">${pid}</div>
+        <div class="shopFieldCards">
+          ${
+            latest
+              ? `
+                <div class="cardButton">
+                  <div class="cardName">${latest.name}</div>
+                  <div class="cardText">${latest.text.replace(/\n/g,"<br>")}</div>
+                </div>
+              `
+              : `<span style="color:#888;">（場なし）</span>`
+          }
+        </div>
+      `;
+  
+      root.appendChild(block);
+    });
+  }
 
   </script>
 </body>
