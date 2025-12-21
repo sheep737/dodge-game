@@ -275,7 +275,7 @@
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
-	<div>【Ver：53】
+	<div>【Ver：54】
     	<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
     	<button id="shuffleDeck">シャッフル</button>
@@ -759,6 +759,14 @@
 	    `;
 	
 	    root.appendChild(block);
+		// ★ 追加：最新カードが見えるように右端へスクロール
+		const cardsContainer = block.querySelector(".shopFieldCards");
+		if (cardsContainer) {
+			cardsContainer.scrollTo({
+			  left: cardsContainer.scrollWidth,
+			  behavior: "smooth"
+			});
+		}
 	  });
 	}
 
