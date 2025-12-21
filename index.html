@@ -275,11 +275,13 @@
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
-	<div>【Ver：50】
+	<div>【Ver：51】
     	<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
     	<button id="shuffleDeck">シャッフル</button>
 		<button id="returnToDeck">場を山札に戻す</button>
+		<button id="endTurn">ターン終了</button>
+		<span id="endTurnInfo" style="margin-left:10px;font-weight:bold;"></span>
 	</div>
 	<div id="topArea">
     	<div id="deck">
@@ -459,8 +461,22 @@
 	
 	  if (isShop) {
 	    renderTargetPlayerSelect(players);
+		document.getElementById("endTurn").style.display = "none";
+		document.getElementById("endTurnInfo").style.display = "none";
 	  }
 	});
+
+	onValue(ref(db, `rooms/${roomId}/lastEndTurn`), snap => {
+	  const data = snap.val();
+	  if (!data) return;
+	
+	  const date = new Date(data.at);
+	  const time = date.toLocaleTimeString();
+	
+	  document.getElementById("endTurnInfo").textContent =
+	    `最後にターン終了：${data.player}（${time}）`;
+	});
+
 	  
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
     // ■    ボタン動作            ■
@@ -478,6 +494,8 @@
 	// ●--------ボタン：場を山札に戻す--------●
     document.getElementById("returnToDeck").addEventListener("click", returnFieldToDeck);
 	document.getElementById("leaveRoom").addEventListener("click", leaveRoom);
+
+	document.getElementById("endTurn").addEventListener("click", endTurn);
 
 	if (isShop) {
 	  document.getElementById("deckImage").style.pointerEvents = "none";
@@ -736,6 +754,15 @@ function renderShopFields() {
     `;
 
     root.appendChild(block);
+  });
+}
+
+async function endTurn() {
+  await update(roomRef, {
+    lastEndTurn: {
+      player: pv_playerId,
+      at: Date.now()
+    }
   });
 }
 
