@@ -37,8 +37,30 @@
       gap: 10px;
       margin-top: 20px;
     }
-    
+
+	/* ===== カードのコスト表示 ===== */
+	.cardCost {
+	  position: absolute;
+	  top: 4px;
+	  right: 4px;
+	
+	  background: #ffd700;
+	  color: #000;
+	  border: 1px solid #000;
+	  border-radius: 50%;
+	
+	  width: 22px;
+	  height: 22px;
+	  font-size: 12px;
+	  font-weight: bold;
+	
+	  display: flex;
+	  align-items: center;
+	  justify-content: center;
+	}
+
     .cardButton {
+  		position: relative;
       width: 80px;
       height: 120px;
       margin: 5px;
@@ -63,14 +85,17 @@
       transition: transform 0.15s;
     }
 
-    .cardButton div:nth-child(1) {
-      font-size: 20px;
-      font-weight: bold;
-    }
-    
-    .cardButton div:nth-child(2) {
-      font-size: 12px;
-    }
+	.cardName {
+	  font-size: 16px;
+	  font-weight: bold;
+	  line-height: 1.1;
+	  text-align: center;
+	}
+	
+	.cardText {
+	  font-size: 12px;
+	  line-height: 1.2;
+	}
     
     .cardButton:hover {
       transform: translateY(-4px);
@@ -180,46 +205,42 @@
 	  flex-shrink: 0;
 	}
 
-	  @media (max-width: 600px) {
+	@media (max-width: 600px) {
     
-      #topArea {
-        flex-direction: row;   /* ← 横並びのまま */
-        justify-content: center;
-        gap: 20px;
-        width: 100%;
-      }
+		#topArea {
+	    	flex-direction: row;   /* ← 横並びのまま */
+	        justify-content: center;
+	        gap: 20px;
+	        width: 100%;
+	    }
     
-      #deckImage {
-        width: 30vw;
-        height: 45vw;
-      }
+	    #deckImage {
+	        width: 30vw;
+	        height: 45vw;
+	    }
+	    
+	    .cardButton {
+	        width: 30vw;
+	        height: 45vw;
+	        padding: 5px;
+	        margin: 4px;
+			flex-shrink: 0;
+	    }
+
+		.cardButton .cardName {
+        	font-size: 3vw;
+      	}
     
-      .cardButton {
-        width: 30vw;
-        height: 45vw;
-        padding: 5px;
-        margin: 4px;
-		flex-shrink: 0;
-      }
-      
-      .cardButton .cardName {
-        font-size: 3vw;
-      }
-    
-      .cardButton .cardText {
-        font-size: 3vw;
-      }
+      	.cardButton .cardText {
+        	font-size: 3vw;
+      	}
       
 		/* 通常カード（手札・場）だけ */
 		#hand .cardName,
 		#field .cardName {
-		  font-size: 20px;
+		  	font-size: 20px;
 		}
-    
-      .cardButton div:nth-child(2) {
-        font-size: 10px;
-      }
-    
+
       #hand {
 		  display: flex;
 		  flex-wrap: nowrap;      /* 折り返さない */
@@ -295,7 +316,7 @@
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
-	<div>【Ver：62】
+	<div>【Ver：63】
     	<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
     	<button id="shuffleDeck">シャッフル</button>
@@ -438,10 +459,11 @@
       lv_hand.forEach((card, index) => {
         const btn = document.createElement("div");
         btn.className = "cardButton";
-        btn.innerHTML = `
-          <div class="cardName">${card.name}</div>
-          <div class="cardText">${card.text}</div>
-        `;
+		btn.innerHTML = `
+		  <div class="cardCost">${card.cost}</div>
+		  <div class="cardName">${card.name}</div>
+		  <div class="cardText">${card.text.replace(/\n/g, "<br>")}</div>
+		`;
         btn.onclick = () => playCard(index);  // カードを場に出す
       
         handDiv.appendChild(btn);
@@ -473,10 +495,11 @@
 		  cards.forEach(card => {
 		    const cardEl = document.createElement("div");
 		    cardEl.className = "cardButton";
-		    cardEl.innerHTML = `
-		      <div class="cardName">${card.name}</div>
-		      <div class="cardText">${card.text.replace(/\n/g, "<br>")}</div>
-		    `;
+			cardEl.innerHTML = `
+			  <div class="cardCost">${card.cost}</div>
+			  <div class="cardName">${card.name}</div>
+			  <div class="cardText">${card.text.replace(/\n/g, "<br>")}</div>
+			`;
 		    fieldDiv.appendChild(cardEl);
 		  });
 			
@@ -696,10 +719,11 @@
 	  shopDeck.forEach(card => {
 	    const cardEl = document.createElement("div");
 	    cardEl.className = "cardButton";
-	    cardEl.innerHTML = `
-	      <div class="cardName">${card.name}</div>
-	      <div class="cardText">${card.text.replace(/\n/g, "<br>")}</div>
-	    `;
+		cardEl.innerHTML = `
+		  <div class="cardCost">${card.cost}</div>
+		  <div class="cardName">${card.name}</div>
+		  <div class="cardText">${card.text.replace(/\n/g, "<br>")}</div>
+		`;
 	
 	    cardEl.onclick = () => addShopCardToPlayer(card);
 	
@@ -798,51 +822,52 @@
 	  	window.location.href = "./index.html";
 	}
 
-function renderShopFields() {
-  const root = document.getElementById("shopFields");
-  root.innerHTML = "<h3>現在のターンの場</h3>";
+	function renderShopFields() {
+	  const root = document.getElementById("shopFields");
+	  root.innerHTML = "<h3>現在のターンの場</h3>";
+	
+	  // ★ ターンプレイヤーが未確定なら何もしない
+	  if (!currentTurnPlayer) {
+	    root.innerHTML += "<div>ターン未開始</div>";
+	    return;
+	  }
+	
+	  const pid = currentTurnPlayer;
+	  const cards = shopFields[pid] || [];
+	
+	  const block = document.createElement("div");
+	  block.className = "shopFieldBlock";
 
-  // ★ ターンプレイヤーが未確定なら何もしない
-  if (!currentTurnPlayer) {
-    root.innerHTML += "<div>ターン未開始</div>";
-    return;
-  }
-
-  const pid = currentTurnPlayer;
-  const cards = shopFields[pid] || [];
-
-  const block = document.createElement("div");
-  block.className = "shopFieldBlock";
-
-  const cardsHtml = cards.length
-    ? cards.map(card => `
-        <div class="cardButton">
-          <div class="cardName">${card.name}</div>
-          <div class="cardText">
-            ${card.text.replace(/\n/g, "<br>")}
-          </div>
-        </div>
-      `).join("")
-    : `<span style="color:#888;">（場なし）</span>`;
-
-  block.innerHTML = `
-    <div class="shopFieldTitle">${pid}</div>
-    <div class="shopFieldCards">
-      ${cardsHtml}
-    </div>
-  `;
-
-  root.appendChild(block);
-
-  // ★ 最新カードが見えるように右端へスクロール
-  const cardsContainer = block.querySelector(".shopFieldCards");
-  if (cardsContainer) {
-    cardsContainer.scrollTo({
-      left: cardsContainer.scrollWidth,
-      behavior: "smooth"
-    });
-  }
-}
+	  const cardsHtml = cards.length
+	  ? cards.map(card => `
+	      <div class="cardButton">
+	        <div class="cardCost">${card.cost}</div>
+	        <div class="cardName">${card.name}</div>
+	        <div class="cardText">
+	          ${card.text.replace(/\n/g, "<br>")}
+	        </div>
+	      </div>
+	    `).join("")
+	  : `<span style="color:#888;">（場なし）</span>`;
+	
+	  block.innerHTML = `
+	    <div class="shopFieldTitle">${pid}</div>
+	    <div class="shopFieldCards">
+	      ${cardsHtml}
+	    </div>
+	  `;
+	
+	  root.appendChild(block);
+	
+	  // ★ 最新カードが見えるように右端へスクロール
+	  const cardsContainer = block.querySelector(".shopFieldCards");
+	  if (cardsContainer) {
+	    cardsContainer.scrollTo({
+	      left: cardsContainer.scrollWidth,
+	      behavior: "smooth"
+	    });
+	  }
+	}
 
 	async function endTurn() {
 	  if (!isMyTurn()) return;
