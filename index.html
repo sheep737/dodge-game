@@ -275,7 +275,7 @@
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
-	<div>【Ver：56】
+	<div>【Ver：57】
     	<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
     	<button id="shuffleDeck">シャッフル</button>
@@ -429,31 +429,38 @@
     });
 
     // ●--------描画：場--------●
-	onValue(pv_db_field, (snap) => {
-	  if (isShop) return;
+	onValue(ref(db, `rooms/${roomId}/turn/current`), (turnSnap) => {
+	  const turnPlayer = turnSnap.val();
+	  if (!turnPlayer) return;
 	
-	  const cards = snap.val() || [];
-	  const fieldDiv = document.getElementById("field");
-	  fieldDiv.innerHTML = "";
+	  const turnFieldRef = ref(db, `rooms/${roomId}/fields/${turnPlayer}`);
 	
-	  const latestCard = cards.length > 0 ? cards[cards.length - 1] : null;
+	  onValue(turnFieldRef, (snap) => {
+	    const cards = snap.val() || [];
+	    const fieldDiv = document.getElementById("field");
+	    fieldDiv.innerHTML = "";
 	
-	  if (latestCard) {
-	    const cardEl = document.createElement("div");
-	    cardEl.className = "cardButton";
-	    cardEl.innerHTML = `
-	      <div class="cardName fieldName">${latestCard.name}</div>
-	      <div class="cardText">${latestCard.text}</div>
-	    `;
-	    fieldDiv.appendChild(cardEl);
-	  } else {
-	    const empty = document.createElement("div");
-	    empty.style.width = "80px";
-	    empty.style.height = "120px";
-	    empty.style.border = "2px dashed #aaa";
-	    empty.style.borderRadius = "10px";
-	    fieldDiv.appendChild(empty);
-	  }
+	    const latestCard = cards.length > 0
+	      ? cards[cards.length - 1]
+	      : null;
+	
+	    if (latestCard) {
+	      const cardEl = document.createElement("div");
+	      cardEl.className = "cardButton";
+	      cardEl.innerHTML = `
+	        <div style="font-size:20px; font-weight:bold;">${latestCard.name}</div>
+	        <div style="font-size:12px;">${latestCard.text}</div>
+	      `;
+	      fieldDiv.appendChild(cardEl);
+	    } else {
+	      const empty = document.createElement("div");
+	      empty.style.width = "80px";
+	      empty.style.height = "120px";
+	      empty.style.border = "2px dashed #aaa";
+	      empty.style.borderRadius = "10px";
+	      fieldDiv.appendChild(empty);
+	    }
+	  });
 	});
 	  
 	onValue(ref(db, `rooms/${roomId}/players`), snap => {
@@ -763,47 +770,51 @@
 	  	window.location.href = "./index.html";
 	}
 
-	function renderShopFields() {
-	  const root = document.getElementById("shopFields");
-	  root.innerHTML = "<h3>各プレイヤーの場</h3>";
-	
-	  Object.keys(shopPlayers).forEach(pid => {
-	    if (pid === "shop") return;
-	
-	    const cards = shopFields[pid] || [];
-	
-	    const block = document.createElement("div");
-	    block.className = "shopFieldBlock";
-	
-	    const cardsHtml = cards.length
-	      ? cards.map(card => `
-	          <div class="cardButton">
-	            <div class="cardName">${card.name}</div>
-	            <div class="cardText">
-	              ${card.text.replace(/\n/g, "<br>")}
-	            </div>
-	          </div>
-	        `).join("")
-	      : `<span style="color:#888;">（場なし）</span>`;
-	
-	    block.innerHTML = `
-	      <div class="shopFieldTitle">${pid}</div>
-	      <div class="shopFieldCards">
-	        ${cardsHtml}
-	      </div>
-	    `;
-	
-	    root.appendChild(block);
-		// ★ 追加：最新カードが見えるように右端へスクロール
-		const cardsContainer = block.querySelector(".shopFieldCards");
-		if (cardsContainer) {
-			cardsContainer.scrollTo({
-			  left: cardsContainer.scrollWidth,
-			  behavior: "smooth"
-			});
-		}
-	  });
-	}
+function renderShopFields() {
+  const root = document.getElementById("shopFields");
+  root.innerHTML = "<h3>現在のターンの場</h3>";
+
+  // ★ ターンプレイヤーが未確定なら何もしない
+  if (!currentTurnPlayer) {
+    root.innerHTML += "<div>ターン未開始</div>";
+    return;
+  }
+
+  const pid = currentTurnPlayer;
+  const cards = shopFields[pid] || [];
+
+  const block = document.createElement("div");
+  block.className = "shopFieldBlock";
+
+  const cardsHtml = cards.length
+    ? cards.map(card => `
+        <div class="cardButton">
+          <div class="cardName">${card.name}</div>
+          <div class="cardText">
+            ${card.text.replace(/\n/g, "<br>")}
+          </div>
+        </div>
+      `).join("")
+    : `<span style="color:#888;">（場なし）</span>`;
+
+  block.innerHTML = `
+    <div class="shopFieldTitle">${pid}</div>
+    <div class="shopFieldCards">
+      ${cardsHtml}
+    </div>
+  `;
+
+  root.appendChild(block);
+
+  // ★ 最新カードが見えるように右端へスクロール
+  const cardsContainer = block.querySelector(".shopFieldCards");
+  if (cardsContainer) {
+    cardsContainer.scrollTo({
+      left: cardsContainer.scrollWidth,
+      behavior: "smooth"
+    });
+  }
+}
 
 	async function endTurn() {
 	  if (!isMyTurn()) return;
@@ -820,27 +831,36 @@
 	
 	  const currentIndex = players.indexOf(pv_playerId);
 	  const nextPlayer = players[(currentIndex + 1) % players.length];
-	
-	  // 場 → 捨て札
-	  const fieldSnap   = await get(pv_db_field);
-	  const discardSnap = await get(pv_db_discard);
-	
-	  const field   = fieldSnap.val() || [];
-	  const discard = discardSnap.val() || [];
-	
-	  if (field.length > 0) {
-	    discard.push(...field);
-	  }
-	
-	  await update(roomRef, {
-	    [`fields/${pv_playerId}`]: [],
-	    [`discards/${pv_playerId}`]: discard,
-	    "turn/current": nextPlayer,
-	    lastEndTurn: {
-	      player: pv_playerId,
-	      at: Date.now()
-	    }
-	  });
+
+		// 場・手札 → 捨て札
+		const fieldSnap   = await get(pv_db_field);
+		const handSnap    = await get(pv_db_hand);      // ★追加
+		const discardSnap = await get(pv_db_discard);
+		
+		const field   = fieldSnap.val() || [];
+		const hand    = handSnap.val() || [];           // ★追加
+		const discard = discardSnap.val() || [];
+		
+		// 場を捨て札へ
+		if (field.length > 0) {
+		  discard.push(...field);
+		}
+		
+		// ★ 手札を捨て札へ
+		if (hand.length > 0) {
+		  discard.push(...hand);
+		}
+		
+		await update(roomRef, {
+		  [`fields/${pv_playerId}`]: [],
+		  [`hands/${pv_playerId}`]: [],                 // ★追加
+		  [`discards/${pv_playerId}`]: discard,
+		  "turn/current": nextPlayer,
+		  lastEndTurn: {
+		    player: pv_playerId,
+		    at: Date.now()
+		  }
+		});
 	}
 
 	function isMyTurn() {
