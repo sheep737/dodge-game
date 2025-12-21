@@ -82,8 +82,22 @@
       gap: 40px; /* デッキと場の間の余白 */
       margin-bottom: 20px;
     }
-	  
+
+	/* ===== shop画面：カード一覧 + 場を横並び ===== */
+	#shopArea {
+	  display: flex;
+	  align-items: flex-start;
+	  gap: 20px;
+	}
+	
+	/* 各プレイヤーの場（右） */
+	#shopFields {
+	  width: 280px;   /* 好みで調整 */
+	  flex-shrink: 0;
+	}
+
 	#shopList {
+	  flex: 1;
 	  display: grid;
 	  grid-template-columns: repeat(4, 1fr); /* PCは4枚 */
 	  gap: 12px;
@@ -117,10 +131,6 @@
 	  font-size: 14px;   /* ← 好みで 13〜15px */
 	}
 
-  #shopFields {
-    margin-top: 20px;
-  }
-  
   .shopFieldBlock {
     margin-bottom: 16px;
   }
@@ -248,33 +258,33 @@
   </style>
 </head>
 <body>
-  <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
-  <!-- ■    画面構成              ■ -->
-  <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
-  <div>
-    <button id="reset">リセット【Ver：47】</button>
-	<button id="leaveRoom">退室</button>
-    <button id="shuffleDeck">シャッフル</button>
-	<button id="returnToDeck">場を山札に戻す</button>
-  </div>
-  <div id="topArea">
-    <div id="deck">
-      <div id="deckImage"></div>
-      <div id="deckCount"></div>
-    </div>
-  
-    <div id="field"></div>
-  </div>
-  <div id="hand"></div>
-	<div id="shopControl">
-	  追加先：
-	  <select id="targetPlayerSelect"></select>
+	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
+	<!-- ■    画面構成              ■ -->
+	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
+	<div>【Ver：48】
+    	<button id="reset">リセット</button>
+		<button id="leaveRoom">退室</button>
+    	<button id="shuffleDeck">シャッフル</button>
+		<button id="returnToDeck">場を山札に戻す</button>
 	</div>
-	<div id="shopList"></div>
-  <div id="shopFields"></div>
+	<div id="topArea">
+    	<div id="deck">
+    		<div id="deckImage"></div>
+    		<div id="deckCount"></div>
+    	</div>
+		<div id="field"></div>
+	</div>
+	<div id="hand"></div>
+	<div id="shopControl">
+		追加先：
+		<select id="targetPlayerSelect"></select>
+	</div>	
+	<div id ="shopArea">
+		<div id="shopList"></div>
+		<div id="shopFields"></div>
+	</div>
 	<div id="playerList"></div>
-
-  <script type="module">
+<script type="module">
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
     // ■    Firebase設定         ■
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
