@@ -96,7 +96,7 @@
 	  flex-shrink: 0;
 	
 	  max-height: 80vh;        /* ★ 画面の8割まで */
-	  overflow-y: visible;
+	  overflow-y: auto;
 	  padding-right: 6px;      /* スクロールバー分 */
 	}
 
@@ -275,11 +275,11 @@
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
-	<div>【Ver：52】
+	<div>【Ver：53】
     	<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
     	<button id="shuffleDeck">シャッフル</button>
-		<button id="returnToDeck">場を山札に戻す</button>
+		<button id="returnToDeck">捨て札を山札に戻す</button>
 		<button id="endTurn">ターン終了</button>
 		<span id="endTurnInfo" style="margin-left:10px;font-weight:bold;"></span>
 	</div>
@@ -493,7 +493,7 @@
     document.getElementById("shuffleDeck").addEventListener("click", shuffleDeck);
 
 	// ●--------ボタン：場を山札に戻す--------●
-    document.getElementById("returnToDeck").addEventListener("click", returnFieldToDeck);
+    document.getElementById("returnToDeck").addEventListener("click", returnDiscardToDeck);
 	document.getElementById("leaveRoom").addEventListener("click", leaveRoom);
 
 	document.getElementById("endTurn").addEventListener("click", endTurn);
@@ -609,28 +609,28 @@
       }
     }
 
-	// ●--------場のカードを山札に戻す--------●
-	async function returnFieldToDeck() {
-	  if (!confirm("場のカードをすべて山札に戻しますか？")) return;
+	// ●--------捨て札のカードを山札に戻す--------●
+	async function returnDiscardToDeck() {
+	  if (!confirm("捨て札をすべて山札に戻しますか？")) return;
 	
-		const deckSnap  = await get(pv_db_deck);
-		const fieldSnap = await get(pv_db_field);
-
-	  let deck  = deckSnap.val() || [];
-	  let field = fieldSnap.val() || [];
+	  const deckSnap    = await get(pv_db_deck);
+	  const discardSnap = await get(pv_db_discard);
 	
-	  if (field.length === 0) {
-	    alert("場にカードがありません");
+	  let deck    = deckSnap.val() || [];
+	  let discard = discardSnap.val() || [];
+	
+	  if (discard.length === 0) {
+	    alert("捨て札がありません");
 	    return;
 	  }
 	
-	  // 場のカードを山札の下に戻す
-	  deck = deck.concat(field);
+	  // 捨て札を山札の下に戻す
+	  deck = deck.concat(discard);
 	
-		await update(roomRef, {
-			[`decks/${pv_playerId}`]: deck,
-			[`fields/${pv_playerId}`]: []
-		});
+	  await update(roomRef, {
+	    [`decks/${pv_playerId}`]: deck,
+	    [`discards/${pv_playerId}`]: []
+	  });
 	}
 
 	function renderShop() {
@@ -700,12 +700,13 @@
 	
 	  if (!snap.exists()) {
 		await update(roomRef, {
-		  [`players/${pv_playerId}`]: {
-		    joinedAt: Date.now()
-		  },
-		  [`decks/${pv_playerId}`]: [...initialDeck],
-		  [`hands/${pv_playerId}`]: [],
-		  [`discards/${pv_playerId}`]: []   // ★追加
+			[`players/${pv_playerId}`]: {
+		    	joinedAt: Date.now()
+			},
+			[`decks/${pv_playerId}`]: [...initialDeck],
+			[`hands/${pv_playerId}`]: [],
+			[`fields/${pv_playerId}`]: [],   // ★追加
+			[`discards/${pv_playerId}`]: []   // ★追加
 		});
 	  }
 	}
@@ -713,20 +714,18 @@
 	joinRoom();
 
 	async function leaveRoom() {
-	  if (!confirm("部屋から退室しますか？")) return;
+		if (!confirm("部屋から退室しますか？")) return;
 	
-		  const updates = {};
-	updates[`players/${pv_playerId}`] = null;
-	updates[`decks/${pv_playerId}`]   = null;
-	updates[`hands/${pv_playerId}`]   = null;
-	updates[`discards/${pv_playerId}`] = null; // ★追加
+		const updates = {};
+		updates[`players/${pv_playerId}`] = null;
+		updates[`decks/${pv_playerId}`]   = null;
+		updates[`hands/${pv_playerId}`]   = null;
+		updates[`fields/${pv_playerId}`] = null;
+		updates[`discards/${pv_playerId}`] = null;
+		await update(roomRef, updates);
 	
-	  await update(roomRef, updates);
-	
-	  alert("退室しました");
-	
-	  // 画面遷移（例）
-	  window.location.href = "./index.html";
+		alert("退室しました");
+	  	window.location.href = "./index.html";
 	}
 
 	function renderShopFields() {
