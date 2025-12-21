@@ -275,7 +275,7 @@
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
-	<div>【Ver：57】
+	<div>【Ver：58】
     	<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
     	<button id="shuffleDeck">シャッフル</button>
@@ -710,17 +710,19 @@
 	    return;
 	  }
 	
-	  const deckRef = ref(db, `rooms/${roomId}/decks/${targetPlayer}`);
-	  const snap = await get(deckRef);
-	  const deck = snap.val() || [];
+	  // ★ 捨て札を取得
+	  const discardRef = ref(db, `rooms/${roomId}/discards/${targetPlayer}`);
+	  const snap = await get(discardRef);
+	  const discard = snap.val() || [];
 	
-	  deck.push(card); // デッキの下に追加
+	  // ★ 捨て札の一番下に追加
+	  discard.push(card);
 	
 	  await update(roomRef, {
-	    [`decks/${targetPlayer}`]: deck
+	    [`discards/${targetPlayer}`]: discard
 	  });
 	
-	  alert(`${targetPlayer} のデッキに追加しました`);
+	  alert(`${targetPlayer} の捨て札に追加しました`);
 	}
 	  
 	// shopモードならカード一覧を表示
