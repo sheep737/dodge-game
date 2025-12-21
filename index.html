@@ -85,6 +85,19 @@
       transition: transform 0.15s;
     }
 
+	/* ===== カード種別ごとの枠色 ===== */
+	.cardButton.action {
+	  border-color: #1976d2;   /* 青：アクション */
+	}
+	
+	.cardButton.treasure {
+	  border-color: #f9a825;   /* 金：財宝 */
+	}
+	
+	.cardButton.victory {
+	  border-color: #2e7d32;   /* 緑：勝利点 */
+	}
+
 	.cardName {
 	  font-size: 16px;
 	  font-weight: bold;
@@ -316,7 +329,7 @@
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
-	<div>【Ver：63】
+	<div>【Ver：64】
     	<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
     	<button id="shuffleDeck">シャッフル</button>
@@ -374,34 +387,34 @@
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
     const roomId   = "room1";
     const initialDeck = [
-      { name: "A_銅貨", cost: 0, text: "＋１コイン" },
-      { name: "B_銅貨", cost: 0, text: "＋１コイン" },
-      { name: "C_銅貨", cost: 0, text: "＋１コイン" },
-      { name: "D_銅貨", cost: 0, text: "＋１コイン" },
-      { name: "E_銅貨", cost: 0, text: "＋１コイン" },
-      { name: "F_銅貨", cost: 0, text: "＋１コイン" },
-      { name: "G_銅貨", cost: 0, text: "＋１コイン" },
-      { name: "H_屋敷", cost: 2, text: "勝利点１" },
-      { name: "I_屋敷", cost: 2, text: "勝利点１" },
-      { name: "J_屋敷", cost: 2, text: "勝利点１" },
+      { name: "A_銅貨", cost: 0, text: "＋１コイン", type: "treasure" },
+      { name: "B_銅貨", cost: 0, text: "＋１コイン", type: "treasure" },
+      { name: "C_銅貨", cost: 0, text: "＋１コイン", type: "treasure" },
+      { name: "D_銅貨", cost: 0, text: "＋１コイン", type: "treasure" },
+      { name: "E_銅貨", cost: 0, text: "＋１コイン", type: "treasure" },
+      { name: "F_銅貨", cost: 0, text: "＋１コイン", type: "treasure" },
+      { name: "G_銅貨", cost: 0, text: "＋１コイン", type: "treasure" },
+      { name: "H_屋敷", cost: 2, text: "勝利点１", type: "victory" },
+      { name: "I_屋敷", cost: 2, text: "勝利点１", type: "victory" },
+      { name: "J_屋敷", cost: 2, text: "勝利点１", type: "victory" },
     ];
 		  
 	const shopDeck = [
-	  { name: "工房", cost: 3, text: "コスト１以下のカードを１枚獲得する" },
-	  { name: "地下貯蔵庫", cost: 2, text: "＋１アクション。手札から好きな枚数のカードを捨て、その枚数分引く" },
-	  { name: "鉱山", cost: 5, text: "財宝を破棄し、＋３コストまでの財宝を獲得する" },
-	  { name: "村", cost: 3, text: "＋１カード。\n＋２アクション" },
-	  { name: "鍛冶屋", cost: 4, text: "＋３カードを引く" },
-	  { name: "改築", cost: 4, text: "カードを破棄し、＋２コストまで獲得" },
-	  { name: "民兵", cost: 4, text: "＋２コイン。他のプレイヤーは手札３枚にする" },
-	  { name: "市場", cost: 5, text: "＋１カード。＋１アクション。＋１購入" },
-	  { name: "商人", cost: 3, text: "銀貨を引くと＋１コイン" },
-	  { name: "堀", cost: 2, text: "アタック時に公開すると無効化" },
-	  { name: "銅貨", cost: 0, text: "＋１コイン" },
-	  { name: "銀貨", cost: 3, text: "＋２コイン" },
-	  { name: "金貨", cost: 6, text: "＋３コイン" },
-	  { name: "屋敷", cost: 2, text: "勝利点１" },
-	  { name: "公領", cost: 5, text: "勝利点３" }
+	  { name: "工房", cost: 3, text: "コスト１以下のカードを１枚獲得する", type: "action" },
+	  { name: "地下貯蔵庫", cost: 2, text: "＋１アクション。手札から好きな枚数のカードを捨て、その枚数分引く", type: "action" },
+	  { name: "鉱山", cost: 5, text: "財宝を破棄し、＋３コストまでの財宝を獲得する", type: "action" },
+	  { name: "村", cost: 3, text: "＋１カード。\n＋２アクション", type: "action" },
+	  { name: "鍛冶屋", cost: 4, text: "＋３カードを引く", type: "action" },
+	  { name: "改築", cost: 4, text: "カードを破棄し、＋２コストまで獲得", type: "action" },
+	  { name: "民兵", cost: 4, text: "＋２コイン。他のプレイヤーは手札３枚にする", type: "action" },
+	  { name: "市場", cost: 5, text: "＋１カード。＋１アクション。＋１購入", type: "action" },
+	  { name: "商人", cost: 3, text: "銀貨を引くと＋１コイン", type: "action" },
+	  { name: "堀", cost: 2, text: "アタック時に公開すると無効化", type: "action" },
+	  { name: "銅貨", cost: 0, text: "＋１コイン", type: "treasure" },
+	  { name: "銀貨", cost: 3, text: "＋２コイン", type: "treasure" },
+	  { name: "金貨", cost: 6, text: "＋３コイン", type: "treasure" },
+	  { name: "屋敷", cost: 2, text: "勝利点１", type: "victory" },
+	  { name: "公領", cost: 5, text: "勝利点３", type: "victory" }
 	  // ,{ name: "属州", cost: 8, text: "勝利点６" }
 	];
 	  
@@ -457,8 +470,8 @@
       handDiv.innerHTML = "";
     
       lv_hand.forEach((card, index) => {
-        const btn = document.createElement("div");
-        btn.className = "cardButton";
+		const btn = document.createElement("div");
+		btn.className = `cardButton ${card.type || ""}`;
 		btn.innerHTML = `
 		  <div class="cardCost">${card.cost}</div>
 		  <div class="cardName">${card.name}</div>
@@ -494,7 +507,7 @@
 		
 		  cards.forEach(card => {
 		    const cardEl = document.createElement("div");
-		    cardEl.className = "cardButton";
+		    cardEl.className = `cardButton ${card.type || ""}`;
 			cardEl.innerHTML = `
 			  <div class="cardCost">${card.cost}</div>
 			  <div class="cardName">${card.name}</div>
@@ -718,7 +731,7 @@
 	
 	  shopDeck.forEach(card => {
 	    const cardEl = document.createElement("div");
-	    cardEl.className = "cardButton";
+	    cardEl.className = `cardButton ${card.type || ""}`;
 		cardEl.innerHTML = `
 		  <div class="cardCost">${card.cost}</div>
 		  <div class="cardName">${card.name}</div>
@@ -840,7 +853,7 @@
 
 	  const cardsHtml = cards.length
 	  ? cards.map(card => `
-	      <div class="cardButton">
+	      <div class="cardButton ${card.type || ""}">
 	        <div class="cardCost">${card.cost}</div>
 	        <div class="cardName">${card.name}</div>
 	        <div class="cardText">
