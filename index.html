@@ -275,7 +275,7 @@
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
-	<div>【Ver：55】
+	<div>【Ver：56】
     	<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
     	<button id="shuffleDeck">シャッフル</button>
@@ -373,7 +373,6 @@
 	const roomRef     = ref(db, `rooms/${roomId}`);
     const pv_db_deck = ref(db, `rooms/${roomId}/decks/${pv_playerId}`);
     const pv_db_hand  = ref(db, `rooms/${roomId}/hands/${pv_playerId}`);
-    const pv_db_field_all = ref(db, `rooms/${roomId}/field`);
 	const pv_db_shopDeck = ref(db, `rooms/${roomId}/shopDeck`);
 	const pv_db_field = ref(db, `rooms/${roomId}/fields/${pv_playerId}`);
 	const pv_db_discard = ref(db, `rooms/${roomId}/discards/${pv_playerId}`);
@@ -481,8 +480,14 @@
 	});
 
 	onValue(pv_db_turn, snap => {
-	  currentTurnPlayer = snap.val();
-	  updateTurnUI();
+	  	currentTurnPlayer = snap.val();
+	  	updateTurnUI();
+	
+		if (isShop) {
+		  get(ref(db, `rooms/${roomId}/players`)).then(snap => {
+		    renderTargetPlayerSelect(snap.val() || {});
+		  });
+		}
 	});
 	  
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -679,6 +684,12 @@
 	    const opt = document.createElement("option");
 	    opt.value = pid;
 	    opt.textContent = pid;
+	
+	    // ★ ここが追加：ターンプレイヤーを初期選択
+	    if (pid === currentTurnPlayer) {
+	      opt.selected = true;
+	    }
+	
 	    select.appendChild(opt);
 	  });
 	}
@@ -797,13 +808,20 @@
 	async function endTurn() {
 	  if (!isMyTurn()) return;
 	
+	  // ★ ここで playersData を正しく取得する
 	  const playersSnap = await get(ref(db, `rooms/${roomId}/players`));
-	  const players = Object.keys(playersSnap.val() || {}).filter(p => p !== "shop");
+	  const playersData = playersSnap.val() || {};
+	
+	  const players = Object.entries(playersData)
+	    .filter(([pid]) => pid !== "shop")
+	    // order が未定義でも落ちない保険
+	    .sort((a, b) => (a[1].order ?? 0) - (b[1].order ?? 0))
+	    .map(([pid]) => pid);
 	
 	  const currentIndex = players.indexOf(pv_playerId);
 	  const nextPlayer = players[(currentIndex + 1) % players.length];
 	
-	  // 場 → 捨て札（今までの処理）
+	  // 場 → 捨て札
 	  const fieldSnap   = await get(pv_db_field);
 	  const discardSnap = await get(pv_db_discard);
 	
