@@ -1,24 +1,25 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head> 
-  <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8"> 
-  <style>
-    #deckImage {
-      width: 80px;
-      height: 120px;
-      border-radius: 10px;
-      background: repeating-linear-gradient(
-          45deg,
-          #2d2d7f,
-          #2d2d7f 10px,
-          #1a1a4f 10px,
-          #1a1a4f 20px
+  	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+  	<style>
+    	#deckImage {
+      	width: 80px;
+      	height: 120px;
+      	border-radius: 10px;
+      	background: repeating-linear-gradient(
+        	45deg,
+          	#2d2d7f,
+          	#2d2d7f 10px,
+          	#1a1a4f 10px,
+          	#1a1a4f 20px
         );
-      border: 3px solid #000;
-      box-shadow: 0 6px 8px rgba(0,0,0,0.4);
-      margin-bottom: 5px;
-      transition: transform 0.2s, opacity 0.3s;
-    }
+      	border: 3px solid #000;
+      	box-shadow: 0 6px 8px rgba(0,0,0,0.4);
+      	margin-bottom: 5px;
+      	transition: transform 0.2s, opacity 0.3s;
+    	}
     
     /* マウスで浮く演出 */
     #deckImage:hover {
@@ -218,6 +219,12 @@
 	  flex-shrink: 0;
 	}
 
+	/* 破棄モード中の手札 */
+	.trashMode #hand .cardButton {
+	  border-color: #c62828;
+	  background: #ffebee;
+	}
+
 	@media (max-width: 600px) {
     
 		#topArea {
@@ -342,11 +349,12 @@
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
-	<div>【Ver：66】
+	<div>【Ver：67】
     	<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
     	<button id="shuffleDeck">シャッフル</button>
 		<button id="returnToDeck">捨て札を山札に戻す</button>
+		<button id="trashMode">破棄モード：OFF</button>
 		<button id="endTurn">ターン終了</button>
 		<span id="endTurnInfo" style="margin-left:10px;font-weight:bold;"></span>
 	</div>
@@ -490,7 +498,13 @@
 		  <div class="cardName">${card.name}</div>
 		  <div class="cardText">${card.text.replace(/\n/g, "<br>")}</div>
 		`;
-        btn.onclick = () => playCard(index);  // カードを場に出す
+		btn.onclick = () => {
+		  if (isTrashMode) {
+		    trashCard(index);
+		  } else {
+		    playCard(index);
+		  }
+		};
       
         handDiv.appendChild(btn);
       });
@@ -590,6 +604,13 @@
 	document.getElementById("leaveRoom").addEventListener("click", leaveRoom);
 
 	document.getElementById("endTurn").addEventListener("click", endTurn);
+
+	let isTrashMode = false;
+	document.getElementById("trashMode").addEventListener("click", () => {
+	  isTrashMode = !isTrashMode;
+	  document.getElementById("trashMode").textContent =
+	    `破棄モード：${isTrashMode ? "ON" : "OFF"}`;
+	});
 
 	if (isShop) {
 	  document.getElementById("deckImage").style.pointerEvents = "none";
@@ -973,6 +994,29 @@
 	  });
 	
 	  document.getElementById("endTurn").disabled = disabled;
+	}
+
+	async function trashCard(cardIndex) {
+	  if (!isMyTurn()) {
+	    alert("あなたのターンではありません");
+	    return;
+	  }
+	
+	  const handSnap    = await get(pv_db_hand);
+	  const discardSnap = await get(pv_db_discard);
+	
+	  let hand    = handSnap.val() || [];
+	  let discard = discardSnap.val() || [];
+	
+	  if (!hand[cardIndex]) return;
+	
+	  const card = hand.splice(cardIndex, 1)[0];
+	  discard.push(card);
+	
+	  await update(roomRef, {
+	    [`hands/${pv_playerId}`]: hand,
+	    [`discards/${pv_playerId}`]: discard
+	  });
 	}
 
   </script>
