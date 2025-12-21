@@ -86,13 +86,15 @@
 	/* ===== shop画面：カード一覧 + 場を横並び ===== */
 	#shopArea {
 	  display: flex;
-	  align-items: flex-start;
+	  flex-direction: column;
 	  gap: 20px;
+		width: 100%;
 	}
 	
 	/* 各プレイヤーの場（右） */
 	#shopFields {
-	  width: 280px;
+	  width: 100%;
+		max-width: 100vw;
 	  flex-shrink: 0;
 	
 	  max-height: 80vh;        /* ★ 画面の8割まで */
@@ -275,7 +277,7 @@
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
-	<div>【Ver：60】
+	<div>【Ver：61】
     	<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
     	<button id="shuffleDeck">シャッフル</button>
