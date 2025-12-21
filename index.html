@@ -275,7 +275,7 @@
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
-	<div>【Ver：51】
+	<div>【Ver：52】
     	<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
     	<button id="shuffleDeck">シャッフル</button>
@@ -376,6 +376,7 @@
     const pv_db_field_all = ref(db, `rooms/${roomId}/field`);
 	const pv_db_shopDeck = ref(db, `rooms/${roomId}/shopDeck`);
 	const pv_db_field = ref(db, `rooms/${roomId}/fields/${pv_playerId}`);
+	const pv_db_discard = ref(db, `rooms/${roomId}/discards/${pv_playerId}`);
 
 	// ===== shop用状態 =====
 	let shopPlayers = {};
@@ -563,19 +564,22 @@
 		const decks = {};
 		const hands = {};
 		const fields = {};
+		const discards = {};
 
 		Object.keys(players).forEach(pid => {
-      const deck = [...initialDeck];
-      shuffleArray(deck);
-			decks[pid] = deck;
-			hands[pid] = [];
-			fields[pid] = [];
+		  const deck = [...initialDeck];
+		  shuffleArray(deck);
+		  decks[pid] = deck;
+		  hands[pid] = [];
+		  fields[pid] = [];
+		  discards[pid] = [];   // ★追加
 		});
 	
 	  await update(roomRef, {
 	    decks,
 	    hands,
 	    fields,
+		discards,
 	    shopDeck: [...shopDeck]
 	  });
 	}
@@ -695,13 +699,14 @@
 	  const snap = await get(playerRef);
 	
 	  if (!snap.exists()) {
-	    await update(roomRef, {
-	      [`players/${pv_playerId}`]: {
-	        joinedAt: Date.now()
-	      },
-	      [`decks/${pv_playerId}`]: [...initialDeck],
-	      [`hands/${pv_playerId}`]: []
-	    });
+		await update(roomRef, {
+		  [`players/${pv_playerId}`]: {
+		    joinedAt: Date.now()
+		  },
+		  [`decks/${pv_playerId}`]: [...initialDeck],
+		  [`hands/${pv_playerId}`]: [],
+		  [`discards/${pv_playerId}`]: []   // ★追加
+		});
 	  }
 	}
 
@@ -710,10 +715,11 @@
 	async function leaveRoom() {
 	  if (!confirm("部屋から退室しますか？")) return;
 	
-	  const updates = {};
-	  updates[`players/${pv_playerId}`] = null;
-	  updates[`decks/${pv_playerId}`]   = null;
-	  updates[`hands/${pv_playerId}`]   = null;
+		  const updates = {};
+	updates[`players/${pv_playerId}`] = null;
+	updates[`decks/${pv_playerId}`]   = null;
+	updates[`hands/${pv_playerId}`]   = null;
+	updates[`discards/${pv_playerId}`] = null; // ★追加
 	
 	  await update(roomRef, updates);
 	
@@ -723,48 +729,62 @@
 	  window.location.href = "./index.html";
 	}
 
-function renderShopFields() {
-  const root = document.getElementById("shopFields");
-  root.innerHTML = "<h3>各プレイヤーの場</h3>";
+	function renderShopFields() {
+	  const root = document.getElementById("shopFields");
+	  root.innerHTML = "<h3>各プレイヤーの場</h3>";
+	
+	  Object.keys(shopPlayers).forEach(pid => {
+	    if (pid === "shop") return;
+	
+	    const cards = shopFields[pid] || [];
+	
+	    const block = document.createElement("div");
+	    block.className = "shopFieldBlock";
+	
+	    const cardsHtml = cards.length
+	      ? cards.map(card => `
+	          <div class="cardButton">
+	            <div class="cardName">${card.name}</div>
+	            <div class="cardText">
+	              ${card.text.replace(/\n/g, "<br>")}
+	            </div>
+	          </div>
+	        `).join("")
+	      : `<span style="color:#888;">（場なし）</span>`;
+	
+	    block.innerHTML = `
+	      <div class="shopFieldTitle">${pid}</div>
+	      <div class="shopFieldCards">
+	        ${cardsHtml}
+	      </div>
+	    `;
+	
+	    root.appendChild(block);
+	  });
+	}
 
-  Object.keys(shopPlayers).forEach(pid => {
-    if (pid === "shop") return;
-
-    const cards = shopFields[pid] || [];
-
-    const block = document.createElement("div");
-    block.className = "shopFieldBlock";
-
-    const cardsHtml = cards.length
-      ? cards.map(card => `
-          <div class="cardButton">
-            <div class="cardName">${card.name}</div>
-            <div class="cardText">
-              ${card.text.replace(/\n/g, "<br>")}
-            </div>
-          </div>
-        `).join("")
-      : `<span style="color:#888;">（場なし）</span>`;
-
-    block.innerHTML = `
-      <div class="shopFieldTitle">${pid}</div>
-      <div class="shopFieldCards">
-        ${cardsHtml}
-      </div>
-    `;
-
-    root.appendChild(block);
-  });
-}
-
-async function endTurn() {
-  await update(roomRef, {
-    lastEndTurn: {
-      player: pv_playerId,
-      at: Date.now()
-    }
-  });
-}
+	async function endTurn() {
+	  // 場を取得
+	  const fieldSnap   = await get(pv_db_field);
+	  const discardSnap = await get(pv_db_discard);
+	
+	  const field   = fieldSnap.val() || [];
+	  const discard = discardSnap.val() || [];
+	
+	  // 場があれば捨て札へ
+	  if (field.length > 0) {
+	    discard.push(...field);
+	  }
+	
+	  await update(roomRef, {
+	    [`fields/${pv_playerId}`]: [],       // 場を空に
+	    [`discards/${pv_playerId}`]: discard, // 捨て札に追加
+	    lastEndTurn: {
+	      player: pv_playerId,
+	      at: Date.now()
+	    }
+	  });
+	}
 
   </script>
 </body>
