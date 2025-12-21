@@ -252,7 +252,7 @@
   <!-- ■    画面構成              ■ -->
   <!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
   <div>
-    <button id="reset">リセット【Ver：46】</button>
+    <button id="reset">リセット【Ver：47】</button>
 	<button id="leaveRoom">退室</button>
     <button id="shuffleDeck">シャッフル</button>
 	<button id="returnToDeck">場を山札に戻す</button>
@@ -350,31 +350,36 @@
     const pv_db_field_all = ref(db, `rooms/${roomId}/field`);
 	const pv_db_shopDeck = ref(db, `rooms/${roomId}/shopDeck`);
 	const pv_db_field = ref(db, `rooms/${roomId}/fields/${pv_playerId}`);
+
+	// ===== shop用状態 =====
+	let shopPlayers = {};
+	let shopFields  = {};
 	  
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
     // ■    リアルタイム表示      ■
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
     // ●--------描画：デッキ--------●
 	if (!isShop) {
-	  onValue(pv_db_deck, (snap) => {
-	    const deck = snap.val() || [];
-	    document.getElementById("deckCount").innerText = `残り：${deck.length}枚`;
-	    document.getElementById("deckImage").style.opacity =
-	      deck.length === 0 ? "0.3" : "1";
-	  });
-
-    const fieldsRef = ref(db, `rooms/${roomId}/fields`);
-    const playersRef = ref(db, `rooms/${roomId}/players`);
-  
-    onValue(fieldsRef, snap => {
-      renderShopFields(snap.val() || {});
-    });
-  
-    onValue(playersRef, snap => {
-      window.shopPlayers = Object.keys(snap.val() || {});
-    });
+		onValue(pv_db_deck, (snap) => {
+	    	const deck = snap.val() || [];
+	    	document.getElementById("deckCount").innerText = `残り：${deck.length}枚`;
+	    	document.getElementById("deckImage").style.opacity =
+			deck.length === 0 ? "0.3" : "1";
+		});
 	}
-	  
+
+	// ===== shop画面：各プレイヤーの場を監視 =====
+	if (isShop) {
+	  onValue(ref(db, `rooms/${roomId}/players`), snap => {
+	    shopPlayers = snap.val() || {};
+	    renderShopFields();
+	  });
+	  onValue(ref(db, `rooms/${roomId}/fields`), snap => {
+	    shopFields = snap.val() || {};
+	    renderShopFields();
+	  });
+	}
+
     // ●--------描画：手札--------●
     onValue(pv_db_hand, (lv_snapshot_hand) => {
 	  if (isShop) return;
@@ -676,40 +681,40 @@
 	  window.location.href = "./index.html";
 	}
 
-  function renderShopFields(fields) {
-    const root = document.getElementById("shopFields");
-    root.innerHTML = "<h3>各プレイヤーの場</h3>";
-  
-    const players = window.shopPlayers || [];
-  
-    players.forEach(pid => {
-      if (pid === "shop") return;
-  
-      const cards = fields[pid] || [];
-      const latest = cards.length ? cards[cards.length - 1] : null;
-  
-      const block = document.createElement("div");
-      block.className = "shopFieldBlock";
-  
-      block.innerHTML = `
-        <div class="shopFieldTitle">${pid}</div>
-        <div class="shopFieldCards">
-          ${
-            latest
-              ? `
-                <div class="cardButton">
-                  <div class="cardName">${latest.name}</div>
-                  <div class="cardText">${latest.text.replace(/\n/g,"<br>")}</div>
-                </div>
-              `
-              : `<span style="color:#888;">（場なし）</span>`
-          }
-        </div>
-      `;
-  
-      root.appendChild(block);
-    });
-  }
+	function renderShopFields() {
+	  const root = document.getElementById("shopFields");
+	  root.innerHTML = "<h3>各プレイヤーの場</h3>";
+	
+	  Object.keys(shopPlayers).forEach(pid => {
+	    if (pid === "shop") return;
+	
+	    const cards  = shopFields[pid] || [];
+	    const latest = cards.length ? cards[cards.length - 1] : null;
+	
+	    const block = document.createElement("div");
+	    block.className = "shopFieldBlock";
+	
+	    block.innerHTML = `
+	      <div class="shopFieldTitle">${pid}</div>
+	      <div class="shopFieldCards">
+	        ${
+	          latest
+	            ? `
+	              <div class="cardButton">
+	                <div class="cardName">${latest.name}</div>
+	                <div class="cardText">
+	                  ${latest.text.replace(/\n/g,"<br>")}
+	                </div>
+	              </div>
+	            `
+	            : `<span style="color:#888;">（場なし）</span>`
+	        }
+	      </div>
+	    `;
+	
+	    root.appendChild(block);
+	  });
+	}
 
   </script>
 </body>
