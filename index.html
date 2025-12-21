@@ -145,7 +145,25 @@
     font-weight: bold;
     margin-bottom: 6px;
   }
-  
+
+	/* ===== 自分の場 ===== */
+	#field {
+	  display: flex;
+	  gap: 8px;
+	
+	  flex-wrap: nowrap;     /* 折り返さない */
+	  overflow-x: auto;      /* 横スクロール */
+	  overflow-y: hidden;
+	
+	  width: 100%;
+	  padding-bottom: 8px;
+	
+	  -webkit-overflow-scrolling: touch; /* iOS用 */
+	}
+	
+	#field .cardButton {
+	  flex-shrink: 0;
+	}
 	.shopFieldCards {
 	  display: flex;
 	  gap: 8px;
@@ -277,7 +295,7 @@
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
-	<div>【Ver：61】
+	<div>【Ver：62】
     	<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
     	<button id="shuffleDeck">シャッフル</button>
@@ -437,32 +455,38 @@
 	
 	  const turnFieldRef = ref(db, `rooms/${roomId}/fields/${turnPlayer}`);
 	
-	  onValue(turnFieldRef, (snap) => {
-	    const cards = snap.val() || [];
-	    const fieldDiv = document.getElementById("field");
-	    fieldDiv.innerHTML = "";
-	
-	    const latestCard = cards.length > 0
-	      ? cards[cards.length - 1]
-	      : null;
-	
-	    if (latestCard) {
-	      const cardEl = document.createElement("div");
-	      cardEl.className = "cardButton";
-	      cardEl.innerHTML = `
-	        <div style="font-size:20px; font-weight:bold;">${latestCard.name}</div>
-	        <div style="font-size:12px;">${latestCard.text}</div>
-	      `;
-	      fieldDiv.appendChild(cardEl);
-	    } else {
-	      const empty = document.createElement("div");
-	      empty.style.width = "80px";
-	      empty.style.height = "120px";
-	      empty.style.border = "2px dashed #aaa";
-	      empty.style.borderRadius = "10px";
-	      fieldDiv.appendChild(empty);
-	    }
-	  });
+		onValue(turnFieldRef, (snap) => {
+		  const cards = snap.val() || [];
+		  const fieldDiv = document.getElementById("field");
+		  fieldDiv.innerHTML = "";
+		
+		  if (cards.length === 0) {
+		    const empty = document.createElement("div");
+		    empty.style.width = "80px";
+		    empty.style.height = "120px";
+		    empty.style.border = "2px dashed #aaa";
+		    empty.style.borderRadius = "10px";
+		    fieldDiv.appendChild(empty);
+		    return;
+		  }
+		
+		  cards.forEach(card => {
+		    const cardEl = document.createElement("div");
+		    cardEl.className = "cardButton";
+		    cardEl.innerHTML = `
+		      <div class="cardName">${card.name}</div>
+		      <div class="cardText">${card.text.replace(/\n/g, "<br>")}</div>
+		    `;
+		    fieldDiv.appendChild(cardEl);
+		  });
+			
+			// ★ 最新カードが見えるように右端へ
+			fieldDiv.scrollTo({
+			  left: fieldDiv.scrollWidth,
+			  behavior: "smooth"
+			});
+			
+		});
 	});
 	  
 	onValue(ref(db, `rooms/${roomId}/players`), snap => {
