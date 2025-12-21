@@ -261,7 +261,7 @@
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
-	<div>【Ver：48】
+	<div>【Ver：49】
     	<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
     	<button id="shuffleDeck">シャッフル</button>
@@ -691,40 +691,39 @@
 	  window.location.href = "./index.html";
 	}
 
-	function renderShopFields() {
-	  const root = document.getElementById("shopFields");
-	  root.innerHTML = "<h3>各プレイヤーの場</h3>";
-	
-	  Object.keys(shopPlayers).forEach(pid => {
-	    if (pid === "shop") return;
-	
-	    const cards  = shopFields[pid] || [];
-	    const latest = cards.length ? cards[cards.length - 1] : null;
-	
-	    const block = document.createElement("div");
-	    block.className = "shopFieldBlock";
-	
-	    block.innerHTML = `
-	      <div class="shopFieldTitle">${pid}</div>
-	      <div class="shopFieldCards">
-	        ${
-	          latest
-	            ? `
-	              <div class="cardButton">
-	                <div class="cardName">${latest.name}</div>
-	                <div class="cardText">
-	                  ${latest.text.replace(/\n/g,"<br>")}
-	                </div>
-	              </div>
-	            `
-	            : `<span style="color:#888;">（場なし）</span>`
-	        }
-	      </div>
-	    `;
-	
-	    root.appendChild(block);
-	  });
-	}
+function renderShopFields() {
+  const root = document.getElementById("shopFields");
+  root.innerHTML = "<h3>各プレイヤーの場</h3>";
+
+  Object.keys(shopPlayers).forEach(pid => {
+    if (pid === "shop") return;
+
+    const cards = shopFields[pid] || [];
+
+    const block = document.createElement("div");
+    block.className = "shopFieldBlock";
+
+    const cardsHtml = cards.length
+      ? cards.map(card => `
+          <div class="cardButton">
+            <div class="cardName">${card.name}</div>
+            <div class="cardText">
+              ${card.text.replace(/\n/g, "<br>")}
+            </div>
+          </div>
+        `).join("")
+      : `<span style="color:#888;">（場なし）</span>`;
+
+    block.innerHTML = `
+      <div class="shopFieldTitle">${pid}</div>
+      <div class="shopFieldCards">
+        ${cardsHtml}
+      </div>
+    `;
+
+    root.appendChild(block);
+  });
+}
 
   </script>
 </body>
