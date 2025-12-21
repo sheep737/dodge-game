@@ -225,6 +225,14 @@
 	  background: #ffebee;
 	}
 
+	#trash {
+	  display: flex;
+	  gap: 8px;
+	  flex-wrap: nowrap;
+	  overflow-x: auto;
+	  opacity: 0.6;
+	}
+
 	@media (max-width: 600px) {
     
 		#topArea {
@@ -349,7 +357,7 @@
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
-	<div>【Ver：67】
+	<div>【Ver：68】
     	<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
     	<button id="shuffleDeck">シャッフル</button>
@@ -375,6 +383,8 @@
 	</div>
 	<div id="shopFields"></div>
 	<div id="playerList"></div>
+	<h3>破棄</h3>
+	<div id="trash"></div>
 <script type="module">
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
     // ■    Firebase設定         ■
@@ -452,6 +462,7 @@
 	const pv_db_field = ref(db, `rooms/${roomId}/fields/${pv_playerId}`);
 	const pv_db_discard = ref(db, `rooms/${roomId}/discards/${pv_playerId}`);
 	const pv_db_turn = ref(db, `rooms/${roomId}/turn/current`);
+	const pv_db_trash = ref(db, `rooms/${roomId}/trashes/${pv_playerId}`);
 	let currentTurnPlayer = null;
 
 	// ===== shop用状態 =====
@@ -585,6 +596,24 @@
 		  });
 		}
 	});
+
+	onValue(pv_db_trash, snap => {
+	  if (isShop) return;
+	
+	  const trash = snap.val() || [];
+	  const div = document.getElementById("trash");
+	  div.innerHTML = "";
+	
+	  trash.forEach(card => {
+	    const el = document.createElement("div");
+	    el.className = `cardButton ${card.type || ""}`;
+	    el.innerHTML = `
+	      <div class="cardCost">${card.cost}</div>
+	      <div class="cardName">${card.name}</div>
+	    `;
+	    div.appendChild(el);
+	  });
+	});
 	  
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
     // ■    ボタン動作            ■
@@ -690,6 +719,7 @@
 		const hands = {};
 		const fields = {};
 		const discards = {};
+		const trashes = {};
 
 		Object.keys(players).forEach(pid => {
 		  const deck = [...initialDeck];
@@ -697,6 +727,7 @@
 		  decks[pid] = deck;
 		  hands[pid] = [];
 		  fields[pid] = [];
+		  trashes[pid] = [];
 		  discards[pid] = [];   // ★追加
 		});
 	
@@ -705,6 +736,7 @@
 	    hands,
 	    fields,
 		discards,
+		trashes,
 	    shopDeck: [...shopDeck],
 		"turn/current": Object.keys(players).find(p => p !== "shop")
 	  });
@@ -841,7 +873,8 @@
 			[`decks/${pv_playerId}`]: [...initialDeck],
 			[`hands/${pv_playerId}`]: [],
 			[`fields/${pv_playerId}`]: [],   // ★追加
-			[`discards/${pv_playerId}`]: []   // ★追加
+			[`discards/${pv_playerId}`]: [],   // ★追加
+			[`trashes/${pv_playerId}`]: []
 		});
 	  }
 	}
@@ -1002,20 +1035,20 @@
 	    return;
 	  }
 	
-	  const handSnap    = await get(pv_db_hand);
-	  const discardSnap = await get(pv_db_discard);
+	  const handSnap  = await get(pv_db_hand);
+	  const trashSnap = await get(pv_db_trash);
 	
-	  let hand    = handSnap.val() || [];
-	  let discard = discardSnap.val() || [];
+	  let hand  = handSnap.val() || [];
+	  let trash = trashSnap.val() || [];
 	
 	  if (!hand[cardIndex]) return;
 	
 	  const card = hand.splice(cardIndex, 1)[0];
-	  discard.push(card);
+	  trash.push(card);
 	
 	  await update(roomRef, {
 	    [`hands/${pv_playerId}`]: hand,
-	    [`discards/${pv_playerId}`]: discard
+	    [`trashes/${pv_playerId}`]: trash
 	  });
 	}
 
