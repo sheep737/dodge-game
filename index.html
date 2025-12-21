@@ -92,8 +92,12 @@
 	
 	/* 各プレイヤーの場（右） */
 	#shopFields {
-	  width: 280px;   /* 好みで調整 */
+	  width: 280px;
 	  flex-shrink: 0;
+	
+	  max-height: 80vh;        /* ★ 画面の8割まで */
+	  overflow-y: visible;
+	  padding-right: 6px;      /* スクロールバー分 */
 	}
 
 	#shopList {
@@ -140,13 +144,23 @@
     margin-bottom: 6px;
   }
   
-  .shopFieldCards {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
+	.shopFieldCards {
+	  display: flex;
+	  gap: 8px;
+	
+	  flex-wrap: nowrap;     /* ★ 折り返さない */
+	  overflow-x: auto;      /* ★ 横スクロール */
+	  overflow-y: hidden;
+	
+	  padding-bottom: 6px;
+	  -webkit-overflow-scrolling: touch;
+	}
 
-	@media (max-width: 600px) {
+	.shopFieldCards .cardButton {
+	  flex-shrink: 0;
+	}
+
+	  @media (max-width: 600px) {
     
       #topArea {
         flex-direction: row;   /* ← 横並びのまま */
@@ -261,7 +275,7 @@
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
-	<div>【Ver：49】
+	<div>【Ver：50】
     	<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
     	<button id="shuffleDeck">シャッフル</button>
