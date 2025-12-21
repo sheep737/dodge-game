@@ -263,7 +263,20 @@
 		  -webkit-overflow-scrolling: touch; /* iOSなめらか */
 		  width: 100%;
       }
-      
+
+		/* ===== 手札のカード枠色 ===== */
+		#hand .cardButton.action {
+		  border-color: #1976d2;
+		}
+		
+		#hand .cardButton.treasure {
+		  border-color: #f9a825;
+		}
+		
+		#hand .cardButton.victory {
+		  border-color: #2e7d32;
+		}
+
       #field {
         display: flex;
         justify-content: center;
@@ -329,7 +342,7 @@
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
-	<div>【Ver：64】
+	<div>【Ver：65】
     	<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
     	<button id="shuffleDeck">シャッフル</button>
