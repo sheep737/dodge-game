@@ -275,7 +275,7 @@
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
-	<div>【Ver：54】
+	<div>【Ver：55】
     	<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
     	<button id="shuffleDeck">シャッフル</button>
@@ -377,6 +377,8 @@
 	const pv_db_shopDeck = ref(db, `rooms/${roomId}/shopDeck`);
 	const pv_db_field = ref(db, `rooms/${roomId}/fields/${pv_playerId}`);
 	const pv_db_discard = ref(db, `rooms/${roomId}/discards/${pv_playerId}`);
+	const pv_db_turn = ref(db, `rooms/${roomId}/turn/current`);
+	let currentTurnPlayer = null;
 
 	// ===== shop用状態 =====
 	let shopPlayers = {};
@@ -478,6 +480,10 @@
 	    `最後にターン終了：${data.player}（${time}）`;
 	});
 
+	onValue(pv_db_turn, snap => {
+	  currentTurnPlayer = snap.val();
+	  updateTurnUI();
+	});
 	  
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
     // ■    ボタン動作            ■
@@ -515,6 +521,12 @@
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
     // ●--------カードを引く--------●
 	async function drawCard() {
+
+	  if (!isMyTurn()) {
+	    alert("あなたのターンではありません");
+	    return;
+	  }
+
 	  const deckSnap = await get(pv_db_deck);
 	  const handSnap = await get(pv_db_hand);
 	
@@ -542,7 +554,12 @@
     
       let hand = handSnap.val() || [];
       let field = fieldSnap.val() || [];
-    
+
+	  if (!isMyTurn()) {
+	    alert("あなたのターンではありません");
+	    return;
+	  }
+
       if (!hand[cardIndex]) return;
     
       const card = hand.splice(cardIndex, 1)[0]; // 手札から削除
@@ -580,7 +597,8 @@
 	    hands,
 	    fields,
 		discards,
-	    shopDeck: [...shopDeck]
+	    shopDeck: [...shopDeck],
+		"turn/current": Object.keys(players).find(p => p !== "shop")
 	  });
 	}
     
@@ -712,6 +730,12 @@
 	}
 
 	joinRoom();
+	if (!isShop) {
+		const turnSnap = await get(pv_db_turn);
+		if (!turnSnap.exists()) {
+		  await set(pv_db_turn, pv_playerId);
+		}
+	}
 
 	async function leaveRoom() {
 		if (!confirm("部屋から退室しますか？")) return;
@@ -771,26 +795,67 @@
 	}
 
 	async function endTurn() {
-	  // 場を取得
+	  if (!isMyTurn()) return;
+	
+	  const playersSnap = await get(ref(db, `rooms/${roomId}/players`));
+	  const players = Object.keys(playersSnap.val() || {}).filter(p => p !== "shop");
+	
+	  const currentIndex = players.indexOf(pv_playerId);
+	  const nextPlayer = players[(currentIndex + 1) % players.length];
+	
+	  // 場 → 捨て札（今までの処理）
 	  const fieldSnap   = await get(pv_db_field);
 	  const discardSnap = await get(pv_db_discard);
 	
 	  const field   = fieldSnap.val() || [];
 	  const discard = discardSnap.val() || [];
 	
-	  // 場があれば捨て札へ
 	  if (field.length > 0) {
 	    discard.push(...field);
 	  }
 	
 	  await update(roomRef, {
-	    [`fields/${pv_playerId}`]: [],       // 場を空に
-	    [`discards/${pv_playerId}`]: discard, // 捨て札に追加
+	    [`fields/${pv_playerId}`]: [],
+	    [`discards/${pv_playerId}`]: discard,
+	    "turn/current": nextPlayer,
 	    lastEndTurn: {
 	      player: pv_playerId,
 	      at: Date.now()
 	    }
 	  });
+	}
+
+	function isMyTurn() {
+	  return currentTurnPlayer === pv_playerId;
+	}
+
+	function updateTurnUI() {
+	  const info = document.getElementById("endTurnInfo");
+	
+	  if (!currentTurnPlayer) {
+	    info.textContent = "ターン未開始";
+	    return;
+	  }
+	
+	  info.textContent = `現在のターン：${currentTurnPlayer}`;
+	
+	  // shop画面はターン制の影響を受けない
+	  if (isShop) return;
+	
+	  const disabled = !isMyTurn();
+	
+	  // デッキ
+	  const deck = document.getElementById("deckImage");
+	  deck.style.pointerEvents = disabled ? "none" : "auto";
+	  deck.style.opacity = disabled ? "0.4" : "1";
+	
+	  // 手札カードだけ制御
+	  document.querySelectorAll("#hand .cardButton").forEach(el => {
+	    el.style.pointerEvents = disabled ? "none" : "auto";
+	    el.style.opacity = disabled ? "0.6" : "1";
+	  });
+	
+	  document.getElementById("endTurn").disabled = disabled;
 	}
 
   </script>
