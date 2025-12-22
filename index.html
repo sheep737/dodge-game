@@ -357,7 +357,7 @@
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
-	<div>【Ver：69】
+	<div>【Ver：70】
     	<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
     	<button id="shuffleDeck">シャッフル</button>
@@ -472,6 +472,7 @@
 	// ===== shop用状態 =====
 	let shopPlayers = {};
 	let shopFields  = {};
+	let shopTrashes = {};
 	  
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
     // ■    リアルタイム表示      ■
@@ -496,6 +497,10 @@
 	    shopFields = snap.val() || {};
 	    renderShopFields();
 	  });
+		onValue(ref(db, `rooms/${roomId}/trashes`), snap => {
+		  shopTrashes = snap.val() || {};
+		  renderShopFields();
+		});
 	}
 
     // ●--------描画：手札--------●
@@ -921,42 +926,58 @@
 	    root.innerHTML += "<div>ターン未開始</div>";
 	    return;
 	  }
-	
-	  const pid = currentTurnPlayer;
-	  const cards = shopFields[pid] || [];
+			
+		const pid = currentTurnPlayer;
+		
+		const fieldCards  = shopFields[pid]  || [];
+		const trashCards  = shopTrashes[pid] || [];
 	
 	  const block = document.createElement("div");
 	  block.className = "shopFieldBlock";
 
-	  const cardsHtml = cards.length
-	  ? cards.map(card => `
-	      <div class="cardButton ${card.type || ""}">
-	        <div class="cardCost">${card.cost}</div>
-	        <div class="cardName">${card.name}</div>
-	        <div class="cardText">
-	          ${card.text.replace(/\n/g, "<br>")}
-	        </div>
-	      </div>
-	    `).join("")
-	  : `<span style="color:#888;">（場なし）</span>`;
+		const fieldHtml = fieldCards.length
+		  ? fieldCards.map(card => `
+		      <div class="cardButton ${card.type || ""}">
+		        <div class="cardCost">${card.cost}</div>
+		        <div class="cardName">${card.name}</div>
+		        <div class="cardText">
+		          ${card.text.replace(/\n/g, "<br>")}
+		        </div>
+		      </div>
+		    `).join("")
+		  : `<span style="color:#888;">（場なし）</span>`;
+		
+		const trashHtml = trashCards.length
+		  ? trashCards.map(card => `
+		      <div class="cardButton ${card.type || ""}">
+		        <div class="cardCost">${card.cost}</div>
+		        <div class="cardName">${card.name}</div>
+		      </div>
+		    `).join("")
+		  : `<span style="color:#888;">（破棄なし）</span>`;
 	
-	  block.innerHTML = `
-	    <div class="shopFieldTitle">${pid}</div>
-	    <div class="shopFieldCards">
-	      ${cardsHtml}
-	    </div>
-	  `;
+		block.innerHTML = `
+		  <div class="shopFieldTitle">${pid}</div>
+		
+		  <div style="margin-bottom:6px;">場</div>
+		  <div class="shopFieldCards">
+		    ${fieldHtml}
+		  </div>
+		
+		  <div style="margin-top:10px;margin-bottom:6px;">破棄</div>
+		  <div class="shopFieldCards" style="opacity:0.6;">
+		    ${trashHtml}
+		  </div>
+		`;
 	
 	  root.appendChild(block);
 	
-	  // ★ 最新カードが見えるように右端へスクロール
-	  const cardsContainer = block.querySelector(".shopFieldCards");
-	  if (cardsContainer) {
-	    cardsContainer.scrollTo({
-	      left: cardsContainer.scrollWidth,
-	      behavior: "smooth"
-	    });
-	  }
+	block.querySelectorAll(".shopFieldCards").forEach(container => {
+	  container.scrollTo({
+	    left: container.scrollWidth,
+	    behavior: "smooth"
+	  });
+	});
 	}
 
 	async function endTurn() {
