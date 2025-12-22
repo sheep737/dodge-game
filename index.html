@@ -357,7 +357,7 @@
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
-	<div>【Ver：68】
+	<div>【Ver：69】
     	<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
     	<button id="shuffleDeck">シャッフル</button>
@@ -383,6 +383,9 @@
 	</div>
 	<div id="shopFields"></div>
 	<div id="playerList"></div>
+	<div id="victoryPoints" style="margin-top:10px;font-weight:bold;">
+  		勝利点：0
+	</div>
 	<h3>破棄</h3>
 	<div id="trash"></div>
 <script type="module">
@@ -464,6 +467,7 @@
 	const pv_db_turn = ref(db, `rooms/${roomId}/turn/current`);
 	const pv_db_trash = ref(db, `rooms/${roomId}/trashes/${pv_playerId}`);
 	let currentTurnPlayer = null;
+	let currentTurnFieldUnsub = null;
 
 	// ===== shop用状態 =====
 	let shopPlayers = {};
@@ -523,12 +527,18 @@
 
     // ●--------描画：場--------●
 	onValue(ref(db, `rooms/${roomId}/turn/current`), (turnSnap) => {
-	  const turnPlayer = turnSnap.val();
-	  if (!turnPlayer) return;
+		const turnPlayer = turnSnap.val();
+  		if (!turnPlayer) return;
+
+  		// ★ 以前の監視を解除
+  		if (currentTurnFieldUnsub) {
+ 		   currentTurnFieldUnsub();
+		    currentTurnFieldUnsub = null;
+		}
+ 
+		const turnFieldRef = ref(db, `rooms/${roomId}/fields/${turnPlayer}`);
 	
-	  const turnFieldRef = ref(db, `rooms/${roomId}/fields/${turnPlayer}`);
-	
-		onValue(turnFieldRef, (snap) => {
+		currentTurnFieldUnsub = onValue(turnFieldRef, (snap) => {
 		  const cards = snap.val() || [];
 		  const fieldDiv = document.getElementById("field");
 		  fieldDiv.innerHTML = "";
@@ -1052,6 +1062,78 @@
 	  });
 	}
 
+	function getVictoryPoints(card) {
+	  if (card.type !== "victory") return 0;
+	
+	  if (card.name.includes("屋敷")) return 1;
+	  if (card.name.includes("公領")) return 3;
+	  if (card.name.includes("属州")) return 6;
+	
+	  return 0;
+	}
+
+	function calculateTotalVictoryPoints({
+	  deck = [],
+	  hand = [],
+	  discard = [],
+	  field = []
+	}) {
+	  const allCards = [
+	    ...deck,
+	    ...hand,
+	    ...discard,
+	    ...field
+	  ];
+	
+	  return allCards.reduce(
+	    (sum, card) => sum + getVictoryPoints(card),
+	    0
+	  );
+	}
+
+	function watchVictoryPoints() {
+	  if (isShop) return;
+	
+	  const vpDiv = document.getElementById("victoryPoints");
+	
+	  let deck = [];
+	  let hand = [];
+	  let discard = [];
+	  let field = [];
+	
+	  function updateVP() {
+	    const total = calculateTotalVictoryPoints({
+	      deck,
+	      hand,
+	      discard,
+	      field
+	    });
+	    vpDiv.textContent = `勝利点：${total}`;
+	  }
+	
+	  onValue(pv_db_deck, snap => {
+	    deck = snap.val() || [];
+	    updateVP();
+	  });
+	
+	  onValue(pv_db_hand, snap => {
+	    hand = snap.val() || [];
+	    updateVP();
+	  });
+	
+	  onValue(pv_db_discard, snap => {
+	    discard = snap.val() || [];
+	    updateVP();
+	  });
+	
+	  onValue(pv_db_field, snap => {
+	    field = snap.val() || [];
+	    updateVP();
+	  });
+	}
+
+	watchVictoryPoints();
+	
   </script>
 </body>
 </html>
