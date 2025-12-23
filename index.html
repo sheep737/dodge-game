@@ -237,6 +237,11 @@
   border-color: #6a1b9a;
   background: #f3e5f5;
 }
+
+.returnFieldMode #field .cardButton {
+  border-color: #1565c0;
+  background: #e3f2fd;
+}
 		
 	@media (max-width: 600px) {
     
@@ -362,13 +367,14 @@
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
-	<div>【Ver：74】
+	<div>【Ver：75】
     	<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
     	<button id="shuffleDeck">シャッフル</button>
 		<button id="returnToDeck">捨て札を山札に戻す</button>
 		<button id="trashMode">破棄モード：OFF</button>
 		<button id="returnHandMode">手札戻し：OFF</button>
+		<button id="returnFieldMode">場戻し：OFF</button>
 		<button id="endTurn">ターン終了</button>
 		<span id="endTurnInfo" style="margin-left:10px;font-weight:bold;"></span>
 	</div>
@@ -567,7 +573,7 @@ btn.onclick = () => {
 		    return;
 		  }
 		
-		  cards.forEach(card => {
+cards.forEach((card, index) => {
 		    const cardEl = document.createElement("div");
 		    cardEl.className = `cardButton ${card.type || ""}`;
 			cardEl.innerHTML = `
@@ -575,7 +581,13 @@ btn.onclick = () => {
 			  <div class="cardName">${card.name}</div>
 			  <div class="cardText">${card.text.replace(/\n/g, "<br>")}</div>
 			`;
-		    fieldDiv.appendChild(cardEl);
+cardEl.onclick = () => {
+  if (isReturnFieldMode) {
+    returnFieldCardToHand(index);
+  }
+};
+
+fieldDiv.appendChild(cardEl);
 		  });
 			
 			// ★ 最新カードが見えるように右端へ
@@ -660,32 +672,59 @@ btn.onclick = () => {
 
 	let isTrashMode = false;
 	let isReturnHandMode = false;
+	let isReturnFieldMode = false;
 	
-	document.getElementById("trashMode").addEventListener("click", () => {
-isTrashMode = !isTrashMode;
+document.getElementById("trashMode").addEventListener("click", () => {
+  isTrashMode = !isTrashMode;
 
-if (isTrashMode) {
-  isReturnHandMode = false;
-  document.body.classList.remove("returnHandMode");
-  document.getElementById("returnHandMode").textContent = "手札戻し：OFF";
-}
-	  document.getElementById("trashMode").textContent =
-	    `破棄モード：${isTrashMode ? "ON" : "OFF"}`;
-	});
+  if (isTrashMode) {
+    isReturnHandMode = false;
+    isReturnFieldMode = false;
+
+    document.body.classList.remove("returnHandMode", "returnFieldMode");
+    document.getElementById("returnHandMode").textContent = "手札戻し：OFF";
+    document.getElementById("returnFieldMode").textContent = "場戻し：OFF";
+  }
+
+  document.body.classList.toggle("trashMode", isTrashMode);
+
+  document.getElementById("trashMode").textContent =
+    `破棄モード：${isTrashMode ? "ON" : "OFF"}`;
+});
 
 document.getElementById("returnHandMode").addEventListener("click", () => {
-isReturnHandMode = !isReturnHandMode;
+  isReturnHandMode = !isReturnHandMode;
 
-if (isReturnHandMode) {
-  isTrashMode = false;
-  document.body.classList.remove("trashMode");
-  document.getElementById("trashMode").textContent = "破棄モード：OFF";
-}
+  if (isReturnHandMode) {
+    isTrashMode = false;
+    isReturnFieldMode = false;
+
+    document.body.classList.remove("trashMode", "returnFieldMode");
+    document.getElementById("trashMode").textContent = "破棄モード：OFF";
+    document.getElementById("returnFieldMode").textContent = "場戻し：OFF";
+  }
 
   document.body.classList.toggle("returnHandMode", isReturnHandMode);
-
   document.getElementById("returnHandMode").textContent =
     `手札戻し：${isReturnHandMode ? "ON" : "OFF"}`;
+});
+
+document.getElementById("returnFieldMode").addEventListener("click", () => {
+  isReturnFieldMode = !isReturnFieldMode;
+
+  if (isReturnFieldMode) {
+    // 他モードをOFF
+    isTrashMode = false;
+    isReturnHandMode = false;
+
+    document.body.classList.remove("trashMode", "returnHandMode");
+    document.getElementById("trashMode").textContent = "破棄モード：OFF";
+    document.getElementById("returnHandMode").textContent = "手札戻し：OFF";
+  }
+
+  document.body.classList.toggle("returnFieldMode", isReturnFieldMode);
+  document.getElementById("returnFieldMode").textContent =
+    `場戻し：${isReturnFieldMode ? "ON" : "OFF"}`;
 });
 	
 	if (isShop) {
@@ -1244,6 +1283,29 @@ async function returnHandCardToDeck(cardIndex) {
   await update(roomRef, {
     [`hands/${pv_playerId}`]: hand,
     [`decks/${pv_playerId}`]: deck
+  });
+}
+
+async function returnFieldCardToHand(cardIndex) {
+  if (!isMyTurn()) {
+    alert("あなたのターンではありません");
+    return;
+  }
+
+  const fieldSnap = await get(pv_db_field);
+  const handSnap  = await get(pv_db_hand);
+
+  let field = fieldSnap.val() || [];
+  let hand  = handSnap.val() || [];
+
+  if (!field[cardIndex]) return;
+
+  const card = field.splice(cardIndex, 1)[0];
+  hand.push(card); // ★ 手札の最後に戻す
+
+  await update(roomRef, {
+    [`fields/${pv_playerId}`]: field,
+    [`hands/${pv_playerId}`]: hand
   });
 }
 	
