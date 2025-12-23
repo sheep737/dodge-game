@@ -357,7 +357,7 @@
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
-	<div>【Ver：72】
+	<div>【Ver：73】
     	<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
     	<button id="shuffleDeck">シャッフル</button>
@@ -812,35 +812,29 @@ await update(roomRef, {
 	  });
 	}
 
-function renderShop() {
+function renderShop(cards) {
   const shopDiv = document.getElementById("shopList");
   shopDiv.innerHTML = "";
 
-  onValue(pv_db_shopDeck, snap => {
-    const cards = snap.val() || [];
+  cards.forEach((card, index) => {
+    const cardEl = document.createElement("div");
+    cardEl.className = `cardButton ${card.type || ""}`;
 
-    shopDiv.innerHTML = "";
+    cardEl.innerHTML = `
+      <div class="cardCost">${card.cost}</div>
+      <div class="cardName">${card.name}</div>
+      <div class="cardText">${card.text.replace(/\n/g, "<br>")}</div>
+      <div style="font-size:12px;">残り：${card.stock}</div>
+    `;
 
-    cards.forEach((card, index) => {
-      const cardEl = document.createElement("div");
-      cardEl.className = `cardButton ${card.type || ""}`;
+    if (card.stock <= 0) {
+      cardEl.style.pointerEvents = "none";
+      cardEl.style.opacity = "0.4";
+    } else {
+      cardEl.onclick = () => addShopCardToPlayer(index);
+    }
 
-      cardEl.innerHTML = `
-        <div class="cardCost">${card.cost}</div>
-        <div class="cardName">${card.name}</div>
-        <div class="cardText">${card.text.replace(/\n/g, "<br>")}</div>
-        <div style="font-size:12px;">残り：${card.stock}</div>
-      `;
-
-      if (card.stock <= 0) {
-        cardEl.style.pointerEvents = "none";
-        cardEl.style.opacity = "0.4";
-      } else {
-        cardEl.onclick = () => addShopCardToPlayer(index);
-      }
-
-      shopDiv.appendChild(cardEl);
-    });
+    shopDiv.appendChild(cardEl);
   });
 }
 	  
@@ -894,30 +888,49 @@ async function addShopCardToPlayer(cardIndex) {
   alert(`${targetPlayer} の捨て札に追加しました`);
 }
 	  
-	// shopモードならカード一覧を表示
-	if (isShop) {
-	  renderShop();
-	}
+// ===== shop画面：Shopカード一覧を監視 =====
+if (isShop) {
+  onValue(pv_db_shopDeck, snap => {
+    const cards = snap.val() || [];
+    renderShop(cards);
+  });
+}
 	  
-	async function joinRoom() {
-	  if (isShop) return;
-	
-	  const playerRef = ref(db, `rooms/${roomId}/players/${pv_playerId}`);
-	  const snap = await get(playerRef);
-	
-	  if (!snap.exists()) {
-		await update(roomRef, {
-			[`players/${pv_playerId}`]: {
-		    	joinedAt: Date.now()
-			},
-			[`decks/${pv_playerId}`]: [...initialDeck],
-			[`hands/${pv_playerId}`]: [],
-			[`fields/${pv_playerId}`]: [],   // ★追加
-			[`discards/${pv_playerId}`]: [],   // ★追加
-			[`trashes/${pv_playerId}`]: []
-		});
-	  }
-	}
+async function joinRoom() {
+
+  // ===== shop入室時の初期化（★追加）=====
+  if (isShop) {
+    const shopSnap = await get(pv_db_shopDeck);
+
+    if (!shopSnap.exists()) {
+      await set(pv_db_shopDeck, shopDeck.map(card => ({
+        ...card,
+        stock: 10
+      })));
+    }
+    return;
+  }
+
+  // ===== 通常プレイヤー =====
+  const playerRef = ref(db, `rooms/${roomId}/players/${pv_playerId}`);
+  const snap = await get(playerRef);
+
+  if (!snap.exists()) {
+    const deck = [...initialDeck];
+    shuffleArray(deck);
+
+    await update(roomRef, {
+      [`players/${pv_playerId}`]: {
+        joinedAt: Date.now()
+      },
+      [`decks/${pv_playerId}`]: deck,
+      [`hands/${pv_playerId}`]: [],
+      [`fields/${pv_playerId}`]: [],
+      [`discards/${pv_playerId}`]: [],
+      [`trashes/${pv_playerId}`]: []
+    });
+  }
+}
 
 	joinRoom();
 	if (!isShop) {
