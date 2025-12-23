@@ -357,7 +357,7 @@
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
-	<div>【Ver：71】
+	<div>【Ver：72】
     	<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
     	<button id="shuffleDeck">シャッフル</button>
@@ -382,9 +382,6 @@
 		<div id="shopList"></div>
 	</div>
 	<div id="shopFields"></div>
-	<div id="shopRemainingView" style="font-weight:bold;margin-top:8px;">
-  		Shop残り：10
-	</div>
 	<div id="playerList"></div>
 	<div id="victoryPoints" style="margin-top:10px;font-weight:bold;">
   		勝利点：0
@@ -437,22 +434,22 @@
     ];
 		  
 	const shopDeck = [
-	  { name: "工房", cost: 3, text: "コスト１以下のカードを１枚獲得する", type: "action" },
-	  { name: "地下貯蔵庫", cost: 2, text: "＋１アクション。手札から好きな枚数のカードを捨て、その枚数分引く", type: "action" },
-	  // { name: "鉱山", cost: 5, text: "財宝を破棄し、＋３コストまでの財宝を獲得する", type: "action"  ,
-	  { name: "村", cost: 3, text: "＋１カード。\n＋２アクション", type: "action" },
-	  { name: "鍛冶屋", cost: 4, text: "＋３カードを引く", type: "action" },
-	  { name: "改築", cost: 4, text: "カードを破棄し、＋２コストまで獲得", type: "action" },
-	  // { name: "民兵", cost: 4, text: "＋２コイン。他のプレイヤーは手札３枚にする", type: "action" },
-	  // { name: "市場", cost: 5, text: "＋１カード。＋１アクション。＋１購入", type: "action" },
-	  // { name: "商人", cost: 3, text: "銀貨を引くと＋１コイン", type: "action" },
-	  // { name: "堀", cost: 2, text: "アタック時に公開すると無効化", type: "action" },
-	  { name: "銅貨", cost: 0, text: "＋１コイン", type: "treasure" },
-	  { name: "銀貨", cost: 3, text: "＋２コイン", type: "treasure" },
-	  { name: "金貨", cost: 6, text: "＋３コイン", type: "treasure" },
-	  { name: "屋敷", cost: 2, text: "勝利点１", type: "victory" },
-	  { name: "公領", cost: 5, text: "勝利点３", type: "victory" }
-	  // ,{ name: "属州", cost: 8, text: "勝利点６" }
+	  { name: "工房", cost: 3, text: "コスト１以下のカードを１枚獲得する", type: "action", stock: 10 },
+	  { name: "地下貯蔵庫", cost: 2, text: "＋１アクション。手札から好きな枚数のカードを捨て、その枚数分引く", type: "action", stock: 10 },
+	  // { name: "鉱山", cost: 5, text: "財宝を破棄し、＋３コストまでの財宝を獲得する", type: "action", stock: 10}  ,
+	  { name: "村", cost: 3, text: "＋１カード。\n＋２アクション", type: "action", stock: 10 },
+	  { name: "鍛冶屋", cost: 4, text: "＋３カードを引く", type: "action", stock: 10 },
+	  { name: "改築", cost: 4, text: "カードを破棄し、＋２コストまで獲得", type: "action", stock: 10 },
+	  // { name: "民兵", cost: 4, text: "＋２コイン。他のプレイヤーは手札３枚にする", type: "action", stock: 10 },
+	  // { name: "市場", cost: 5, text: "＋１カード。＋１アクション。＋１購入", type: "action", stock: 10 },
+	  // { name: "商人", cost: 3, text: "銀貨を引くと＋１コイン", type: "action", stock: 10 },
+	  // { name: "堀", cost: 2, text: "アタック時に公開すると無効化", type: "action", stock: 10 },
+	  { name: "銅貨", cost: 0, text: "＋１コイン", type: "treasure", stock: 10 },
+	  { name: "銀貨", cost: 3, text: "＋２コイン", type: "treasure", stock: 10 },
+	  { name: "金貨", cost: 6, text: "＋３コイン", type: "treasure", stock: 10 },
+	  { name: "屋敷", cost: 2, text: "勝利点１", type: "victory", stock: 10 },
+	  { name: "公領", cost: 5, text: "勝利点３", type: "victory", stock: 10 }
+	  // ,{ name: "属州", cost: 8, text: "勝利点６", stock: 10 }
 	];
 	  
     // URLからプレイヤーIDを取得
@@ -469,7 +466,7 @@
 	const pv_db_discard = ref(db, `rooms/${roomId}/discards/${pv_playerId}`);
 	const pv_db_turn = ref(db, `rooms/${roomId}/turn/current`);
 	const pv_db_trash = ref(db, `rooms/${roomId}/trashes/${pv_playerId}`);
-	const pv_db_shopRemaining = ref(db, `rooms/${roomId}/shopRemaining`);
+	
 	let currentTurnPlayer = null;
 	let currentTurnFieldUnsub = null;
 
@@ -477,7 +474,6 @@
 	let shopPlayers = {};
 	let shopFields  = {};
 	let shopTrashes = {};
-	const SHOP_MAX_DRAW = 10;
 	  
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
     // ■    リアルタイム表示      ■
@@ -634,13 +630,6 @@
 	    div.appendChild(el);
 	  });
 	});
-
-	onValue(pv_db_shopRemaining, snap => {
-  		const remain = snap.val();
-  		if (remain == null) return;
-  		document.getElementById("shopRemainingView").textContent =
-    		`Shop残り：${remain}枚`;
-	});
 	
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
     // ■    ボタン動作            ■
@@ -758,16 +747,20 @@
 		  discards[pid] = [];   // ★追加
 		});
 	
-	  await update(roomRef, {
-	    decks,
-	    hands,
-	    fields,
-		discards,
-		trashes,
-	    shopDeck: [...shopDeck],
-		shopRemaining: SHOP_MAX_DRAW,
-		"turn/current": Object.keys(players).find(p => p !== "shop")
-	  });
+await update(roomRef, {
+  decks,
+  hands,
+  fields,
+  discards,
+  trashes,
+
+  shopDeck: shopDeck.map(card => ({
+    ...card,
+    stock: 10
+  })),
+
+  "turn/current": Object.keys(players).find(p => p !== "shop")
+});
 	}
     
     // ●--------シャッフル実行--------●
@@ -819,33 +812,37 @@
 	  });
 	}
 
-	function renderShop() {
-	  const shopDiv = document.getElementById("shopList");
-	  shopDiv.innerHTML = "";
-	
-	  shopDeck.forEach(card => {
-	    const cardEl = document.createElement("div");
-	    cardEl.className = `cardButton ${card.type || ""}`;
-		cardEl.innerHTML = `
-		  <div class="cardCost">${card.cost}</div>
-		  <div class="cardName">${card.name}</div>
-		  <div class="cardText">${card.text.replace(/\n/g, "<br>")}</div>
-		`;
-	
-	    cardEl.onclick = () => addShopCardToPlayer(card);
-	
-	    shopDiv.appendChild(cardEl);
-	  });
+function renderShop() {
+  const shopDiv = document.getElementById("shopList");
+  shopDiv.innerHTML = "";
 
-onValue(pv_db_shopRemaining, snap => {
-  const remain = snap.val() ?? 0;
+  onValue(pv_db_shopDeck, snap => {
+    const cards = snap.val() || [];
 
-  document.querySelectorAll("#shopList .cardButton").forEach(el => {
-    el.style.pointerEvents = remain > 0 ? "auto" : "none";
-    el.style.opacity = remain > 0 ? "1" : "0.4";
+    shopDiv.innerHTML = "";
+
+    cards.forEach((card, index) => {
+      const cardEl = document.createElement("div");
+      cardEl.className = `cardButton ${card.type || ""}`;
+
+      cardEl.innerHTML = `
+        <div class="cardCost">${card.cost}</div>
+        <div class="cardName">${card.name}</div>
+        <div class="cardText">${card.text.replace(/\n/g, "<br>")}</div>
+        <div style="font-size:12px;">残り：${card.stock}</div>
+      `;
+
+      if (card.stock <= 0) {
+        cardEl.style.pointerEvents = "none";
+        cardEl.style.opacity = "0.4";
+      } else {
+        cardEl.onclick = () => addShopCardToPlayer(index);
+      }
+
+      shopDiv.appendChild(cardEl);
+    });
   });
-});
-	}
+}
 	  
 	function renderTargetPlayerSelect(players) {
 	  const select = document.getElementById("targetPlayerSelect");
@@ -867,35 +864,34 @@ onValue(pv_db_shopRemaining, snap => {
 	  });
 	}
 	  
-async function addShopCardToPlayer(card) {
-  const remainSnap = await get(pv_db_shopRemaining);
-  let remain = remainSnap.val() ?? 0;
+async function addShopCardToPlayer(cardIndex) {
+  const shopSnap = await get(pv_db_shopDeck);
+  const shopCards = shopSnap.val() || [];
 
-  if (remain <= 0) {
-    alert("Shopからこれ以上カードは引けません");
+  const card = shopCards[cardIndex];
+  if (!card || card.stock <= 0) {
+    alert("このカードは在庫切れです");
     return;
   }
 
   const select = document.getElementById("targetPlayerSelect");
   const targetPlayer = select.value;
 
-  if (!targetPlayer) {
-    alert("追加先プレイヤーを選択してください");
-    return;
-  }
-
   const discardRef = ref(db, `rooms/${roomId}/discards/${targetPlayer}`);
-  const snap = await get(discardRef);
-  const discard = snap.val() || [];
+  const discardSnap = await get(discardRef);
+  const discard = discardSnap.val() || [];
 
   discard.push(card);
 
+  // ★ 在庫を減らす
+  shopCards[cardIndex].stock -= 1;
+
   await update(roomRef, {
     [`discards/${targetPlayer}`]: discard,
-    shopRemaining: remain - 1   // ★ ここで減らす
+    shopDeck: shopCards
   });
 
-  alert(`${targetPlayer} の捨て札に追加しました（残り ${remain - 1}）`);
+  alert(`${targetPlayer} の捨て札に追加しました`);
 }
 	  
 	// shopモードならカード一覧を表示
