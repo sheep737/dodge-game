@@ -357,7 +357,7 @@
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
-	<div>【Ver：70】
+	<div>【Ver：71】
     	<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
     	<button id="shuffleDeck">シャッフル</button>
@@ -382,6 +382,9 @@
 		<div id="shopList"></div>
 	</div>
 	<div id="shopFields"></div>
+	<div id="shopRemainingView" style="font-weight:bold;margin-top:8px;">
+  		Shop残り：10
+	</div>
 	<div id="playerList"></div>
 	<div id="victoryPoints" style="margin-top:10px;font-weight:bold;">
   		勝利点：0
@@ -466,6 +469,7 @@
 	const pv_db_discard = ref(db, `rooms/${roomId}/discards/${pv_playerId}`);
 	const pv_db_turn = ref(db, `rooms/${roomId}/turn/current`);
 	const pv_db_trash = ref(db, `rooms/${roomId}/trashes/${pv_playerId}`);
+	const pv_db_shopRemaining = ref(db, `rooms/${roomId}/shopRemaining`);
 	let currentTurnPlayer = null;
 	let currentTurnFieldUnsub = null;
 
@@ -473,6 +477,7 @@
 	let shopPlayers = {};
 	let shopFields  = {};
 	let shopTrashes = {};
+	const SHOP_MAX_DRAW = 10;
 	  
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
     // ■    リアルタイム表示      ■
@@ -629,7 +634,14 @@
 	    div.appendChild(el);
 	  });
 	});
-	  
+
+	onValue(pv_db_shopRemaining, snap => {
+  		const remain = snap.val();
+  		if (remain == null) return;
+  		document.getElementById("shopRemainingView").textContent =
+    		`Shop残り：${remain}枚`;
+	});
+	
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
     // ■    ボタン動作            ■
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -753,6 +765,7 @@
 		discards,
 		trashes,
 	    shopDeck: [...shopDeck],
+		shopRemaining: SHOP_MAX_DRAW,
 		"turn/current": Object.keys(players).find(p => p !== "shop")
 	  });
 	}
@@ -823,6 +836,15 @@
 	
 	    shopDiv.appendChild(cardEl);
 	  });
+
+onValue(pv_db_shopRemaining, snap => {
+  const remain = snap.val() ?? 0;
+
+  document.querySelectorAll("#shopList .cardButton").forEach(el => {
+    el.style.pointerEvents = remain > 0 ? "auto" : "none";
+    el.style.opacity = remain > 0 ? "1" : "0.4";
+  });
+});
 	}
 	  
 	function renderTargetPlayerSelect(players) {
@@ -845,29 +867,36 @@
 	  });
 	}
 	  
-	async function addShopCardToPlayer(card) {
-	  const select = document.getElementById("targetPlayerSelect");
-	  const targetPlayer = select.value;
-	
-	  if (!targetPlayer) {
-	    alert("追加先プレイヤーを選択してください");
-	    return;
-	  }
-	
-	  // ★ 捨て札を取得
-	  const discardRef = ref(db, `rooms/${roomId}/discards/${targetPlayer}`);
-	  const snap = await get(discardRef);
-	  const discard = snap.val() || [];
-	
-	  // ★ 捨て札の一番下に追加
-	  discard.push(card);
-	
-	  await update(roomRef, {
-	    [`discards/${targetPlayer}`]: discard
-	  });
-	
-	  alert(`${targetPlayer} の捨て札に追加しました`);
-	}
+async function addShopCardToPlayer(card) {
+  const remainSnap = await get(pv_db_shopRemaining);
+  let remain = remainSnap.val() ?? 0;
+
+  if (remain <= 0) {
+    alert("Shopからこれ以上カードは引けません");
+    return;
+  }
+
+  const select = document.getElementById("targetPlayerSelect");
+  const targetPlayer = select.value;
+
+  if (!targetPlayer) {
+    alert("追加先プレイヤーを選択してください");
+    return;
+  }
+
+  const discardRef = ref(db, `rooms/${roomId}/discards/${targetPlayer}`);
+  const snap = await get(discardRef);
+  const discard = snap.val() || [];
+
+  discard.push(card);
+
+  await update(roomRef, {
+    [`discards/${targetPlayer}`]: discard,
+    shopRemaining: remain - 1   // ★ ここで減らす
+  });
+
+  alert(`${targetPlayer} の捨て札に追加しました（残り ${remain - 1}）`);
+}
 	  
 	// shopモードならカード一覧を表示
 	if (isShop) {
