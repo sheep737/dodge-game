@@ -910,7 +910,7 @@ await update(roomRef, {
 
   shopDeck: shopDeck.map(card => ({
     ...card,
-    stock: 10
+    stock: card.stock
   })),
 
   "turn/current": Object.keys(players).find(p => p !== "shop")
