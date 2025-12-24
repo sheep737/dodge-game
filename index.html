@@ -242,6 +242,30 @@
   border-color: #1565c0;
   background: #e3f2fd;
 }
+
+#deckList {
+  display: flex;
+  gap: 8px;
+
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: 8px;
+
+  -webkit-overflow-scrolling: touch;
+}
+
+#deckList .cardButton {
+  width: 60px;
+  height: 90px;
+  font-size: 10px;
+  padding: 4px;
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+#deckList .cardText {
+  display: none; /* ← 効果文は非表示 */
+}
 		
 	@media (max-width: 600px) {
     
@@ -367,7 +391,7 @@
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
-	<div>【Ver：75】
+	<div>【Ver：76】
     	<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
     	<button id="shuffleDeck">シャッフル</button>
@@ -398,6 +422,8 @@
 	<div id="victoryPoints" style="margin-top:10px;font-weight:bold;">
   		勝利点：0
 	</div>
+	<h3>山札の中身</h3>
+<div id="deckList"></div>
 	<h3>破棄</h3>
 	<div id="trash"></div>
 <script type="module">
@@ -650,6 +676,24 @@ fieldDiv.appendChild(cardEl);
 	    div.appendChild(el);
 	  });
 	});
+
+onValue(pv_db_deck, snap => {
+  if (isShop) return;
+
+  const deck = snap.val() || [];
+  const list = document.getElementById("deckList");
+  list.innerHTML = "";
+
+  deck.forEach(card => {
+    const el = document.createElement("div");
+    el.className = `cardButton ${card.type || ""}`;
+    el.innerHTML = `
+      <div class="cardCost">${card.cost}</div>
+      <div class="cardName">${card.name}</div>
+    `;
+    list.appendChild(el);
+  });
+});
 	
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
     // ■    ボタン動作            ■
