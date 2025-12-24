@@ -1,43 +1,38 @@
 <!DOCTYPE html>
 <html lang="ja">
-<head> 
-  	<meta charset="UTF-8">
+<head>
+	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-  	<style>
-    	#deckImage {
-      	width: 80px;
-      	height: 120px;
-      	border-radius: 10px;
-      	background: repeating-linear-gradient(
-        	45deg,
-          	#2d2d7f,
-          	#2d2d7f 10px,
-          	#1a1a4f 10px,
-          	#1a1a4f 20px
-        );
-      	border: 3px solid #000;
-      	box-shadow: 0 6px 8px rgba(0,0,0,0.4);
-      	margin-bottom: 5px;
-      	transition: transform 0.2s, opacity 0.3s;
-    	}
-    
-    /* マウスで浮く演出 */
-    #deckImage:hover {
-      transform: translateY(-5px);
-    }
+	<style>
+
+		#deckImage {
+			width: 80px;
+			height: 120px;
+			border-radius: 10px;
+			background: repeating-linear-gradient( 45deg, #2d2d7f, #2d2d7f 10px, #1a1a4f 10px, #1a1a4f 20px );
+			border: 3px solid #000;
+			box-shadow: 0 6px 8px rgba(0,0,0,0.4);
+			margin-bottom: 5px;
+			transition: transform 0.2s, opacity 0.3s;
+		}
+
+		/* マウスで浮く演出 */
+		#deckImage:hover {
+			transform: translateY(-5px);
+		}
   
-    #deckCount {
-      margin-top: 5px;
-      font-size: 16px;
-      font-weight: bold;
-    }
-    
-    #hand {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 20px;
-    }
+		#deckCount {
+			margin-top: 5px;
+			font-size: 16px;
+			font-weight: bold;
+		}
+
+		#hand {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			margin-top: 20px;
+		}
 
 	/* ===== カードのコスト表示 ===== */
 	.cardCost {
@@ -300,11 +295,11 @@
 	        width: 100%;
 	    }
     
-	    #deckImage {
-	        width: 30vw;
-	        height: 45vw;
-	    }
-	    
+		#deckImage {
+			width: 30vw;
+			height: 45vw;
+		}
+
 	    .cardButton {
 	        width: 30vw;
 	        height: 45vw;
@@ -416,9 +411,9 @@
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<div>【Ver：77】
-    	<button id="reset">リセット</button>
+		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
-    	<button id="shuffleDeck">シャッフル</button>
+		<button id="shuffleDeck">シャッフル</button>
 		<button id="returnToDeck">捨て札を山札に戻す</button>
 		<button id="trashMode">破棄モード：OFF</button>
 		<button id="returnHandMode">手札戻し：OFF</button>
@@ -427,9 +422,9 @@
 		<span id="endTurnInfo" style="margin-left:10px;font-weight:bold;"></span>
 	</div>
 	<div id="topArea">
-    	<div id="deck">
-    		<div id="deckImage"></div>
-    		<div id="deckCount"></div>
+		<div id="deck">
+			<div id="deckImage"></div>
+			<div id="deckCount"></div>
     	</div>
 		<div id="field"></div>
 	</div>
@@ -444,16 +439,16 @@
 	<div id="shopFields"></div>
 	<div id="playerList"></div>
 	<div id="victoryPoints" style="margin-top:10px;font-weight:bold;">
-  		勝利点：0
+		勝利点：0
 	</div>
 	<h3>山札の中身</h3>
-<div id="deckList"></div>
-<h3 id="discardListTitle">捨て札の中身</h3>
-<div id="discardList"></div>
-	
+	<div id="deckList"></div>
+	<h3 id="discardListTitle">捨て札の中身</h3>
+	<div id="discardList"></div>
 	<h3>破棄</h3>
 	<div id="trash"></div>
-<script type="module">
+
+	<script type="module">
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
     // ■    Firebase設定         ■
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
