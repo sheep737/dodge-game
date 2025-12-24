@@ -266,6 +266,30 @@
 #deckList .cardText {
   display: none; /* ← 効果文は非表示 */
 }
+
+#discardList {
+  display: flex;
+  gap: 8px;
+
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: 8px;
+
+  -webkit-overflow-scrolling: touch;
+}
+
+#discardList .cardButton {
+  width: 60px;
+  height: 90px;
+  font-size: 10px;
+  padding: 4px;
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+#discardList .cardText {
+  display: none; /* 効果文は非表示 */
+}
 		
 	@media (max-width: 600px) {
     
@@ -391,7 +415,7 @@
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
-	<div>【Ver：76】
+	<div>【Ver：77】
     	<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
     	<button id="shuffleDeck">シャッフル</button>
@@ -424,6 +448,9 @@
 	</div>
 	<h3>山札の中身</h3>
 <div id="deckList"></div>
+<h3 id="discardListTitle">捨て札の中身</h3>
+<div id="discardList"></div>
+	
 	<h3>破棄</h3>
 	<div id="trash"></div>
 <script type="module">
@@ -685,6 +712,24 @@ onValue(pv_db_deck, snap => {
   list.innerHTML = "";
 
   deck.forEach(card => {
+    const el = document.createElement("div");
+    el.className = `cardButton ${card.type || ""}`;
+    el.innerHTML = `
+      <div class="cardCost">${card.cost}</div>
+      <div class="cardName">${card.name}</div>
+    `;
+    list.appendChild(el);
+  });
+});
+
+onValue(pv_db_discard, snap => {
+  if (isShop) return;
+
+  const discard = snap.val() || [];
+  const list = document.getElementById("discardList");
+  list.innerHTML = "";
+
+  discard.forEach(card => {
     const el = document.createElement("div");
     el.className = `cardButton ${card.type || ""}`;
     el.innerHTML = `
