@@ -450,7 +450,7 @@
 	<div id="deckList"></div>
 	<h3 id="discardListTitle">捨て札の中身</h3>
 	<div id="discardList"></div>
-	<h3>破棄</h3>
+	<h3 id = "trashListTitle">破棄</h3>
 	<div id="trash"></div>
 
 	<script type="module">
@@ -828,6 +828,8 @@ document.getElementById("returnFieldMode").addEventListener("click", () => {
 	  	document.getElementById("hand").style.display = "none";	
 		document.getElementById("leaveRoom").style.display = "none";
 		document.getElementById("deckListTitle").style.display = "none";
+		document.getElementById("discardListTitle").style.display = "none";
+		document.getElementById("trashListTitle").style.display = "none";
 	}
 	  
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
