@@ -438,6 +438,9 @@
 	</div>
 	<div id="shopFields"></div>
 	<div id="playerList"></div>
+	<div id="actionPoints" style="margin-top:6px;font-weight:bold;">
+  アクション：1
+</div>
 	<div id="victoryPoints" style="margin-top:10px;font-weight:bold;">
 		勝利点：0
 	</div>
@@ -494,22 +497,22 @@
     ];
 		  
 	const shopDeck = [
-	  { name: "工房", cost: 3, text: "コスト１以下のカードを１枚獲得する", type: "action", stock: 10 },
-	  { name: "地下貯蔵庫", cost: 2, text: "＋１アクション。手札から好きな枚数のカードを捨て、その枚数分引く", type: "action", stock: 10 },
-	  // { name: "鉱山", cost: 5, text: "財宝を破棄し、＋３コストまでの財宝を獲得する", type: "action", stock: 10}  ,
-	  { name: "村", cost: 3, text: "＋１カード。\n＋２アクション", type: "action", stock: 10 },
-	  { name: "鍛冶屋", cost: 4, text: "＋３カードを引く", type: "action", stock: 10 },
-	  { name: "改築", cost: 4, text: "カードを破棄し、＋２コストまで獲得", type: "action", stock: 10 },
-	  // { name: "民兵", cost: 4, text: "＋２コイン。他のプレイヤーは手札３枚にする", type: "action", stock: 10 },
-	  // { name: "市場", cost: 5, text: "＋１カード。＋１アクション。＋１購入", type: "action", stock: 10 },
-	  // { name: "商人", cost: 3, text: "銀貨を引くと＋１コイン", type: "action", stock: 10 },
-	  // { name: "堀", cost: 2, text: "アタック時に公開すると無効化", type: "action", stock: 10 },
-	  { name: "銅貨", cost: 0, text: "＋１コイン", type: "treasure", stock: 32 },
-	  { name: "銀貨", cost: 3, text: "＋２コイン", type: "treasure", stock: 40 },
-	  { name: "金貨", cost: 6, text: "＋３コイン", type: "treasure", stock: 30 },
-	  { name: "屋敷", cost: 2, text: "勝利点１", type: "victory", stock: 12 },
-	  { name: "公領", cost: 5, text: "勝利点３", type: "victory", stock: 12 }
-	 ,{ name: "属州", cost: 8, text: "勝利点６", type: "victory", stock: 18 }
+	  { name: "工房", cost: 3, text: "コスト１以下のカードを１枚獲得する", type: "action", stock: 10 , actions: 0},
+	  { name: "地下貯蔵庫", cost: 2, text: "＋１アクション。手札から好きな枚数のカードを捨て、その枚数分引く", type: "action", stock: 10, actions: 1 },
+	  // { name: "鉱山", cost: 5, text: "財宝を破棄し、＋３コストまでの財宝を獲得する", type: "action", stock: 10, actions: 0}  ,
+	  { name: "村", cost: 3, text: "＋１カード。\n＋２アクション", type: "action", stock: 10, actions: 2 },
+	  { name: "鍛冶屋", cost: 4, text: "＋３カードを引く", type: "action", stock: 10, actions: 0 },
+	  { name: "改築", cost: 4, text: "カードを破棄し、＋２コストまで獲得", type: "action", stock: 10, actions: 0 },
+	  // { name: "民兵", cost: 4, text: "＋２コイン。他のプレイヤーは手札３枚にする", type: "action", stock: 10, actions: 0 },
+	  // { name: "市場", cost: 5, text: "＋１カード。＋１アクション。＋１購入", type: "action", stock: 10, actions: 1 },
+	  // { name: "商人", cost: 3, text: "銀貨を引くと＋１コイン", type: "action", stock: 10, actions: 0 },
+	  // { name: "堀", cost: 2, text: "アタック時に公開すると無効化", type: "action", stock: 10, actions: 0 },
+	  { name: "銅貨", cost: 0, text: "＋１コイン", type: "treasure", stock: 32, actions: 0 },
+	  { name: "銀貨", cost: 3, text: "＋２コイン", type: "treasure", stock: 40, actions: 0 },
+	  { name: "金貨", cost: 6, text: "＋３コイン", type: "treasure", stock: 30, actions: 0 },
+	  { name: "屋敷", cost: 2, text: "勝利点１", type: "victory", stock: 12, actions: 0 },
+	  { name: "公領", cost: 5, text: "勝利点３", type: "victory", stock: 12, actions: 0 }
+	 ,{ name: "属州", cost: 8, text: "勝利点６", type: "victory", stock: 18, actions: 0 }
 	];
 	  
     // URLからプレイヤーIDを取得
@@ -855,28 +858,39 @@ document.getElementById("returnFieldMode").addEventListener("click", () => {
 	}
 
     // ●--------場に出す--------●
-    async function playCard(cardIndex) {
-      const handSnap  = await get(pv_db_hand);
-      const fieldSnap = await get(pv_db_field);
-    
-      let hand = handSnap.val() || [];
-      let field = fieldSnap.val() || [];
+async function playCard(cardIndex) {
+  const handSnap   = await get(pv_db_hand);
+  const fieldSnap  = await get(ref(db, `rooms/${roomId}/fields/${pv_playerId}`));
+  const actionSnap = await get(ref(db, `rooms/${roomId}/turn/actions`));
 
-	  if (!isMyTurn()) {
-	    alert("あなたのターンではありません");
-	    return;
-	  }
+  let hand   = handSnap.val() || [];
+  let field  = fieldSnap.val() || [];
+  let action = actionSnap.val() ?? 0;
 
-      if (!hand[cardIndex]) return;
-    
-      const card = hand.splice(cardIndex, 1)[0]; // 手札から削除
-      field.push(card);                           // 共通の場に追加
-    
-		await update(roomRef, {
-		  [`hands/${pv_playerId}`]: hand,
-		  [`fields/${pv_playerId}`]: field
-		});
+  const card = hand[cardIndex];
+  if (!card) return;
+
+  // ▼ アクションカードの場合
+  if (card.type === "action") {
+    if (action <= 0) {
+      alert("アクションが足りません");
+      return;
     }
+    action -= 1; // ← 消費
+
+	  action += card.actions || 0;
+  }
+
+  // ▼ 手札→場
+  hand.splice(cardIndex, 1);
+  field.push(card);
+
+  await update(roomRef, {
+    [`hands/${pv_playerId}`]: hand,
+    [`fields/${pv_playerId}`]: field,
+    "turn/actions": action
+  });
+}
 
     // ●--------リセット--------●
 	async function resetGame() {
@@ -913,7 +927,8 @@ await update(roomRef, {
     stock: card.stock
   })),
 
-  "turn/current": Object.keys(players).find(p => p !== "shop")
+  "turn/current": Object.keys(players).find(p => p !== "shop"),
+	"turn/actions": 1
 });
 	}
     
@@ -1059,7 +1074,7 @@ async function joinRoom() {
     if (!shopSnap.exists()) {
       await set(pv_db_shopDeck, shopDeck.map(card => ({
         ...card,
-        stock: 10
+        stock: card.stock
       })));
     }
     return;
@@ -1212,6 +1227,7 @@ async function joinRoom() {
 		  [`hands/${pv_playerId}`]: [],                 // ★追加
 		  [`discards/${pv_playerId}`]: discard,
 		  "turn/current": nextPlayer,
+"turn/actions": 1,
 		  lastEndTurn: {
 		    player: pv_playerId,
 		    at: Date.now()
@@ -1392,8 +1408,18 @@ async function returnFieldCardToHand(cardIndex) {
     [`hands/${pv_playerId}`]: hand
   });
 }
-	
+
+function watchActionPoints() {
+  const div = document.getElementById("actionPoints");
+
+  onValue(ref(db, `rooms/${roomId}/turn/actions`), snap => {
+    const actions = snap.val() ?? 0;
+    div.textContent = `アクション：${actions}`;
+  });
+}
+		
 	watchVictoryPoints();
+watchActionPoints();   // ← ★これを追加
 	
   </script>
 </body>
