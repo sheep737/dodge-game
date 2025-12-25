@@ -435,7 +435,7 @@
 	<div id="shopControl">
 		追加先：
 		<select id="targetPlayerSelect"></select>
-	</div>	
+	</div>
 	<div id ="shopArea">
 		<div id="shopList"></div>
 	</div>
@@ -817,14 +817,15 @@ document.getElementById("returnFieldMode").addEventListener("click", () => {
 });
 	
 	if (isShop) {
-	  document.getElementById("deckImage").style.pointerEvents = "none";
-	  document.getElementById("deckImage").style.opacity = "0.5";
-	
-	  document.getElementById("reset").style.display = "none";
-	  document.getElementById("shuffleDeck").style.display = "none";
-	  document.getElementById("returnToDeck").style.display = "none";
-	  document.getElementById("topArea").style.display = "none";
-	  document.getElementById("hand").style.display = "none";	
+	  	document.getElementById("deckImage").style.pointerEvents = "none";
+	  	document.getElementById("deckImage").style.opacity = "0.5";
+	  	document.getElementById("shuffleDeck").style.display = "none";
+	  	document.getElementById("returnToDeck").style.display = "none";
+	  	document.getElementById("trashMode").style.display = "none";
+	  	document.getElementById("returnHandMode").style.display = "none";
+	  	document.getElementById("returnFieldMode").style.display = "none";
+	  	document.getElementById("topArea").style.display = "none";
+	  	document.getElementById("hand").style.display = "none";	
 		document.getElementById("leaveRoom").style.display = "none";
 	}
 	  
