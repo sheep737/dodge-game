@@ -446,7 +446,7 @@
 	<div id="victoryPoints" style="margin-top:10px;font-weight:bold;">
 		勝利点：0
 	</div>
-	<h3>山札の中身</h3>
+	<h3 id = "deckListTitle">山札の中身</h3>
 	<div id="deckList"></div>
 	<h3 id="discardListTitle">捨て札の中身</h3>
 	<div id="discardList"></div>
@@ -827,6 +827,7 @@ document.getElementById("returnFieldMode").addEventListener("click", () => {
 	  	document.getElementById("topArea").style.display = "none";
 	  	document.getElementById("hand").style.display = "none";	
 		document.getElementById("leaveRoom").style.display = "none";
+		document.getElementById("deckListTitle").style.display = "none";
 	}
 	  
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
