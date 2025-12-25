@@ -406,7 +406,7 @@
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<div>
-		【Ver：82】
+		【Ver：83】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -832,6 +832,8 @@ document.getElementById("returnFieldMode").addEventListener("click", () => {
 		document.getElementById("trashListTitle").style.display = "none";
 		document.getElementById("actionPoints").style.display = "none";
 		document.getElementById("victoryPoints").style.display = "none";
+	} else {
+		document.getElementById("shopControl").style.display = "none";
 	}
 	  
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
