@@ -406,7 +406,7 @@
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<div>
-		【Ver：83】
+		【Ver：84】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -1038,35 +1038,74 @@ function renderShop(cards) {
 	}
 	  
 async function addShopCardToPlayer(cardIndex) {
-  const shopSnap = await get(pv_db_shopDeck);
-  const shopCards = shopSnap.val() || [];
+  const cardEls = document.querySelectorAll("#shopList .cardButton");
+  const cardEl = cardEls[cardIndex];
 
-  const card = shopCards[cardIndex];
-  if (!card || card.stock <= 0) {
-    alert("このカードは在庫切れです");
-    return;
-  }
+  // ★ 即UI反応
+  cardEl.style.pointerEvents = "none";
+  cardEl.style.opacity = "0.5";
 
-  const select = document.getElementById("targetPlayerSelect");
-  const targetPlayer = select.value;
+  const badge = document.createElement("div");
+  badge.textContent = "購入中…";
+  badge.style.position = "absolute";
+  badge.style.bottom = "4px";
+  badge.style.fontSize = "11px";
+  badge.style.color = "#555";
+  cardEl.appendChild(badge);
 
-  const discardRef = ref(db, `rooms/${roomId}/discards/${targetPlayer}`);
-  const discardSnap = await get(discardRef);
-  const discard = discardSnap.val() || [];
+  try {
+    const shopSnap = await get(pv_db_shopDeck);
+    const shopCards = shopSnap.val() || [];
 
-  discard.push(card);
+    const card = shopCards[cardIndex];
+    if (!card || card.stock <= 0) return;
 
-  // ★ 在庫を減らす
-  shopCards[cardIndex].stock -= 1;
+    const targetPlayer =
+      document.getElementById("targetPlayerSelect").value;
 
-  await update(roomRef, {
-    [`discards/${targetPlayer}`]: discard,
-    shopDeck: shopCards
-  });
+    const discardRef = ref(db, `rooms/${roomId}/discards/${targetPlayer}`);
+    const discardSnap = await get(discardRef);
+    const discard = discardSnap.val() || [];
 
-  alert(`${targetPlayer} の捨て札に追加しました`);
+    discard.push(card);
+    shopCards[cardIndex].stock -= 1;
+
+    await update(roomRef, {
+      [`discards/${targetPlayer}`]: discard,
+      shopDeck: shopCards
+    });
+
+    // ★ 成功表示（非ブロッキング）
+    showToast(`${card.name} を購入`);
+
+} catch (e) {
+  cardEl.style.pointerEvents = "auto";
+  cardEl.style.opacity = "1";
+  badge.remove();
+
+  showToast("購入に失敗しました");
 }
-	  
+}
+
+function showToast(text) {
+  const toast = document.createElement("div");
+  toast.textContent = text;
+  toast.style.position = "fixed";
+  toast.style.bottom = "20px";
+  toast.style.left = "50%";
+  toast.style.transform = "translateX(-50%)";
+  toast.style.background = "#333";
+  toast.style.color = "#fff";
+  toast.style.padding = "8px 14px";
+  toast.style.borderRadius = "20px";
+  toast.style.fontSize = "14px";
+  toast.style.zIndex = "9999";
+
+  document.body.appendChild(toast);
+
+  setTimeout(() => toast.remove(), 1200);
+}
+		
 // ===== shop画面：Shopカード一覧を監視 =====
 if (isShop) {
   onValue(pv_db_shopDeck, snap => {
