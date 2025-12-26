@@ -406,7 +406,7 @@
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<div>
-		【Ver：85】
+		【Ver：86】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -951,7 +951,7 @@ if (card.type === "action") {
 		  hands[pid] = [];
 		  fields[pid] = [];
 		  trashes[pid] = [];
-		  discards[pid] = [];   // ★追加
+		  discards[pid] = [];
 		});
 	
 await update(roomRef, {
@@ -968,7 +968,7 @@ await update(roomRef, {
 
   "turn/current": Object.keys(players).find(p => p !== "shop"),
 "turn/actions": 1,
-"turn/draws": 0
+"turn/draws": 5
 });
 	}
     
@@ -1307,7 +1307,7 @@ async function joinRoom() {
 		  [`discards/${pv_playerId}`]: discard,
 		  "turn/current": nextPlayer,
 "turn/actions": 1,
-"turn/draws": 0,	
+"turn/draws": 5,
 		  lastEndTurn: {
 		    player: pv_playerId,
 		    at: Date.now()
