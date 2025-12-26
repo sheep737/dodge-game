@@ -406,7 +406,7 @@
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<div>
-		【Ver：84】
+		【Ver：85】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -426,6 +426,9 @@
 	</div>
 		<div id="actionPoints" style="margin-top:6px;font-weight:bold;">
   アクション：1
+</div>
+<div id="drawPoints" style="margin-top:6px;font-weight:bold;">
+  ドロー：0
 </div>
 	<div id="topArea">
 		<div id="deck">
@@ -502,12 +505,12 @@
 	  { name: "工房", cost: 3, text: "コスト4以下のカードを１枚獲得する", type: "action", stock: 10 , actions: 0},
 	  { name: "地下貯蔵庫", cost: 2, text: "＋１アクション。手札から好きな枚数のカードを捨て、その枚数分引く", type: "action", stock: 10, actions: 1 },
 	  { name: "鉱山", cost: 5, text: "財宝を破棄し、＋３コストまでの財宝を獲得する", type: "action", stock: 10, actions: 0}  ,
-	  { name: "村", cost: 3, text: "＋１カード。\n＋２アクション", type: "action", stock: 10, actions: 2 },
-	  { name: "鍛冶屋", cost: 4, text: "＋３カードを引く", type: "action", stock: 10, actions: 0 },
+	  { name: "村", cost: 3, text: "＋１カード。\n＋２アクション", type: "action", stock: 10, actions: 2 , draw: 1 },
+	  { name: "鍛冶屋", cost: 4, text: "＋３カードを引く", type: "action", stock: 10, actions: 0 , draw: 3},
 	  { name: "改築", cost: 4, text: "カードを破棄し、＋２コストまでのカードを獲得", type: "action", stock: 10, actions: 0 },
 	  // { name: "民兵", cost: 4, text: "＋２コイン。他のプレイヤーは手札３枚にする", type: "action", stock: 10, actions: 0 },
-	  { name: "市場", cost: 5, text: "＋１カード。＋１アクション。＋１購入", type: "action", stock: 10, actions: 1 },
-	  { name: "商人", cost: 3, text: "＋１カード。＋１アクション。銀貨を使うと＋１コイン", type: "action", stock: 10, actions: 1 },
+	  { name: "市場", cost: 5, text: "＋１カード。＋１アクション。＋１購入", type: "action", stock: 10, actions: 1 , draw: 1 },
+	  { name: "商人", cost: 3, text: "＋１カード。＋１アクション。銀貨を使うと＋１コイン", type: "action", stock: 10, actions: 1 , draw: 1 },
 	  // { name: "堀", cost: 2, text: "アタック時に公開すると無効化", type: "action", stock: 10, actions: 0 },
 	  { name: "銅貨", cost: 0, text: "＋１コイン", type: "treasure", stock: 32, actions: 0 },
 	  { name: "銀貨", cost: 3, text: "＋２コイン", type: "treasure", stock: 40, actions: 0 },
@@ -832,6 +835,7 @@ document.getElementById("returnFieldMode").addEventListener("click", () => {
 		document.getElementById("trashListTitle").style.display = "none";
 		document.getElementById("actionPoints").style.display = "none";
 		document.getElementById("victoryPoints").style.display = "none";
+		document.getElementById("drawPoints").style.display = "none";
 	} else {
 		document.getElementById("shopControl").style.display = "none";
 	}
@@ -840,32 +844,47 @@ document.getElementById("returnFieldMode").addEventListener("click", () => {
     // ■    関数                 ■
     // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
     // ●--------カードを引く--------●
-	async function drawCard() {
+async function drawCard() {
+  if (!isMyTurn()) {
+    alert("あなたのターンではありません");
+    return;
+  }
 
-	  if (!isMyTurn()) {
-	    alert("あなたのターンではありません");
-	    return;
-	  }
+  // 残ドロー確認
+  const drawSnap = await get(ref(db, `rooms/${roomId}/turn/draws`));
+  let draws = drawSnap.val() ?? 0;
 
-	  const deckSnap = await get(pv_db_deck);
-	  const handSnap = await get(pv_db_hand);
-	
-	  let deck = deckSnap.val() || [];
-	  let hand = handSnap.val() || [];
-	
-	  if (deck.length === 0) {
-	    alert("山札がありません");
-	    return;
-	  }
-	
-	  const card = deck.shift();
-	  hand.push(card);
-	
-	  await update(roomRef, {
-	    [`decks/${pv_playerId}`]: deck,
-	    [`hands/${pv_playerId}`]: hand
-	  });
-	}
+  if (draws <= 0) {
+    alert("ドローが残っていません");
+    return;
+  }
+
+  // 山札・手札取得
+  const deckSnap = await get(pv_db_deck);
+  const handSnap = await get(pv_db_hand);
+
+  let deck = deckSnap.val() || [];
+  let hand = handSnap.val() || [];
+
+  if (deck.length === 0) {
+    alert("山札がありません");
+    return;
+  }
+
+  // 1枚引く
+  const card = deck.shift();
+  hand.push(card);
+
+  // ドロー消費
+  draws -= 1;
+
+  // まとめて更新
+  await update(roomRef, {
+    [`decks/${pv_playerId}`]: deck,
+    [`hands/${pv_playerId}`]: hand,
+    "turn/draws": draws
+  });
+}
 
     // ●--------場に出す--------●
 async function playCard(cardIndex) {
@@ -881,15 +900,25 @@ async function playCard(cardIndex) {
   if (!card) return;
 
   // ▼ アクションカードの場合
-  if (card.type === "action") {
-    if (action <= 0) {
-      alert("アクションが足りません");
-      return;
-    }
-    action -= 1; // ← 消費
-
-	  action += card.actions || 0;
+if (card.type === "action") {
+  if (action <= 0) {
+    alert("アクションが足りません");
+    return;
   }
+  action -= 1;
+  action += card.actions || 0;
+
+  // ★ ドロー加算
+  if (card.draw) {
+    const drawSnap = await get(ref(db, `rooms/${roomId}/turn/draws`));
+    let draws = drawSnap.val() ?? 0;
+    draws += card.draw;
+
+    await update(roomRef, {
+      "turn/draws": draws
+    });
+  }
+}
 
   // ▼ 手札→場
   hand.splice(cardIndex, 1);
@@ -938,7 +967,8 @@ await update(roomRef, {
   })),
 
   "turn/current": Object.keys(players).find(p => p !== "shop"),
-	"turn/actions": 1
+"turn/actions": 1,
+"turn/draws": 0
 });
 	}
     
@@ -1277,6 +1307,7 @@ async function joinRoom() {
 		  [`discards/${pv_playerId}`]: discard,
 		  "turn/current": nextPlayer,
 "turn/actions": 1,
+"turn/draws": 0,	
 		  lastEndTurn: {
 		    player: pv_playerId,
 		    at: Date.now()
@@ -1466,9 +1497,19 @@ function watchActionPoints() {
     div.textContent = `アクション：${actions}`;
   });
 }
+
+function watchDrawPoints() {
+  const div = document.getElementById("drawPoints");
+
+  onValue(ref(db, `rooms/${roomId}/turn/draws`), snap => {
+    const draws = snap.val() ?? 0;
+    div.textContent = `ドロー：${draws}`;
+  });
+}
 		
 	watchVictoryPoints();
-watchActionPoints();   // ← ★これを追加
+watchActionPoints();
+		watchDrawPoints();
 	
   </script>
 </body>
