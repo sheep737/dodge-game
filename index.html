@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<style>
-
 		#deckImage {
 			width: 80px;
 			height: 120px;
 			border-radius: 10px;
-			background: repeating-linear-gradient( 45deg, #2d2d7f, #2d2d7f 10px, #1a1a4f 10px, #1a1a4f 20px );
+			background: repeating-linear-gradient(45deg, #2d2d7f, #2d2d7f 10px, #1a1a4f 10px, #1a1a4f 20px);
 			border: 3px solid #000;
-			box-shadow: 0 6px 8px rgba(0,0,0,0.4);
+			box-shadow: 0 6px 8px rgba(0, 0, 0, 0.4);
 			margin-bottom: 5px;
 			transition: transform 0.2s, opacity 0.3s;
 		}
@@ -20,7 +20,7 @@
 		#deckImage:hover {
 			transform: translateY(-5px);
 		}
-  
+
 		#deckCount {
 			margin-top: 5px;
 			font-size: 16px;
@@ -34,379 +34,399 @@
 			margin-top: 20px;
 		}
 
-	/* ===== カードのコスト表示 ===== */
-	.cardCost {
-	  position: absolute;
-	  top: 4px;
-	  right: 4px;
-	
-	  background: #ffd700;
-	  color: #000;
-	  border: 1px solid #000;
-	  border-radius: 50%;
-	
-	  width: 22px;
-	  height: 22px;
-	  font-size: 12px;
-	  font-weight: bold;
-	
-	  display: flex;
-	  align-items: center;
-	  justify-content: center;
-	}
+		/* ===== カードのコスト表示 ===== */
+		.cardCost {
+			position: absolute;
+			top: 4px;
+			right: 4px;
 
-    .cardButton {
-  		position: relative;
-      width: 80px;
-      height: 120px;
-      margin: 5px;
-      border-radius: 10px;
-      border: 2px solid #000;
-      background: repeating-linear-gradient(
-          45deg,
-          #ffffff,
-          #ffffff 10px,
-          #e5e5e5 10px,
-          #e5e5e5 20px
-      );
-      font-size: 24px;
-      font-weight: bold;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: 8px;
-      align-items: center;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-      cursor: pointer;
-      transition: transform 0.15s;
-    }
+			background: #ffd700;
+			color: #000;
+			border: 1px solid #000;
+			border-radius: 50%;
 
-	/* ===== カード種別ごとの枠色 ===== */
-	.cardButton.action {
-	  border-color: #1976d2;   /* 青：アクション */
-	}
-	
-	.cardButton.treasure {
-	  border-color: #f9a825;   /* 金：財宝 */
-	}
-	
-	.cardButton.victory {
-	  border-color: #2e7d32;   /* 緑：勝利点 */
-	}
+			width: 22px;
+			height: 22px;
+			font-size: 12px;
+			font-weight: bold;
 
-	.cardName {
-	  font-size: 16px;
-	  font-weight: bold;
-	  line-height: 1.1;
-	  text-align: center;
-	}
-	
-	.cardText {
-	  font-size: 12px;
-	  line-height: 1.2;
-	}
-    
-    .cardButton:hover {
-      transform: translateY(-4px);
-    }
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
 
-    #topArea {
-      display: flex;
-      align-items: center;
-      gap: 40px; /* デッキと場の間の余白 */
-      margin-bottom: 20px;
-    }
+		.cardButton {
+			position: relative;
+			width: 80px;
+			height: 120px;
+			margin: 5px;
+			border-radius: 10px;
+			border: 2px solid #000;
+			background: repeating-linear-gradient(45deg,
+					#ffffff,
+					#ffffff 10px,
+					#e5e5e5 10px,
+					#e5e5e5 20px);
+			font-size: 24px;
+			font-weight: bold;
+			display: flex;
+			flex-direction: column;
+			justify-content: space-between;
+			padding: 8px;
+			align-items: center;
+			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+			cursor: pointer;
+			transition: transform 0.15s;
+		}
 
-	/* ===== shop画面：カード一覧 + 場を横並び ===== */
-	#shopArea {
-	  display: flex;
-	  flex-direction: column;
-	  gap: 20px;
-		width: 100%;
-	}
-	
-	/* 各プレイヤーの場（右） */
-	#shopFields {
-	  width: 100%;
-		max-width: 100vw;
-	  flex-shrink: 0;
-	
-	  max-height: 80vh;        /* ★ 画面の8割まで */
-	  overflow-y: auto;
-	  padding-right: 6px;      /* スクロールバー分 */
-	}
+		/* ===== カード種別ごとの枠色 ===== */
+		.cardButton.action {
+			border-color: #1976d2;
+			/* 青：アクション */
+		}
 
-	#shopList {
-	  flex: 1;
-	  display: grid;
-	  grid-template-columns: repeat(5, 1fr); /* PCは4枚 */
-	  gap: 12px;
-	  margin-top: 20px;
-	  justify-items: center;
-	}
+		.cardButton.treasure {
+			border-color: #f9a825;
+			/* 金：財宝 */
+		}
 
-	/* ===== Shopカード専用 ===== */
-	#shopList .cardName {
-	  font-size: 14px;
-	}
-	
-	#shopList .cardText {
-	  font-size: 12px;
-	  line-height: 1.2;
-	}
+		.cardButton.victory {
+			border-color: #2e7d32;
+			/* 緑：勝利点 */
+		}
 
-	#shopControl {
-	  margin-top: 10px;
-	  font-size: 16px;
-	}
+		.cardName {
+			font-size: 16px;
+			font-weight: bold;
+			line-height: 1.1;
+			text-align: center;
+		}
 
-	.cardName {
-	  font-size: 16px;   /* ← 少し小さく */
-	  font-weight: bold;
-	  line-height: 1.1;
-	  text-align: center;
-	}
+		.cardText {
+			font-size: 12px;
+			line-height: 1.2;
+		}
 
-	.fieldName {
-	  font-size: 14px;   /* ← 好みで 13〜15px */
-	}
+		.cardButton:hover {
+			transform: translateY(-4px);
+		}
 
-  .shopFieldBlock {
-    margin-bottom: 16px;
-  }
-  
-  .shopFieldTitle {
-    font-weight: bold;
-    margin-bottom: 6px;
-  }
-
-	/* ===== 自分の場 ===== */
-	#field {
-	  display: flex;
-	  gap: 8px;
-	
-	  flex-wrap: nowrap;     /* 折り返さない */
-	  overflow-x: auto;      /* 横スクロール */
-	  overflow-y: hidden;
-	
-	  width: 100%;
-	  padding-bottom: 8px;
-	
-	  -webkit-overflow-scrolling: touch; /* iOS用 */
-	}
-	
-	#field .cardButton {
-	  flex-shrink: 0;
-	}
-	.shopFieldCards {
-	  display: flex;
-	  gap: 8px;
-	
-	  flex-wrap: nowrap;     /* ★ 折り返さない */
-	  overflow-x: auto;      /* ★ 横スクロール */
-	  overflow-y: hidden;
-	
-	  padding-bottom: 6px;
-	  -webkit-overflow-scrolling: touch;
-	}
-
-	.shopFieldCards .cardButton {
-	  flex-shrink: 0;
-	}
-
-	/* 破棄モード中の手札 */
-	.trashMode #hand .cardButton {
-	  border-color: #c62828;
-	  background: #ffebee;
-	}
-
-	#trash {
-	  display: flex;
-	  gap: 8px;
-	  flex-wrap: nowrap;
-	  overflow-x: auto;
-	  opacity: 0.6;
-	}
-
-.returnHandMode #hand .cardButton {
-  border-color: #6a1b9a;
-  background: #f3e5f5;
-}
-
-.returnFieldMode #field .cardButton {
-  border-color: #1565c0;
-  background: #e3f2fd;
-}
-
-#deckList {
-  display: flex;
-  gap: 8px;
-
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  padding-bottom: 8px;
-
-  -webkit-overflow-scrolling: touch;
-}
-
-#deckList .cardButton {
-  width: 60px;
-  height: 90px;
-  font-size: 10px;
-  padding: 4px;
-  flex-shrink: 0;
-  opacity: 0.85;
-}
-
-#deckList .cardText {
-  display: none; /* ← 効果文は非表示 */
-}
-
-#discardList {
-  display: flex;
-  gap: 8px;
-
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  padding-bottom: 8px;
-
-  -webkit-overflow-scrolling: touch;
-}
-
-#discardList .cardButton {
-  width: 60px;
-  height: 90px;
-  font-size: 10px;
-  padding: 4px;
-  flex-shrink: 0;
-  opacity: 0.85;
-}
-
-#discardList .cardText {
-  display: none; /* 効果文は非表示 */
-}
-		
-	@media (max-width: 600px) {
-    
 		#topArea {
-	    	flex-direction: row;   /* ← 横並びのまま */
-	        justify-content: center;
-	        gap: 20px;
-	        width: 100%;
-	    }
-    
-		#deckImage {
-			width: 30vw;
-			height: 45vw;
+			display: flex;
+			align-items: center;
+			gap: 40px;
+			/* デッキと場の間の余白 */
+			margin-bottom: 20px;
 		}
 
-	    .cardButton {
-	        width: 30vw;
-	        height: 45vw;
-	        padding: 5px;
-	        margin: 4px;
+		/* ===== shop画面：カード一覧 + 場を横並び ===== */
+		#shopArea {
+			display: flex;
+			flex-direction: column;
+			gap: 20px;
+			width: 100%;
+		}
+
+		/* 各プレイヤーの場（右） */
+		#shopFields {
+			width: 100%;
+			max-width: 100vw;
 			flex-shrink: 0;
-	    }
 
-		.cardButton .cardName {
-        	font-size: 3vw;
-      	}
-    
-      	.cardButton .cardText {
-        	font-size: 3vw;
-      	}
-      
-		/* 通常カード（手札・場）だけ */
-		#hand .cardName,
-		#field .cardName {
-		  	font-size: 20px;
+			max-height: 80vh;
+			/* ★ 画面の8割まで */
+			overflow-y: auto;
+			padding-right: 6px;
+			/* スクロールバー分 */
 		}
 
-      #hand {
-		  display: flex;
-		  flex-wrap: nowrap;      /* 折り返さない */
-		  overflow-x: auto;       /* 横スクロール */
-		  gap: 8px;
-		  padding-bottom: 10px;
-		  -webkit-overflow-scrolling: touch; /* iOSなめらか */
-		  width: 100%;
-      }
-
-		/* ===== 手札のカード枠色 ===== */
-		#hand .cardButton.action {
-		  border-color: #1976d2;
-		}
-		
-		#hand .cardButton.treasure {
-		  border-color: #f9a825;
-		}
-		
-		#hand .cardButton.victory {
-		  border-color: #2e7d32;
+		#shopList {
+			flex: 1;
+			display: grid;
+			grid-template-columns: repeat(5, 1fr);
+			/* PCは4枚 */
+			gap: 12px;
+			margin-top: 20px;
+			justify-items: center;
 		}
 
-      #field {
-        display: flex;
-        justify-content: center;
-        width: 100%;
-      }
-    
-      /* デッキも中央寄せ */
-      #deck {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-      }
-      
-      body {
-        zoom: 1.0; /* 拡大縮小の誤差防止 */
-        padding: 10px;
-        padding-top: 5px;
-		overflow-x: hidden;
-      }
+		/* ===== Shopカード専用 ===== */
+		#shopList .cardName {
+			font-size: 14px;
+		}
 
-      #deckImage:active,
-      .cardButton:active {
-        transform: translateY(2px) scale(0.97);
-        filter: brightness(0.95);
-      }
+		#shopList .cardText {
+			font-size: 12px;
+			line-height: 1.2;
+		}
 
-      #shopList {
-        grid-template-columns: repeat(4, 1fr);
-      }
+		#shopControl {
+			margin-top: 10px;
+			font-size: 16px;
+		}
 
-      /* ★ Shopカードはvwを使わない */
-      #shopList .cardName {
-        font-size: 14px;
-      }
-    
-      #shopList .cardText {
-        font-size: 11px;
-      }
+		.cardName {
+			font-size: 16px;
+			/* ← 少し小さく */
+			font-weight: bold;
+			line-height: 1.1;
+			text-align: center;
+		}
 
-    }
+		.fieldName {
+			font-size: 14px;
+			/* ← 好みで 13〜15px */
+		}
 
-	/* ===== iPad横持ち：Shopカード ===== */
-	@media (min-width: 768px) and (max-width: 1366px) {
-	
-	  #shopList .cardName {
-	    font-size: 13px;
-	  }
-	
-	  #shopList .cardText {
-	    font-size: 11px;
-	  }
-	
-	}
+		.shopFieldBlock {
+			margin-bottom: 16px;
+		}
 
-  </style>
+		.shopFieldTitle {
+			font-weight: bold;
+			margin-bottom: 6px;
+		}
+
+		/* ===== 自分の場 ===== */
+		#field {
+			display: flex;
+			gap: 8px;
+
+			flex-wrap: nowrap;
+			/* 折り返さない */
+			overflow-x: auto;
+			/* 横スクロール */
+			overflow-y: hidden;
+
+			width: 100%;
+			padding-bottom: 8px;
+
+			-webkit-overflow-scrolling: touch;
+			/* iOS用 */
+		}
+
+		#field .cardButton {
+			flex-shrink: 0;
+		}
+
+		.shopFieldCards {
+			display: flex;
+			gap: 8px;
+
+			flex-wrap: nowrap;
+			/* ★ 折り返さない */
+			overflow-x: auto;
+			/* ★ 横スクロール */
+			overflow-y: hidden;
+
+			padding-bottom: 6px;
+			-webkit-overflow-scrolling: touch;
+		}
+
+		.shopFieldCards .cardButton {
+			flex-shrink: 0;
+		}
+
+		/* 破棄モード中の手札 */
+		.trashMode #hand .cardButton {
+			border-color: #c62828;
+			background: #ffebee;
+		}
+
+		#trash {
+			display: flex;
+			gap: 8px;
+			flex-wrap: nowrap;
+			overflow-x: auto;
+			opacity: 0.6;
+		}
+
+		.returnHandMode #hand .cardButton {
+			border-color: #6a1b9a;
+			background: #f3e5f5;
+		}
+
+		.returnFieldMode #field .cardButton {
+			border-color: #1565c0;
+			background: #e3f2fd;
+		}
+
+		#deckList {
+			display: flex;
+			gap: 8px;
+
+			flex-wrap: nowrap;
+			overflow-x: auto;
+			padding-bottom: 8px;
+
+			-webkit-overflow-scrolling: touch;
+		}
+
+		#deckList .cardButton {
+			width: 60px;
+			height: 90px;
+			font-size: 10px;
+			padding: 4px;
+			flex-shrink: 0;
+			opacity: 0.85;
+		}
+
+		#deckList .cardText {
+			display: none;
+			/* ← 効果文は非表示 */
+		}
+
+		#discardList {
+			display: flex;
+			gap: 8px;
+
+			flex-wrap: nowrap;
+			overflow-x: auto;
+			padding-bottom: 8px;
+
+			-webkit-overflow-scrolling: touch;
+		}
+
+		#discardList .cardButton {
+			width: 60px;
+			height: 90px;
+			font-size: 10px;
+			padding: 4px;
+			flex-shrink: 0;
+			opacity: 0.85;
+		}
+
+		#discardList .cardText {
+			display: none;
+			/* 効果文は非表示 */
+		}
+
+		@media (max-width: 600px) {
+
+			#topArea {
+				flex-direction: row;
+				/* ← 横並びのまま */
+				justify-content: center;
+				gap: 20px;
+				width: 100%;
+			}
+
+			#deckImage {
+				width: 30vw;
+				height: 45vw;
+			}
+
+			.cardButton {
+				width: 30vw;
+				height: 45vw;
+				padding: 5px;
+				margin: 4px;
+				flex-shrink: 0;
+			}
+
+			.cardButton .cardName {
+				font-size: 3vw;
+			}
+
+			.cardButton .cardText {
+				font-size: 3vw;
+			}
+
+			/* 通常カード（手札・場）だけ */
+			#hand .cardName,
+			#field .cardName {
+				font-size: 20px;
+			}
+
+			#hand {
+				display: flex;
+				flex-wrap: nowrap;
+				/* 折り返さない */
+				overflow-x: auto;
+				/* 横スクロール */
+				gap: 8px;
+				padding-bottom: 10px;
+				-webkit-overflow-scrolling: touch;
+				/* iOSなめらか */
+				width: 100%;
+			}
+
+			/* ===== 手札のカード枠色 ===== */
+			#hand .cardButton.action {
+				border-color: #1976d2;
+			}
+
+			#hand .cardButton.treasure {
+				border-color: #f9a825;
+			}
+
+			#hand .cardButton.victory {
+				border-color: #2e7d32;
+			}
+
+			#field {
+				display: flex;
+				justify-content: center;
+				width: 100%;
+			}
+
+			/* デッキも中央寄せ */
+			#deck {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+			}
+
+			body {
+				zoom: 1.0;
+				/* 拡大縮小の誤差防止 */
+				padding: 10px;
+				padding-top: 5px;
+				overflow-x: hidden;
+			}
+
+			#deckImage:active,
+			.cardButton:active {
+				transform: translateY(2px) scale(0.97);
+				filter: brightness(0.95);
+			}
+
+			#shopList {
+				grid-template-columns: repeat(4, 1fr);
+			}
+
+			/* ★ Shopカードはvwを使わない */
+			#shopList .cardName {
+				font-size: 14px;
+			}
+
+			#shopList .cardText {
+				font-size: 11px;
+			}
+
+		}
+
+		/* ===== iPad横持ち：Shopカード ===== */
+		@media (min-width: 768px) and (max-width: 1366px) {
+
+			#shopList .cardName {
+				font-size: 13px;
+			}
+
+			#shopList .cardText {
+				font-size: 11px;
+			}
+
+		}
+	</style>
 </head>
+
 <body>
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<div>
-		【Ver：87】
+		【Ver：89】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -424,13 +444,13 @@
 	<div>
 		<span id="endTurnInfo"></span>
 	</div>
-		<div id="actionPoints">アクション：1</div>
-<div id="drawPoints">ドロー：0</div>
+	<div id="actionPoints">アクション：1</div>
+	<div id="drawPoints">ドロー：0</div>
 	<div id="topArea">
 		<div id="deck">
 			<div id="deckImage"></div>
 			<div id="deckCount"></div>
-    	</div>
+		</div>
 		<div id="field"></div>
 	</div>
 	<div id="hand"></div>
@@ -438,782 +458,782 @@
 		追加先：
 		<select id="targetPlayerSelect"></select>
 	</div>
-	<div id ="shopArea">
+	<div id="shopArea">
 		<div id="shopList"></div>
 	</div>
 	<div id="shopFields"></div>
 	<div id="victoryPoints" style="margin-top:10px;font-weight:bold;">
 		勝利点：0
 	</div>
-	<h3 id = "deckListTitle">山札の中身</h3>
+	<h3 id="deckListTitle">山札の中身</h3>
 	<div id="deckList"></div>
 	<h3 id="discardListTitle">捨て札の中身</h3>
 	<div id="discardList"></div>
-	<h3 id = "trashListTitle">破棄</h3>
+	<h3 id="trashListTitle">破棄</h3>
 	<div id="trash"></div>
 
 	<script type="module">
-    // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
-    // ■    Firebase設定         ■
-    // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
-    import {
-      getDatabase,
-      ref,
-      get,
-      set,
-      update,
-      onValue
-    } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-database.js";
+		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
+		// ■    Firebase設定         ■
+		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
+		import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+		import {
+			getDatabase,
+			ref,
+			get,
+			set,
+			update,
+			onValue
+		} from "https://www.gstatic.com/firebasejs/10.13.2/firebase-database.js";
 
-    const firebaseConfig = {
-        apiKey:            "AIzaSyAs8DqxHiRzveAMJ7j-UMBWKp6ztGF-hd8",
-        authDomain:        "ddgame-6f5f8.firebaseapp.com",
-        databaseURL:       "https://ddgame-6f5f8-default-rtdb.firebaseio.com",
-        projectId:         "ddgame-6f5f8",
-        storageBucket:     "ddgame-6f5f8.firebasestorage.app",
-        messagingSenderId: "172945824128",
-        appId:             "1:172945824128:web:e3c7333928e1545aa1c965",
-        measurementId:     "G-FG0645HHZD"
-    };
+		const firebaseConfig = {
+			apiKey: "AIzaSyAs8DqxHiRzveAMJ7j-UMBWKp6ztGF-hd8",
+			authDomain: "ddgame-6f5f8.firebaseapp.com",
+			databaseURL: "https://ddgame-6f5f8-default-rtdb.firebaseio.com",
+			projectId: "ddgame-6f5f8",
+			storageBucket: "ddgame-6f5f8.firebasestorage.app",
+			messagingSenderId: "172945824128",
+			appId: "1:172945824128:web:e3c7333928e1545aa1c965",
+			measurementId: "G-FG0645HHZD"
+		};
 
-    const app = initializeApp(firebaseConfig);
-    const db  = getDatabase(app);
+		const app = initializeApp(firebaseConfig);
+		const db = getDatabase(app);
 
-    // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
-    // ■    変数・定数            ■
-    // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
-    const roomId   = "room1";
-    const initialDeck = [
-      { name: "A_銅貨", cost: 0, text: "＋１コイン", type: "treasure" },
-      { name: "B_銅貨", cost: 0, text: "＋１コイン", type: "treasure" },
-      { name: "C_銅貨", cost: 0, text: "＋１コイン", type: "treasure" },
-      { name: "D_銅貨", cost: 0, text: "＋１コイン", type: "treasure" },
-      { name: "E_銅貨", cost: 0, text: "＋１コイン", type: "treasure" },
-      { name: "F_銅貨", cost: 0, text: "＋１コイン", type: "treasure" },
-      { name: "G_銅貨", cost: 0, text: "＋１コイン", type: "treasure" },
-      { name: "H_屋敷", cost: 2, text: "勝利点１", type: "victory" },
-      { name: "I_屋敷", cost: 2, text: "勝利点１", type: "victory" },
-      { name: "J_屋敷", cost: 2, text: "勝利点１", type: "victory" },
-    ];
-		  
-	const shopDeck = [
-	  { name: "工房", cost: 3, text: "コスト4以下のカードを１枚獲得する", type: "action", stock: 10 , actions: 0},
-	  { name: "地下貯蔵庫", cost: 2, text: "＋１アクション。手札から好きな枚数のカードを捨て、その枚数分引く", type: "action", stock: 10, actions: 1 },
-	  { name: "鉱山", cost: 5, text: "財宝を破棄し、＋３コストまでの財宝を獲得する", type: "action", stock: 10, actions: 0}  ,
-	  { name: "村", cost: 3, text: "＋１カード。\n＋２アクション", type: "action", stock: 10, actions: 2 , draw: 1 },
-	  { name: "鍛冶屋", cost: 4, text: "＋３カードを引く", type: "action", stock: 10, actions: 0 , draw: 3},
-	  { name: "改築", cost: 4, text: "カードを破棄し、＋２コストまでのカードを獲得", type: "action", stock: 10, actions: 0 },
-	  // { name: "民兵", cost: 4, text: "＋２コイン。他のプレイヤーは手札３枚にする", type: "action", stock: 10, actions: 0 },
-	  { name: "市場", cost: 5, text: "＋１カード。＋１アクション。＋１購入", type: "action", stock: 10, actions: 1 , draw: 1 },
-	  { name: "商人", cost: 3, text: "＋１カード。＋１アクション。銀貨を使うと＋１コイン", type: "action", stock: 10, actions: 1 , draw: 1 },
-	  // { name: "堀", cost: 2, text: "アタック時に公開すると無効化", type: "action", stock: 10, actions: 0 },
-	  { name: "銅貨", cost: 0, text: "＋１コイン", type: "treasure", stock: 32, actions: 0 },
-	  { name: "銀貨", cost: 3, text: "＋２コイン", type: "treasure", stock: 40, actions: 0 },
-	  { name: "金貨", cost: 6, text: "＋３コイン", type: "treasure", stock: 30, actions: 0 },
-	  { name: "屋敷", cost: 2, text: "勝利点１", type: "victory", stock: 12, actions: 0 },
-	  { name: "公領", cost: 5, text: "勝利点３", type: "victory", stock: 12, actions: 0 }
-	 ,{ name: "属州", cost: 8, text: "勝利点６", type: "victory", stock: 18, actions: 0 }
-	];
-	  
-    // URLからプレイヤーIDを取得
-    const pv_urlParams = new URLSearchParams(window.location.search);
-    const pv_playerId = pv_urlParams.get("player") || "playerA"; // デフォルト playerA
-	const isShop = pv_playerId === "shop";
-	const targetPlayer = pv_urlParams.get("target") || "playerA";
+		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
+		// ■    変数・定数            ■
+		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
+		const roomId = "room1";
+		const initialDeck = [
+			{ name: "A_銅貨", cost: 0, text: "＋１コイン", type: "treasure" },
+			{ name: "B_銅貨", cost: 0, text: "＋１コイン", type: "treasure" },
+			{ name: "C_銅貨", cost: 0, text: "＋１コイン", type: "treasure" },
+			{ name: "D_銅貨", cost: 0, text: "＋１コイン", type: "treasure" },
+			{ name: "E_銅貨", cost: 0, text: "＋１コイン", type: "treasure" },
+			{ name: "F_銅貨", cost: 0, text: "＋１コイン", type: "treasure" },
+			{ name: "G_銅貨", cost: 0, text: "＋１コイン", type: "treasure" },
+			{ name: "H_屋敷", cost: 2, text: "勝利点１", type: "victory" },
+			{ name: "I_屋敷", cost: 2, text: "勝利点１", type: "victory" },
+			{ name: "J_屋敷", cost: 2, text: "勝利点１", type: "victory" },
+		];
 
-	const roomRef     = ref(db, `rooms/${roomId}`);
-    const pv_db_deck = ref(db, `rooms/${roomId}/decks/${pv_playerId}`);
-    const pv_db_hand  = ref(db, `rooms/${roomId}/hands/${pv_playerId}`);
-	const pv_db_shopDeck = ref(db, `rooms/${roomId}/shopDeck`);
-	const pv_db_field = ref(db, `rooms/${roomId}/fields/${pv_playerId}`);
-	const pv_db_discard = ref(db, `rooms/${roomId}/discards/${pv_playerId}`);
-	const pv_db_turn = ref(db, `rooms/${roomId}/turn/current`);
-	const pv_db_trash = ref(db, `rooms/${roomId}/trashes/${pv_playerId}`);
-	
-	let currentTurnPlayer = null;
-	let currentTurnFieldUnsub = null;
+		const shopDeck = [
+			{ name: "工房", cost: 3, text: "コスト4以下のカードを１枚獲得する", type: "action", stock: 10, actions: 0 },
+			{ name: "地下貯蔵庫", cost: 2, text: "＋１アクション。手札から好きな枚数のカードを捨て、その枚数分引く", type: "action", stock: 10, actions: 1 },
+			{ name: "鉱山", cost: 5, text: "財宝を破棄し、＋３コストまでの財宝を獲得する", type: "action", stock: 10, actions: 0 },
+			{ name: "村", cost: 3, text: "＋１カード。\n＋２アクション", type: "action", stock: 10, actions: 2, draw: 1 },
+			{ name: "鍛冶屋", cost: 4, text: "＋３カードを引く", type: "action", stock: 10, actions: 0, draw: 3 },
+			{ name: "改築", cost: 4, text: "カードを破棄し、＋２コストまでのカードを獲得", type: "action", stock: 10, actions: 0 },
+			// { name: "民兵", cost: 4, text: "＋２コイン。他のプレイヤーは手札３枚にする", type: "action", stock: 10, actions: 0 },
+			{ name: "市場", cost: 5, text: "＋１カード。＋１アクション。＋１購入", type: "action", stock: 10, actions: 1, draw: 1 },
+			{ name: "商人", cost: 3, text: "＋１カード。＋１アクション。銀貨を使うと＋１コイン", type: "action", stock: 10, actions: 1, draw: 1 },
+			// { name: "堀", cost: 2, text: "アタック時に公開すると無効化", type: "action", stock: 10, actions: 0 },
+			{ name: "銅貨", cost: 0, text: "＋１コイン", type: "treasure", stock: 32, actions: 0 },
+			{ name: "銀貨", cost: 3, text: "＋２コイン", type: "treasure", stock: 40, actions: 0 },
+			{ name: "金貨", cost: 6, text: "＋３コイン", type: "treasure", stock: 30, actions: 0 },
+			{ name: "屋敷", cost: 2, text: "勝利点１", type: "victory", stock: 12, actions: 0 },
+			{ name: "公領", cost: 5, text: "勝利点３", type: "victory", stock: 12, actions: 0 }
+			, { name: "属州", cost: 8, text: "勝利点６", type: "victory", stock: 18, actions: 0 }
+		];
 
-	// ===== shop用状態 =====
-	let shopPlayers = {};
-	let shopFields  = {};
-	let shopTrashes = {};
-	  
-    // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
-    // ■    リアルタイム表示      ■
-    // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
-    // ●--------描画：デッキ--------●
-	if (!isShop) {
-		onValue(pv_db_deck, (snap) => {
-	    	const deck = snap.val() || [];
-	    	document.getElementById("deckCount").innerText = `残り：${deck.length}枚`;
-	    	document.getElementById("deckImage").style.opacity =
-			deck.length === 0 ? "0.3" : "1";
-		});
-	}
+		// URLからプレイヤーIDを取得
+		const pv_urlParams = new URLSearchParams(window.location.search);
+		const pv_playerId = pv_urlParams.get("player") || "playerA"; // デフォルト playerA
+		const isShop = pv_playerId === "shop";
+		const targetPlayer = pv_urlParams.get("target") || "playerA";
 
-	// ===== shop画面：各プレイヤーの場を監視 =====
-	if (isShop) {
-	  onValue(ref(db, `rooms/${roomId}/players`), snap => {
-	    shopPlayers = snap.val() || {};
-	    renderShopFields();
-	  });
-	  onValue(ref(db, `rooms/${roomId}/fields`), snap => {
-	    shopFields = snap.val() || {};
-	    renderShopFields();
-	  });
-		onValue(ref(db, `rooms/${roomId}/trashes`), snap => {
-		  shopTrashes = snap.val() || {};
-		  renderShopFields();
-		});
-	}
+		const roomRef = ref(db, `rooms/${roomId}`);
+		const pv_db_deck = ref(db, `rooms/${roomId}/decks/${pv_playerId}`);
+		const pv_db_hand = ref(db, `rooms/${roomId}/hands/${pv_playerId}`);
+		const pv_db_shopDeck = ref(db, `rooms/${roomId}/shopDeck`);
+		const pv_db_field = ref(db, `rooms/${roomId}/fields/${pv_playerId}`);
+		const pv_db_discard = ref(db, `rooms/${roomId}/discards/${pv_playerId}`);
+		const pv_db_turn = ref(db, `rooms/${roomId}/turn/current`);
+		const pv_db_trash = ref(db, `rooms/${roomId}/trashes/${pv_playerId}`);
 
-    // ●--------描画：手札--------●
-    onValue(pv_db_hand, (lv_snapshot_hand) => {
-	  if (isShop) return;
-      const lv_hand = lv_snapshot_hand.val() || [];
-      const handDiv = document.getElementById("hand");
-      handDiv.innerHTML = "";
-    
-      lv_hand.forEach((card, index) => {
-		const btn = document.createElement("div");
-		btn.className = `cardButton ${card.type || ""}`;
-		btn.innerHTML = `
+		let currentTurnPlayer = null;
+		let currentTurnFieldUnsub = null;
+
+		// ===== shop用状態 =====
+		let shopPlayers = {};
+		let shopFields = {};
+		let shopTrashes = {};
+
+		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
+		// ■    リアルタイム表示      ■
+		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
+		// ●--------描画：デッキ--------●
+		if (!isShop) {
+			onValue(pv_db_deck, (snap) => {
+				const deck = snap.val() || [];
+				document.getElementById("deckCount").innerText = `残り：${deck.length}枚`;
+				document.getElementById("deckImage").style.opacity =
+					deck.length === 0 ? "0.3" : "1";
+			});
+		}
+
+		// ===== shop画面：各プレイヤーの場を監視 =====
+		if (isShop) {
+			onValue(ref(db, `rooms/${roomId}/players`), snap => {
+				shopPlayers = snap.val() || {};
+				renderShopFields();
+			});
+			onValue(ref(db, `rooms/${roomId}/fields`), snap => {
+				shopFields = snap.val() || {};
+				renderShopFields();
+			});
+			onValue(ref(db, `rooms/${roomId}/trashes`), snap => {
+				shopTrashes = snap.val() || {};
+				renderShopFields();
+			});
+		}
+
+		// ●--------描画：手札--------●
+		onValue(pv_db_hand, (lv_snapshot_hand) => {
+			if (isShop) return;
+			const lv_hand = lv_snapshot_hand.val() || [];
+			const handDiv = document.getElementById("hand");
+			handDiv.innerHTML = "";
+
+			lv_hand.forEach((card, index) => {
+				const btn = document.createElement("div");
+				btn.className = `cardButton ${card.type || ""}`;
+				btn.innerHTML = `
 		  <div class="cardCost">${card.cost}</div>
 		  <div class="cardName">${card.name}</div>
 		  <div class="cardText">${card.text.replace(/\n/g, "<br>")}</div>
 		`;
-btn.onclick = () => {
-  if (isTrashMode) {
-    trashCard(index);
-  } else if (isReturnHandMode) {
-    returnHandCardToDeck(index);
-  } else {
-    playCard(index);
-  }
-};
-      
-        handDiv.appendChild(btn);
-      });
-    });
+				btn.onclick = () => {
+					if (isTrashMode) {
+						trashCard(index);
+					} else if (isReturnHandMode) {
+						returnHandCardToDeck(index);
+					} else {
+						playCard(index);
+					}
+				};
 
-    // ●--------描画：場--------●
-	onValue(ref(db, `rooms/${roomId}/turn/current`), (turnSnap) => {
-		const turnPlayer = turnSnap.val();
-  		if (!turnPlayer) return;
+				handDiv.appendChild(btn);
+			});
+		});
 
-  		// ★ 以前の監視を解除
-  		if (currentTurnFieldUnsub) {
- 		   currentTurnFieldUnsub();
-		    currentTurnFieldUnsub = null;
-		}
- 
-		const turnFieldRef = ref(db, `rooms/${roomId}/fields/${turnPlayer}`);
-	
-		currentTurnFieldUnsub = onValue(turnFieldRef, (snap) => {
-		  const cards = snap.val() || [];
-		  const fieldDiv = document.getElementById("field");
-		  fieldDiv.innerHTML = "";
-		
-		  if (cards.length === 0) {
-		    const empty = document.createElement("div");
-		    empty.style.width = "80px";
-		    empty.style.height = "120px";
-		    empty.style.border = "2px dashed #aaa";
-		    empty.style.borderRadius = "10px";
-		    fieldDiv.appendChild(empty);
-		    return;
-		  }
-		
-cards.forEach((card, index) => {
-		    const cardEl = document.createElement("div");
-		    cardEl.className = `cardButton ${card.type || ""}`;
-			cardEl.innerHTML = `
+		// ●--------描画：場--------●
+		onValue(ref(db, `rooms/${roomId}/turn/current`), (turnSnap) => {
+			const turnPlayer = turnSnap.val();
+			if (!turnPlayer) return;
+
+			// ★ 以前の監視を解除
+			if (currentTurnFieldUnsub) {
+				currentTurnFieldUnsub();
+				currentTurnFieldUnsub = null;
+			}
+
+			const turnFieldRef = ref(db, `rooms/${roomId}/fields/${turnPlayer}`);
+
+			currentTurnFieldUnsub = onValue(turnFieldRef, (snap) => {
+				const cards = snap.val() || [];
+				const fieldDiv = document.getElementById("field");
+				fieldDiv.innerHTML = "";
+
+				if (cards.length === 0) {
+					const empty = document.createElement("div");
+					empty.style.width = "80px";
+					empty.style.height = "120px";
+					empty.style.border = "2px dashed #aaa";
+					empty.style.borderRadius = "10px";
+					fieldDiv.appendChild(empty);
+					return;
+				}
+
+				cards.forEach((card, index) => {
+					const cardEl = document.createElement("div");
+					cardEl.className = `cardButton ${card.type || ""}`;
+					cardEl.innerHTML = `
 			  <div class="cardCost">${card.cost}</div>
 			  <div class="cardName">${card.name}</div>
 			  <div class="cardText">${card.text.replace(/\n/g, "<br>")}</div>
 			`;
-cardEl.onclick = () => {
-  if (isReturnFieldMode) {
-    returnFieldCardToHand(index);
-  }
-};
+					cardEl.onclick = () => {
+						if (isReturnFieldMode) {
+							returnFieldCardToHand(index);
+						}
+					};
 
-fieldDiv.appendChild(cardEl);
-		  });
-			
-			// ★ 最新カードが見えるように右端へ
-			fieldDiv.scrollTo({
-			  left: fieldDiv.scrollWidth,
-			  behavior: "smooth"
+					fieldDiv.appendChild(cardEl);
+				});
+
+				// ★ 最新カードが見えるように右端へ
+				fieldDiv.scrollTo({
+					left: fieldDiv.scrollWidth,
+					behavior: "smooth"
+				});
+
 			});
-			
 		});
-	});
-	  
-	onValue(ref(db, `rooms/${roomId}/players`), snap => {
-	  const players = snap.val() || {};
-	  const div = document.getElementById("playerList");
-	  div.innerHTML = "参加者：" + Object.keys(players).join(", ");
-	
-	  if (isShop) {
-	    renderTargetPlayerSelect(players);
-		document.getElementById("endTurn").style.display = "none";
-		document.getElementById("endTurnInfo").style.display = "none";
-	  }
-	});
 
-	onValue(ref(db, `rooms/${roomId}/lastEndTurn`), snap => {
-	  const data = snap.val();
-	  if (!data) return;
-	
-	  const date = new Date(data.at);
-	  const time = date.toLocaleTimeString();
-	
-	  document.getElementById("endTurnInfo").textContent =
-	    `最後にターン終了：${data.player}（${time}）`;
-	});
+		onValue(ref(db, `rooms/${roomId}/players`), snap => {
+			const players = snap.val() || {};
+			const div = document.getElementById("playerList");
+			div.innerHTML = "参加者：" + Object.keys(players).join(", ");
 
-	onValue(pv_db_turn, snap => {
-	  	currentTurnPlayer = snap.val();
-	  	updateTurnUI();
-	
-		if (isShop) {
-		  get(ref(db, `rooms/${roomId}/players`)).then(snap => {
-		    renderTargetPlayerSelect(snap.val() || {});
-		  });
-		}
-	});
+			if (isShop) {
+				renderTargetPlayerSelect(players);
+				document.getElementById("endTurn").style.display = "none";
+				document.getElementById("endTurnInfo").style.display = "none";
+			}
+		});
 
-	onValue(pv_db_trash, snap => {
-	  if (isShop) return;
-	
-	  const trash = snap.val() || [];
-	  const div = document.getElementById("trash");
-	  div.innerHTML = "";
-	
-	  trash.forEach(card => {
-	    const el = document.createElement("div");
-	    el.className = `cardButton ${card.type || ""}`;
-	    el.innerHTML = `
+		onValue(ref(db, `rooms/${roomId}/lastEndTurn`), snap => {
+			const data = snap.val();
+			if (!data) return;
+
+			const date = new Date(data.at);
+			const time = date.toLocaleTimeString();
+
+			document.getElementById("endTurnInfo").textContent =
+				`最後にターン終了：${data.player}（${time}）`;
+		});
+
+		onValue(pv_db_turn, snap => {
+			currentTurnPlayer = snap.val();
+			updateTurnUI();
+
+			if (isShop) {
+				get(ref(db, `rooms/${roomId}/players`)).then(snap => {
+					renderTargetPlayerSelect(snap.val() || {});
+				});
+			}
+		});
+
+		onValue(pv_db_trash, snap => {
+			if (isShop) return;
+
+			const trash = snap.val() || [];
+			const div = document.getElementById("trash");
+			div.innerHTML = "";
+
+			trash.forEach(card => {
+				const el = document.createElement("div");
+				el.className = `cardButton ${card.type || ""}`;
+				el.innerHTML = `
 	      <div class="cardCost">${card.cost}</div>
 	      <div class="cardName">${card.name}</div>
 	    `;
-	    div.appendChild(el);
-	  });
-	});
-
-onValue(pv_db_deck, snap => {
-  if (isShop) return;
-
-  const deck = snap.val() || [];
-  const list = document.getElementById("deckList");
-  list.innerHTML = "";
-
-  deck.forEach(card => {
-    const el = document.createElement("div");
-    el.className = `cardButton ${card.type || ""}`;
-    el.innerHTML = `
-      <div class="cardCost">${card.cost}</div>
-      <div class="cardName">${card.name}</div>
-    `;
-    list.appendChild(el);
-  });
-});
-
-onValue(pv_db_discard, snap => {
-  if (isShop) return;
-
-  const discard = snap.val() || [];
-  const list = document.getElementById("discardList");
-  list.innerHTML = "";
-
-  discard.forEach(card => {
-    const el = document.createElement("div");
-    el.className = `cardButton ${card.type || ""}`;
-    el.innerHTML = `
-      <div class="cardCost">${card.cost}</div>
-      <div class="cardName">${card.name}</div>
-    `;
-    list.appendChild(el);
-  });
-});
-	
-    // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
-    // ■    ボタン動作            ■
-    // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
-    
-    // ●--------ボタン：カードを引く--------●
-    document.getElementById("deckImage").addEventListener("click", drawCard);
-    
-    // ●--------ボタン：リセット--------●
-    document.getElementById("reset").addEventListener("click", resetGame);
-    
-    // ●--------ボタン：シャッフル--------●
-    document.getElementById("shuffleDeck").addEventListener("click", shuffleDeck);
-
-	// ●--------ボタン：場を山札に戻す--------●
-    document.getElementById("returnToDeck").addEventListener("click", returnDiscardToDeck);
-	document.getElementById("leaveRoom").addEventListener("click", leaveRoom);
-
-	document.getElementById("endTurn").addEventListener("click", endTurn);
-
-	let isTrashMode = false;
-	let isReturnHandMode = false;
-	let isReturnFieldMode = false;
-	
-document.getElementById("trashMode").addEventListener("click", () => {
-  isTrashMode = !isTrashMode;
-
-  if (isTrashMode) {
-    isReturnHandMode = false;
-    isReturnFieldMode = false;
-
-    document.body.classList.remove("returnHandMode", "returnFieldMode");
-    document.getElementById("returnHandMode").textContent = "手札戻し：OFF";
-    document.getElementById("returnFieldMode").textContent = "場戻し：OFF";
-  }
-
-  document.body.classList.toggle("trashMode", isTrashMode);
-
-  document.getElementById("trashMode").textContent =
-    `破棄モード：${isTrashMode ? "ON" : "OFF"}`;
-});
-
-document.getElementById("returnHandMode").addEventListener("click", () => {
-  isReturnHandMode = !isReturnHandMode;
-
-  if (isReturnHandMode) {
-    isTrashMode = false;
-    isReturnFieldMode = false;
-
-    document.body.classList.remove("trashMode", "returnFieldMode");
-    document.getElementById("trashMode").textContent = "破棄モード：OFF";
-    document.getElementById("returnFieldMode").textContent = "場戻し：OFF";
-  }
-
-  document.body.classList.toggle("returnHandMode", isReturnHandMode);
-  document.getElementById("returnHandMode").textContent =
-    `手札戻し：${isReturnHandMode ? "ON" : "OFF"}`;
-});
-
-document.getElementById("returnFieldMode").addEventListener("click", () => {
-  isReturnFieldMode = !isReturnFieldMode;
-
-  if (isReturnFieldMode) {
-    // 他モードをOFF
-    isTrashMode = false;
-    isReturnHandMode = false;
-
-    document.body.classList.remove("trashMode", "returnHandMode");
-    document.getElementById("trashMode").textContent = "破棄モード：OFF";
-    document.getElementById("returnHandMode").textContent = "手札戻し：OFF";
-  }
-
-  document.body.classList.toggle("returnFieldMode", isReturnFieldMode);
-  document.getElementById("returnFieldMode").textContent =
-    `場戻し：${isReturnFieldMode ? "ON" : "OFF"}`;
-});
-	
-	if (isShop) {
-	  	document.getElementById("deckImage").style.pointerEvents = "none";
-	  	document.getElementById("deckImage").style.opacity = "0.5";
-	  	document.getElementById("shuffleDeck").style.display = "none";
-	  	document.getElementById("returnToDeck").style.display = "none";
-	  	document.getElementById("trashMode").style.display = "none";
-	  	document.getElementById("returnHandMode").style.display = "none";
-	  	document.getElementById("returnFieldMode").style.display = "none";
-	  	document.getElementById("topArea").style.display = "none";
-	  	document.getElementById("hand").style.display = "none";	
-		document.getElementById("leaveRoom").style.display = "none";
-		document.getElementById("deckListTitle").style.display = "none";
-		document.getElementById("discardListTitle").style.display = "none";
-		document.getElementById("trashListTitle").style.display = "none";
-		document.getElementById("actionPoints").style.display = "none";
-		document.getElementById("victoryPoints").style.display = "none";
-		document.getElementById("drawPoints").style.display = "none";
-	} else {
-		document.getElementById("shopControl").style.display = "none";
-	}
-	  
-    // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
-    // ■    関数                 ■
-    // ■■■■■■■■■■■■■■■■■■■■■■■■■■■
-    // ●--------カードを引く--------●
-async function drawCard() {
-  if (!isMyTurn()) {
-    alert("あなたのターンではありません");
-    return;
-  }
-
-  // 残ドロー確認
-  const drawSnap = await get(ref(db, `rooms/${roomId}/turn/draws`));
-  let draws = drawSnap.val() ?? 0;
-
-  // 山札・手札取得
-  const deckSnap = await get(pv_db_deck);
-  const handSnap = await get(pv_db_hand);
-
-  let deck = deckSnap.val() || [];
-  let hand = handSnap.val() || [];
-
-  if (deck.length === 0) {
-    alert("山札がありません");
-    return;
-  }
-
-  // 1枚引く
-  const card = deck.shift();
-  hand.push(card);
-
-  // ドロー消費
-  draws -= 1;
-
-  // まとめて更新
-  await update(roomRef, {
-    [`decks/${pv_playerId}`]: deck,
-    [`hands/${pv_playerId}`]: hand,
-    "turn/draws": draws
-  });
-}
-
-    // ●--------場に出す--------●
-async function playCard(cardIndex) {
-  const handSnap   = await get(pv_db_hand);
-  const fieldSnap  = await get(ref(db, `rooms/${roomId}/fields/${pv_playerId}`));
-  const actionSnap = await get(ref(db, `rooms/${roomId}/turn/actions`));
-
-  let hand   = handSnap.val() || [];
-  let field  = fieldSnap.val() || [];
-  let action = actionSnap.val() ?? 0;
-
-  const card = hand[cardIndex];
-  if (!card) return;
-
-  // ▼ アクションカードの場合
-if (card.type === "action") {
-  if (action <= 0) {
-    alert("アクションが足りません");
-    return;
-  }
-  action -= 1;
-  action += card.actions || 0;
-
-  // ★ ドロー加算
-  if (card.draw) {
-    const drawSnap = await get(ref(db, `rooms/${roomId}/turn/draws`));
-    let draws = drawSnap.val() ?? 0;
-    draws += card.draw;
-
-    await update(roomRef, {
-      "turn/draws": draws
-    });
-  }
-}
-
-  // ▼ 手札→場
-  hand.splice(cardIndex, 1);
-  field.push(card);
-
-  await update(roomRef, {
-    [`hands/${pv_playerId}`]: hand,
-    [`fields/${pv_playerId}`]: field,
-    "turn/actions": action
-  });
-}
-
-    // ●--------リセット--------●
-	async function resetGame() {
-	  if (!confirm("ゲームをリセットしますか？")) return;
-	
-	  const playersSnap = await get(ref(db, `rooms/${roomId}/players`));
-	  const players = playersSnap.val() || {};
-	
-		const decks = {};
-		const hands = {};
-		const fields = {};
-		const discards = {};
-		const trashes = {};
-
-		Object.keys(players).forEach(pid => {
-		  const deck = [...initialDeck];
-		  shuffleArray(deck);
-		  decks[pid] = deck;
-		  hands[pid] = [];
-		  fields[pid] = [];
-		  trashes[pid] = [];
-		  discards[pid] = [];
+				div.appendChild(el);
+			});
 		});
-	
-await update(roomRef, {
-  decks,
-  hands,
-  fields,
-  discards,
-  trashes,
 
-  shopDeck: shopDeck.map(card => ({
-    ...card,
-    stock: card.stock
-  })),
+		onValue(pv_db_deck, snap => {
+			if (isShop) return;
 
-  "turn/current": Object.keys(players).find(p => p !== "shop"),
-"turn/actions": 1,
-"turn/draws": 5
-});
-	}
-    
-    // ●--------シャッフル実行--------●
-	async function shuffleDeck() {
-	  const deckSnap = await get(pv_db_deck);
-	  let deck = deckSnap.val() || [];
+			const deck = snap.val() || [];
+			const list = document.getElementById("deckList");
+			list.innerHTML = "";
 
-	  if (deck.length <= 1) {
-		alert("シャッフルするカードがありません");
-		return;
-	  }
+			deck.forEach(card => {
+				const el = document.createElement("div");
+				el.className = `cardButton ${card.type || ""}`;
+				el.innerHTML = `
+      <div class="cardCost">${card.cost}</div>
+      <div class="cardName">${card.name}</div>
+    `;
+				list.appendChild(el);
+			});
+		});
 
-	  shuffleArray(deck);
+		onValue(pv_db_discard, snap => {
+			if (isShop) return;
 
-	  await update(roomRef, {
-  	    [`decks/${pv_playerId}`]: deck
-  	  });
-	}
-    
-    // ●--------デッキをシャッフル--------●
-    function shuffleArray(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-    }
+			const discard = snap.val() || [];
+			const list = document.getElementById("discardList");
+			list.innerHTML = "";
 
-	// ●--------捨て札のカードを山札に戻す--------●
-	async function returnDiscardToDeck() {
-	  if (!confirm("捨て札をすべて山札に戻しますか？")) return;
-	
-	  const deckSnap    = await get(pv_db_deck);
-	  const discardSnap = await get(pv_db_discard);
-	
-	  let deck    = deckSnap.val() || [];
-	  let discard = discardSnap.val() || [];
-	
-	  if (discard.length === 0) {
-	    alert("捨て札がありません");
-	    return;
-	  }
-	
-	  // 捨て札を山札の下に戻す
-	  deck = deck.concat(discard);
-	
-	  await update(roomRef, {
-	    [`decks/${pv_playerId}`]: deck,
-	    [`discards/${pv_playerId}`]: []
-	  });
-	}
+			discard.forEach(card => {
+				const el = document.createElement("div");
+				el.className = `cardButton ${card.type || ""}`;
+				el.innerHTML = `
+      <div class="cardCost">${card.cost}</div>
+      <div class="cardName">${card.name}</div>
+    `;
+				list.appendChild(el);
+			});
+		});
 
-function renderShop(cards) {
-  const shopDiv = document.getElementById("shopList");
-  shopDiv.innerHTML = "";
+		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
+		// ■    ボタン動作            ■
+		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
 
-  cards.forEach((card, index) => {
-    const cardEl = document.createElement("div");
-    cardEl.className = `cardButton ${card.type || ""}`;
+		// ●--------ボタン：カードを引く--------●
+		document.getElementById("deckImage").addEventListener("click", drawCard);
 
-    cardEl.innerHTML = `
+		// ●--------ボタン：リセット--------●
+		document.getElementById("reset").addEventListener("click", resetGame);
+
+		// ●--------ボタン：シャッフル--------●
+		document.getElementById("shuffleDeck").addEventListener("click", shuffleDeck);
+
+		// ●--------ボタン：場を山札に戻す--------●
+		document.getElementById("returnToDeck").addEventListener("click", returnDiscardToDeck);
+		document.getElementById("leaveRoom").addEventListener("click", leaveRoom);
+
+		document.getElementById("endTurn").addEventListener("click", endTurn);
+
+		let isTrashMode = false;
+		let isReturnHandMode = false;
+		let isReturnFieldMode = false;
+
+		document.getElementById("trashMode").addEventListener("click", () => {
+			isTrashMode = !isTrashMode;
+
+			if (isTrashMode) {
+				isReturnHandMode = false;
+				isReturnFieldMode = false;
+
+				document.body.classList.remove("returnHandMode", "returnFieldMode");
+				document.getElementById("returnHandMode").textContent = "手札戻し：OFF";
+				document.getElementById("returnFieldMode").textContent = "場戻し：OFF";
+			}
+
+			document.body.classList.toggle("trashMode", isTrashMode);
+
+			document.getElementById("trashMode").textContent =
+				`破棄モード：${isTrashMode ? "ON" : "OFF"}`;
+		});
+
+		document.getElementById("returnHandMode").addEventListener("click", () => {
+			isReturnHandMode = !isReturnHandMode;
+
+			if (isReturnHandMode) {
+				isTrashMode = false;
+				isReturnFieldMode = false;
+
+				document.body.classList.remove("trashMode", "returnFieldMode");
+				document.getElementById("trashMode").textContent = "破棄モード：OFF";
+				document.getElementById("returnFieldMode").textContent = "場戻し：OFF";
+			}
+
+			document.body.classList.toggle("returnHandMode", isReturnHandMode);
+			document.getElementById("returnHandMode").textContent =
+				`手札戻し：${isReturnHandMode ? "ON" : "OFF"}`;
+		});
+
+		document.getElementById("returnFieldMode").addEventListener("click", () => {
+			isReturnFieldMode = !isReturnFieldMode;
+
+			if (isReturnFieldMode) {
+				// 他モードをOFF
+				isTrashMode = false;
+				isReturnHandMode = false;
+
+				document.body.classList.remove("trashMode", "returnHandMode");
+				document.getElementById("trashMode").textContent = "破棄モード：OFF";
+				document.getElementById("returnHandMode").textContent = "手札戻し：OFF";
+			}
+
+			document.body.classList.toggle("returnFieldMode", isReturnFieldMode);
+			document.getElementById("returnFieldMode").textContent =
+				`場戻し：${isReturnFieldMode ? "ON" : "OFF"}`;
+		});
+
+		if (isShop) {
+			document.getElementById("deckImage").style.pointerEvents = "none";
+			document.getElementById("deckImage").style.opacity = "0.5";
+			document.getElementById("shuffleDeck").style.display = "none";
+			document.getElementById("returnToDeck").style.display = "none";
+			document.getElementById("trashMode").style.display = "none";
+			document.getElementById("returnHandMode").style.display = "none";
+			document.getElementById("returnFieldMode").style.display = "none";
+			document.getElementById("topArea").style.display = "none";
+			document.getElementById("hand").style.display = "none";
+			document.getElementById("leaveRoom").style.display = "none";
+			document.getElementById("deckListTitle").style.display = "none";
+			document.getElementById("discardListTitle").style.display = "none";
+			document.getElementById("trashListTitle").style.display = "none";
+			document.getElementById("actionPoints").style.display = "none";
+			document.getElementById("victoryPoints").style.display = "none";
+			document.getElementById("drawPoints").style.display = "none";
+		} else {
+			document.getElementById("shopControl").style.display = "none";
+		}
+
+		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
+		// ■    関数                 ■
+		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
+		// ●--------カードを引く--------●
+		async function drawCard() {
+			if (!isMyTurn()) {
+				alert("あなたのターンではありません");
+				return;
+			}
+
+			// 残ドロー確認
+			const drawSnap = await get(ref(db, `rooms/${roomId}/turn/draws`));
+			let draws = drawSnap.val() ?? 0;
+
+			// 山札・手札取得
+			const deckSnap = await get(pv_db_deck);
+			const handSnap = await get(pv_db_hand);
+
+			let deck = deckSnap.val() || [];
+			let hand = handSnap.val() || [];
+
+			if (deck.length === 0) {
+				alert("山札がありません");
+				return;
+			}
+
+			// 1枚引く
+			const card = deck.shift();
+			hand.push(card);
+
+			// ドロー消費
+			draws -= 1;
+
+			// まとめて更新
+			await update(roomRef, {
+				[`decks/${pv_playerId}`]: deck,
+				[`hands/${pv_playerId}`]: hand,
+				"turn/draws": draws
+			});
+		}
+
+		// ●--------場に出す--------●
+		async function playCard(cardIndex) {
+			const handSnap = await get(pv_db_hand);
+			const fieldSnap = await get(ref(db, `rooms/${roomId}/fields/${pv_playerId}`));
+			const actionSnap = await get(ref(db, `rooms/${roomId}/turn/actions`));
+
+			let hand = handSnap.val() || [];
+			let field = fieldSnap.val() || [];
+			let action = actionSnap.val() ?? 0;
+
+			const card = hand[cardIndex];
+			if (!card) return;
+
+			// ▼ アクションカードの場合
+			if (card.type === "action") {
+				if (action <= 0) {
+					alert("アクションが足りません");
+					return;
+				}
+				action -= 1;
+				action += card.actions || 0;
+
+				// ★ ドロー加算
+				if (card.draw) {
+					const drawSnap = await get(ref(db, `rooms/${roomId}/turn/draws`));
+					let draws = drawSnap.val() ?? 0;
+					draws += card.draw;
+
+					await update(roomRef, {
+						"turn/draws": draws
+					});
+				}
+			}
+
+			// ▼ 手札→場
+			hand.splice(cardIndex, 1);
+			field.push(card);
+
+			await update(roomRef, {
+				[`hands/${pv_playerId}`]: hand,
+				[`fields/${pv_playerId}`]: field,
+				"turn/actions": action
+			});
+		}
+
+		// ●--------リセット--------●
+		async function resetGame() {
+			if (!confirm("ゲームをリセットしますか？")) return;
+
+			const playersSnap = await get(ref(db, `rooms/${roomId}/players`));
+			const players = playersSnap.val() || {};
+
+			const decks = {};
+			const hands = {};
+			const fields = {};
+			const discards = {};
+			const trashes = {};
+
+			Object.keys(players).forEach(pid => {
+				const deck = [...initialDeck];
+				shuffleArray(deck);
+				decks[pid] = deck;
+				hands[pid] = [];
+				fields[pid] = [];
+				trashes[pid] = [];
+				discards[pid] = [];
+			});
+
+			await update(roomRef, {
+				decks,
+				hands,
+				fields,
+				discards,
+				trashes,
+
+				shopDeck: shopDeck.map(card => ({
+					...card,
+					stock: card.stock
+				})),
+
+				"turn/current": Object.keys(players).find(p => p !== "shop"),
+				"turn/actions": 1,
+				"turn/draws": 5
+			});
+		}
+
+		// ●--------シャッフル実行--------●
+		async function shuffleDeck() {
+			const deckSnap = await get(pv_db_deck);
+			let deck = deckSnap.val() || [];
+
+			if (deck.length <= 1) {
+				alert("シャッフルするカードがありません");
+				return;
+			}
+
+			shuffleArray(deck);
+
+			await update(roomRef, {
+				[`decks/${pv_playerId}`]: deck
+			});
+		}
+
+		// ●--------デッキをシャッフル--------●
+		function shuffleArray(array) {
+			for (let i = array.length - 1; i > 0; i--) {
+				const j = Math.floor(Math.random() * (i + 1));
+				[array[i], array[j]] = [array[j], array[i]];
+			}
+		}
+
+		// ●--------捨て札のカードを山札に戻す--------●
+		async function returnDiscardToDeck() {
+			if (!confirm("捨て札をすべて山札に戻しますか？")) return;
+
+			const deckSnap = await get(pv_db_deck);
+			const discardSnap = await get(pv_db_discard);
+
+			let deck = deckSnap.val() || [];
+			let discard = discardSnap.val() || [];
+
+			if (discard.length === 0) {
+				alert("捨て札がありません");
+				return;
+			}
+
+			// 捨て札を山札の下に戻す
+			deck = deck.concat(discard);
+
+			await update(roomRef, {
+				[`decks/${pv_playerId}`]: deck,
+				[`discards/${pv_playerId}`]: []
+			});
+		}
+
+		function renderShop(cards) {
+			const shopDiv = document.getElementById("shopList");
+			shopDiv.innerHTML = "";
+
+			cards.forEach((card, index) => {
+				const cardEl = document.createElement("div");
+				cardEl.className = `cardButton ${card.type || ""}`;
+
+				cardEl.innerHTML = `
       <div class="cardCost">${card.cost}</div>
       <div class="cardName">${card.name}</div>
       <div class="cardText">${card.text.replace(/\n/g, "<br>")}</div>
       <div style="font-size:12px;">残り：${card.stock}</div>
     `;
 
-    if (card.stock <= 0) {
-      cardEl.style.pointerEvents = "none";
-      cardEl.style.opacity = "0.4";
-    } else {
-      cardEl.onclick = () => addShopCardToPlayer(index);
-    }
+				if (card.stock <= 0) {
+					cardEl.style.pointerEvents = "none";
+					cardEl.style.opacity = "0.4";
+				} else {
+					cardEl.onclick = () => addShopCardToPlayer(index);
+				}
 
-    shopDiv.appendChild(cardEl);
-  });
-}
-	  
-	function renderTargetPlayerSelect(players) {
-	  const select = document.getElementById("targetPlayerSelect");
-	  select.innerHTML = "";
-	
-	  Object.keys(players).forEach(pid => {
-	    if (pid === "shop") return;
-	
-	    const opt = document.createElement("option");
-	    opt.value = pid;
-	    opt.textContent = pid;
-	
-	    // ★ ここが追加：ターンプレイヤーを初期選択
-	    if (pid === currentTurnPlayer) {
-	      opt.selected = true;
-	    }
-	
-	    select.appendChild(opt);
-	  });
-	}
-	  
-async function addShopCardToPlayer(cardIndex) {
-  const cardEls = document.querySelectorAll("#shopList .cardButton");
-  const cardEl = cardEls[cardIndex];
-
-  // ★ 即UI反応
-  cardEl.style.pointerEvents = "none";
-  cardEl.style.opacity = "0.5";
-
-  const badge = document.createElement("div");
-  badge.textContent = "購入中…";
-  badge.style.position = "absolute";
-  badge.style.bottom = "4px";
-  badge.style.fontSize = "11px";
-  badge.style.color = "#555";
-  cardEl.appendChild(badge);
-
-  try {
-    const shopSnap = await get(pv_db_shopDeck);
-    const shopCards = shopSnap.val() || [];
-
-    const card = shopCards[cardIndex];
-    if (!card || card.stock <= 0) return;
-
-    const targetPlayer =
-      document.getElementById("targetPlayerSelect").value;
-
-    const discardRef = ref(db, `rooms/${roomId}/discards/${targetPlayer}`);
-    const discardSnap = await get(discardRef);
-    const discard = discardSnap.val() || [];
-
-    discard.push(card);
-    shopCards[cardIndex].stock -= 1;
-
-    await update(roomRef, {
-      [`discards/${targetPlayer}`]: discard,
-      shopDeck: shopCards
-    });
-
-    // ★ 成功表示（非ブロッキング）
-    showToast(`${card.name} を購入`);
-
-} catch (e) {
-  cardEl.style.pointerEvents = "auto";
-  cardEl.style.opacity = "1";
-  badge.remove();
-
-  showToast("購入に失敗しました");
-}
-}
-
-function showToast(text) {
-  const toast = document.createElement("div");
-  toast.textContent = text;
-  toast.style.position = "fixed";
-  toast.style.bottom = "20px";
-  toast.style.left = "50%";
-  toast.style.transform = "translateX(-50%)";
-  toast.style.background = "#333";
-  toast.style.color = "#fff";
-  toast.style.padding = "8px 14px";
-  toast.style.borderRadius = "20px";
-  toast.style.fontSize = "14px";
-  toast.style.zIndex = "9999";
-
-  document.body.appendChild(toast);
-
-  setTimeout(() => toast.remove(), 1200);
-}
-		
-// ===== shop画面：Shopカード一覧を監視 =====
-if (isShop) {
-  onValue(pv_db_shopDeck, snap => {
-    const cards = snap.val() || [];
-    renderShop(cards);
-  });
-}
-	  
-async function joinRoom() {
-
-  // ===== shop入室時の初期化（★追加）=====
-  if (isShop) {
-    const shopSnap = await get(pv_db_shopDeck);
-
-    if (!shopSnap.exists()) {
-      await set(pv_db_shopDeck, shopDeck.map(card => ({
-        ...card,
-        stock: card.stock
-      })));
-    }
-    return;
-  }
-
-  // ===== 通常プレイヤー =====
-  const playerRef = ref(db, `rooms/${roomId}/players/${pv_playerId}`);
-  const snap = await get(playerRef);
-
-  if (!snap.exists()) {
-    const deck = [...initialDeck];
-    shuffleArray(deck);
-
-    await update(roomRef, {
-      [`players/${pv_playerId}`]: {
-        joinedAt: Date.now()
-      },
-      [`decks/${pv_playerId}`]: deck,
-      [`hands/${pv_playerId}`]: [],
-      [`fields/${pv_playerId}`]: [],
-      [`discards/${pv_playerId}`]: [],
-      [`trashes/${pv_playerId}`]: []
-    });
-  }
-}
-
-	joinRoom();
-	if (!isShop) {
-		const turnSnap = await get(pv_db_turn);
-		if (!turnSnap.exists()) {
-		  await set(pv_db_turn, pv_playerId);
+				shopDiv.appendChild(cardEl);
+			});
 		}
-	}
 
-	async function leaveRoom() {
-		if (!confirm("部屋から退室しますか？")) return;
-	
-		const updates = {};
-		updates[`players/${pv_playerId}`] = null;
-		updates[`decks/${pv_playerId}`]   = null;
-		updates[`hands/${pv_playerId}`]   = null;
-		updates[`fields/${pv_playerId}`] = null;
-		updates[`discards/${pv_playerId}`] = null;
-		await update(roomRef, updates);
-	
-		alert("退室しました");
-	  	window.location.href = "./index.html";
-	}
+		function renderTargetPlayerSelect(players) {
+			const select = document.getElementById("targetPlayerSelect");
+			select.innerHTML = "";
 
-	function renderShopFields() {
-	  const root = document.getElementById("shopFields");
-	  root.innerHTML = "<h3>現在のターンの場</h3>";
-	
-	  // ★ ターンプレイヤーが未確定なら何もしない
-	  if (!currentTurnPlayer) {
-	    root.innerHTML += "<div>ターン未開始</div>";
-	    return;
-	  }
-			
-		const pid = currentTurnPlayer;
-		
-		const fieldCards  = shopFields[pid]  || [];
-		const trashCards  = shopTrashes[pid] || [];
-	
-	  const block = document.createElement("div");
-	  block.className = "shopFieldBlock";
+			Object.keys(players).forEach(pid => {
+				if (pid === "shop") return;
 
-		const fieldHtml = fieldCards.length
-		  ? fieldCards.map(card => `
+				const opt = document.createElement("option");
+				opt.value = pid;
+				opt.textContent = pid;
+
+				// ★ ここが追加：ターンプレイヤーを初期選択
+				if (pid === currentTurnPlayer) {
+					opt.selected = true;
+				}
+
+				select.appendChild(opt);
+			});
+		}
+
+		async function addShopCardToPlayer(cardIndex) {
+			const cardEls = document.querySelectorAll("#shopList .cardButton");
+			const cardEl = cardEls[cardIndex];
+
+			// ★ 即UI反応
+			cardEl.style.pointerEvents = "none";
+			cardEl.style.opacity = "0.5";
+
+			const badge = document.createElement("div");
+			badge.textContent = "購入中…";
+			badge.style.position = "absolute";
+			badge.style.bottom = "4px";
+			badge.style.fontSize = "11px";
+			badge.style.color = "#555";
+			cardEl.appendChild(badge);
+
+			try {
+				const shopSnap = await get(pv_db_shopDeck);
+				const shopCards = shopSnap.val() || [];
+
+				const card = shopCards[cardIndex];
+				if (!card || card.stock <= 0) return;
+
+				const targetPlayer =
+					document.getElementById("targetPlayerSelect").value;
+
+				const discardRef = ref(db, `rooms/${roomId}/discards/${targetPlayer}`);
+				const discardSnap = await get(discardRef);
+				const discard = discardSnap.val() || [];
+
+				discard.push(card);
+				shopCards[cardIndex].stock -= 1;
+
+				await update(roomRef, {
+					[`discards/${targetPlayer}`]: discard,
+					shopDeck: shopCards
+				});
+
+				// ★ 成功表示（非ブロッキング）
+				showToast(`${card.name} を購入`);
+
+			} catch (e) {
+				cardEl.style.pointerEvents = "auto";
+				cardEl.style.opacity = "1";
+				badge.remove();
+
+				showToast("購入に失敗しました");
+			}
+		}
+
+		function showToast(text) {
+			const toast = document.createElement("div");
+			toast.textContent = text;
+			toast.style.position = "fixed";
+			toast.style.bottom = "20px";
+			toast.style.left = "50%";
+			toast.style.transform = "translateX(-50%)";
+			toast.style.background = "#333";
+			toast.style.color = "#fff";
+			toast.style.padding = "8px 14px";
+			toast.style.borderRadius = "20px";
+			toast.style.fontSize = "14px";
+			toast.style.zIndex = "9999";
+
+			document.body.appendChild(toast);
+
+			setTimeout(() => toast.remove(), 1200);
+		}
+
+		// ===== shop画面：Shopカード一覧を監視 =====
+		if (isShop) {
+			onValue(pv_db_shopDeck, snap => {
+				const cards = snap.val() || [];
+				renderShop(cards);
+			});
+		}
+
+		async function joinRoom() {
+
+			// ===== shop入室時の初期化（★追加）=====
+			if (isShop) {
+				const shopSnap = await get(pv_db_shopDeck);
+
+				if (!shopSnap.exists()) {
+					await set(pv_db_shopDeck, shopDeck.map(card => ({
+						...card,
+						stock: card.stock
+					})));
+				}
+				return;
+			}
+
+			// ===== 通常プレイヤー =====
+			const playerRef = ref(db, `rooms/${roomId}/players/${pv_playerId}`);
+			const snap = await get(playerRef);
+
+			if (!snap.exists()) {
+				const deck = [...initialDeck];
+				shuffleArray(deck);
+
+				await update(roomRef, {
+					[`players/${pv_playerId}`]: {
+						joinedAt: Date.now()
+					},
+					[`decks/${pv_playerId}`]: deck,
+					[`hands/${pv_playerId}`]: [],
+					[`fields/${pv_playerId}`]: [],
+					[`discards/${pv_playerId}`]: [],
+					[`trashes/${pv_playerId}`]: []
+				});
+			}
+		}
+
+		joinRoom();
+		if (!isShop) {
+			const turnSnap = await get(pv_db_turn);
+			if (!turnSnap.exists()) {
+				await set(pv_db_turn, pv_playerId);
+			}
+		}
+
+		async function leaveRoom() {
+			if (!confirm("部屋から退室しますか？")) return;
+
+			const updates = {};
+			updates[`players/${pv_playerId}`] = null;
+			updates[`decks/${pv_playerId}`] = null;
+			updates[`hands/${pv_playerId}`] = null;
+			updates[`fields/${pv_playerId}`] = null;
+			updates[`discards/${pv_playerId}`] = null;
+			await update(roomRef, updates);
+
+			alert("退室しました");
+			window.location.href = "./index.html";
+		}
+
+		function renderShopFields() {
+			const root = document.getElementById("shopFields");
+			root.innerHTML = "<h3>現在のターンの場</h3>";
+
+			// ★ ターンプレイヤーが未確定なら何もしない
+			if (!currentTurnPlayer) {
+				root.innerHTML += "<div>ターン未開始</div>";
+				return;
+			}
+
+			const pid = currentTurnPlayer;
+
+			const fieldCards = shopFields[pid] || [];
+			const trashCards = shopTrashes[pid] || [];
+
+			const block = document.createElement("div");
+			block.className = "shopFieldBlock";
+
+			const fieldHtml = fieldCards.length
+				? fieldCards.map(card => `
 		      <div class="cardButton ${card.type || ""}">
 		        <div class="cardCost">${card.cost}</div>
 		        <div class="cardName">${card.name}</div>
@@ -1222,18 +1242,18 @@ async function joinRoom() {
 		        </div>
 		      </div>
 		    `).join("")
-		  : `<span style="color:#888;">（場なし）</span>`;
-		
-		const trashHtml = trashCards.length
-		  ? trashCards.map(card => `
+				: `<span style="color:#888;">（場なし）</span>`;
+
+			const trashHtml = trashCards.length
+				? trashCards.map(card => `
 		      <div class="cardButton ${card.type || ""}">
 		        <div class="cardCost">${card.cost}</div>
 		        <div class="cardName">${card.name}</div>
 		      </div>
 		    `).join("")
-		  : `<span style="color:#888;">（破棄なし）</span>`;
-	
-		block.innerHTML = `
+				: `<span style="color:#888;">（破棄なし）</span>`;
+
+			block.innerHTML = `
 		  <div class="shopFieldTitle">${pid}</div>
 		
 		  <div style="margin-bottom:6px;">場</div>
@@ -1246,262 +1266,263 @@ async function joinRoom() {
 		    ${trashHtml}
 		  </div>
 		`;
-	
-	  root.appendChild(block);
-	
-	block.querySelectorAll(".shopFieldCards").forEach(container => {
-	  container.scrollTo({
-	    left: container.scrollWidth,
-	    behavior: "smooth"
-	  });
-	});
-	}
 
-	async function endTurn() {
-	  if (!isMyTurn()) return;
-	
-	  // ★ ここで playersData を正しく取得する
-	  const playersSnap = await get(ref(db, `rooms/${roomId}/players`));
-	  const playersData = playersSnap.val() || {};
-	
-	  const players = Object.entries(playersData)
-	    .filter(([pid]) => pid !== "shop")
-	    // order が未定義でも落ちない保険
-	    .sort((a, b) => (a[1].order ?? 0) - (b[1].order ?? 0))
-	    .map(([pid]) => pid);
-	
-	  const currentIndex = players.indexOf(pv_playerId);
-	  const nextPlayer = players[(currentIndex + 1) % players.length];
+			root.appendChild(block);
 
-		// 場・手札 → 捨て札
-		const fieldSnap   = await get(pv_db_field);
-		const handSnap    = await get(pv_db_hand);      // ★追加
-		const discardSnap = await get(pv_db_discard);
-		
-		const field   = fieldSnap.val() || [];
-		const hand    = handSnap.val() || [];           // ★追加
-		const discard = discardSnap.val() || [];
-		
-		// 場を捨て札へ
-		if (field.length > 0) {
-		  discard.push(...field);
+			block.querySelectorAll(".shopFieldCards").forEach(container => {
+				container.scrollTo({
+					left: container.scrollWidth,
+					behavior: "smooth"
+				});
+			});
 		}
-		
-		// ★ 手札を捨て札へ
-		if (hand.length > 0) {
-		  discard.push(...hand);
+
+		async function endTurn() {
+			if (!isMyTurn()) return;
+
+			// ★ ここで playersData を正しく取得する
+			const playersSnap = await get(ref(db, `rooms/${roomId}/players`));
+			const playersData = playersSnap.val() || {};
+
+			const players = Object.entries(playersData)
+				.filter(([pid]) => pid !== "shop")
+				// order が未定義でも落ちない保険
+				.sort((a, b) => (a[1].order ?? 0) - (b[1].order ?? 0))
+				.map(([pid]) => pid);
+
+			const currentIndex = players.indexOf(pv_playerId);
+			const nextPlayer = players[(currentIndex + 1) % players.length];
+
+			// 場・手札 → 捨て札
+			const fieldSnap = await get(pv_db_field);
+			const handSnap = await get(pv_db_hand);      // ★追加
+			const discardSnap = await get(pv_db_discard);
+
+			const field = fieldSnap.val() || [];
+			const hand = handSnap.val() || [];           // ★追加
+			const discard = discardSnap.val() || [];
+
+			// 場を捨て札へ
+			if (field.length > 0) {
+				discard.push(...field);
+			}
+
+			// ★ 手札を捨て札へ
+			if (hand.length > 0) {
+				discard.push(...hand);
+			}
+
+			await update(roomRef, {
+				[`fields/${pv_playerId}`]: [],
+				[`hands/${pv_playerId}`]: [],                 // ★追加
+				[`discards/${pv_playerId}`]: discard,
+				"turn/current": nextPlayer,
+				"turn/actions": 1,
+				"turn/draws": 5,
+				lastEndTurn: {
+					player: pv_playerId,
+					at: Date.now()
+				}
+			});
 		}
-		
-		await update(roomRef, {
-		  [`fields/${pv_playerId}`]: [],
-		  [`hands/${pv_playerId}`]: [],                 // ★追加
-		  [`discards/${pv_playerId}`]: discard,
-		  "turn/current": nextPlayer,
-"turn/actions": 1,
-"turn/draws": 5,
-		  lastEndTurn: {
-		    player: pv_playerId,
-		    at: Date.now()
-		  }
-		});
-	}
 
-	function isMyTurn() {
-	  return currentTurnPlayer === pv_playerId;
-	}
+		function isMyTurn() {
+			return currentTurnPlayer === pv_playerId;
+		}
 
-	function updateTurnUI() {
-	  const info = document.getElementById("endTurnInfo");
-	
-	  if (!currentTurnPlayer) {
-	    info.textContent = "ターン未開始";
-	    return;
-	  }
-	
-	  info.textContent = `現在のターン：${currentTurnPlayer}`;
-	
-	  // shop画面はターン制の影響を受けない
-	  if (isShop) return;
-	
-	  const disabled = !isMyTurn();
-	
-	  // デッキ
-	  const deck = document.getElementById("deckImage");
-	  deck.style.pointerEvents = disabled ? "none" : "auto";
-	  deck.style.opacity = disabled ? "0.4" : "1";
-	
-	  // 手札カードだけ制御
-	  document.querySelectorAll("#hand .cardButton").forEach(el => {
-	    el.style.pointerEvents = disabled ? "none" : "auto";
-	    el.style.opacity = disabled ? "0.6" : "1";
-	  });
-	
-	  document.getElementById("endTurn").disabled = disabled;
-	}
+		function updateTurnUI() {
+			const info = document.getElementById("endTurnInfo");
 
-	async function trashCard(cardIndex) {
-	  if (!isMyTurn()) {
-	    alert("あなたのターンではありません");
-	    return;
-	  }
-	
-	  const handSnap  = await get(pv_db_hand);
-	  const trashSnap = await get(pv_db_trash);
-	
-	  let hand  = handSnap.val() || [];
-	  let trash = trashSnap.val() || [];
-	
-	  if (!hand[cardIndex]) return;
-	
-	  const card = hand.splice(cardIndex, 1)[0];
-	  trash.push(card);
-	
-	  await update(roomRef, {
-	    [`hands/${pv_playerId}`]: hand,
-	    [`trashes/${pv_playerId}`]: trash
-	  });
-	}
+			if (!currentTurnPlayer) {
+				info.textContent = "ターン未開始";
+				return;
+			}
 
-	function getVictoryPoints(card) {
-	  if (card.type !== "victory") return 0;
-	
-	  if (card.name.includes("屋敷")) return 1;
-	  if (card.name.includes("公領")) return 3;
-	  if (card.name.includes("属州")) return 6;
-	
-	  return 0;
-	}
+			info.textContent = `現在のターン：${currentTurnPlayer}`;
 
-	function calculateTotalVictoryPoints({
-	  deck = [],
-	  hand = [],
-	  discard = [],
-	  field = []
-	}) {
-	  const allCards = [
-	    ...deck,
-	    ...hand,
-	    ...discard,
-	    ...field
-	  ];
-	
-	  return allCards.reduce(
-	    (sum, card) => sum + getVictoryPoints(card),
-	    0
-	  );
-	}
+			// shop画面はターン制の影響を受けない
+			if (isShop) return;
 
-	function watchVictoryPoints() {
-	  if (isShop) return;
-	
-	  const vpDiv = document.getElementById("victoryPoints");
-	
-	  let deck = [];
-	  let hand = [];
-	  let discard = [];
-	  let field = [];
-	
-	  function updateVP() {
-	    const total = calculateTotalVictoryPoints({
-	      deck,
-	      hand,
-	      discard,
-	      field
-	    });
-	    vpDiv.textContent = `勝利点：${total}`;
-	  }
-	
-	  onValue(pv_db_deck, snap => {
-	    deck = snap.val() || [];
-	    updateVP();
-	  });
-	
-	  onValue(pv_db_hand, snap => {
-	    hand = snap.val() || [];
-	    updateVP();
-	  });
-	
-	  onValue(pv_db_discard, snap => {
-	    discard = snap.val() || [];
-	    updateVP();
-	  });
-	
-	  onValue(pv_db_field, snap => {
-	    field = snap.val() || [];
-	    updateVP();
-	  });
-	}
+			const disabled = !isMyTurn();
 
-async function returnHandCardToDeck(cardIndex) {
-  if (!isMyTurn()) {
-    alert("あなたのターンではありません");
-    return;
-  }
+			// デッキ
+			const deck = document.getElementById("deckImage");
+			deck.style.pointerEvents = disabled ? "none" : "auto";
+			deck.style.opacity = disabled ? "0.4" : "1";
 
-  const handSnap = await get(pv_db_hand);
-  const deckSnap = await get(pv_db_deck);
+			// 手札カードだけ制御
+			document.querySelectorAll("#hand .cardButton").forEach(el => {
+				el.style.pointerEvents = disabled ? "none" : "auto";
+				el.style.opacity = disabled ? "0.6" : "1";
+			});
 
-  let hand = handSnap.val() || [];
-  let deck = deckSnap.val() || [];
+			document.getElementById("endTurn").disabled = disabled;
+		}
 
-  if (!hand[cardIndex]) return;
+		async function trashCard(cardIndex) {
+			if (!isMyTurn()) {
+				alert("あなたのターンではありません");
+				return;
+			}
 
-  const card = hand.splice(cardIndex, 1)[0];
+			const handSnap = await get(pv_db_hand);
+			const trashSnap = await get(pv_db_trash);
 
-  // ★ 山札の一番下に戻す
-  deck.push(card);
+			let hand = handSnap.val() || [];
+			let trash = trashSnap.val() || [];
 
-  await update(roomRef, {
-    [`hands/${pv_playerId}`]: hand,
-    [`decks/${pv_playerId}`]: deck
-  });
-}
+			if (!hand[cardIndex]) return;
 
-async function returnFieldCardToHand(cardIndex) {
-  if (!isMyTurn()) {
-    alert("あなたのターンではありません");
-    return;
-  }
+			const card = hand.splice(cardIndex, 1)[0];
+			trash.push(card);
 
-  const fieldSnap = await get(pv_db_field);
-  const handSnap  = await get(pv_db_hand);
+			await update(roomRef, {
+				[`hands/${pv_playerId}`]: hand,
+				[`trashes/${pv_playerId}`]: trash
+			});
+		}
 
-  let field = fieldSnap.val() || [];
-  let hand  = handSnap.val() || [];
+		function getVictoryPoints(card) {
+			if (card.type !== "victory") return 0;
 
-  if (!field[cardIndex]) return;
+			if (card.name.includes("屋敷")) return 1;
+			if (card.name.includes("公領")) return 3;
+			if (card.name.includes("属州")) return 6;
 
-  const card = field.splice(cardIndex, 1)[0];
-  hand.push(card); // ★ 手札の最後に戻す
+			return 0;
+		}
 
-  await update(roomRef, {
-    [`fields/${pv_playerId}`]: field,
-    [`hands/${pv_playerId}`]: hand
-  });
-}
+		function calculateTotalVictoryPoints({
+			deck = [],
+			hand = [],
+			discard = [],
+			field = []
+		}) {
+			const allCards = [
+				...deck,
+				...hand,
+				...discard,
+				...field
+			];
 
-function watchActionPoints() {
-  const div = document.getElementById("actionPoints");
+			return allCards.reduce(
+				(sum, card) => sum + getVictoryPoints(card),
+				0
+			);
+		}
 
-  onValue(ref(db, `rooms/${roomId}/turn/actions`), snap => {
-    const actions = snap.val() ?? 0;
-    div.textContent = `アクション：${actions}`;
-  });
-}
+		function watchVictoryPoints() {
+			if (isShop) return;
 
-function watchDrawPoints() {
-  const div = document.getElementById("drawPoints");
+			const vpDiv = document.getElementById("victoryPoints");
 
-  onValue(ref(db, `rooms/${roomId}/turn/draws`), snap => {
-    const draws = snap.val() ?? 0;
-    div.textContent = `ドロー：${draws}`;
-  });
-}
-		
-	watchVictoryPoints();
-watchActionPoints();
+			let deck = [];
+			let hand = [];
+			let discard = [];
+			let field = [];
+
+			function updateVP() {
+				const total = calculateTotalVictoryPoints({
+					deck,
+					hand,
+					discard,
+					field
+				});
+				vpDiv.textContent = `勝利点：${total}`;
+			}
+
+			onValue(pv_db_deck, snap => {
+				deck = snap.val() || [];
+				updateVP();
+			});
+
+			onValue(pv_db_hand, snap => {
+				hand = snap.val() || [];
+				updateVP();
+			});
+
+			onValue(pv_db_discard, snap => {
+				discard = snap.val() || [];
+				updateVP();
+			});
+
+			onValue(pv_db_field, snap => {
+				field = snap.val() || [];
+				updateVP();
+			});
+		}
+
+		async function returnHandCardToDeck(cardIndex) {
+			if (!isMyTurn()) {
+				alert("あなたのターンではありません");
+				return;
+			}
+
+			const handSnap = await get(pv_db_hand);
+			const deckSnap = await get(pv_db_deck);
+
+			let hand = handSnap.val() || [];
+			let deck = deckSnap.val() || [];
+
+			if (!hand[cardIndex]) return;
+
+			const card = hand.splice(cardIndex, 1)[0];
+
+			// ★ 山札の一番下に戻す
+			deck.push(card);
+
+			await update(roomRef, {
+				[`hands/${pv_playerId}`]: hand,
+				[`decks/${pv_playerId}`]: deck
+			});
+		}
+
+		async function returnFieldCardToHand(cardIndex) {
+			if (!isMyTurn()) {
+				alert("あなたのターンではありません");
+				return;
+			}
+
+			const fieldSnap = await get(pv_db_field);
+			const handSnap = await get(pv_db_hand);
+
+			let field = fieldSnap.val() || [];
+			let hand = handSnap.val() || [];
+
+			if (!field[cardIndex]) return;
+
+			const card = field.splice(cardIndex, 1)[0];
+			hand.push(card); // ★ 手札の最後に戻す
+
+			await update(roomRef, {
+				[`fields/${pv_playerId}`]: field,
+				[`hands/${pv_playerId}`]: hand
+			});
+		}
+
+		function watchActionPoints() {
+			const div = document.getElementById("actionPoints");
+
+			onValue(ref(db, `rooms/${roomId}/turn/actions`), snap => {
+				const actions = snap.val() ?? 0;
+				div.textContent = `アクション：${actions}`;
+			});
+		}
+
+		function watchDrawPoints() {
+			const div = document.getElementById("drawPoints");
+
+			onValue(ref(db, `rooms/${roomId}/turn/draws`), snap => {
+				const draws = snap.val() ?? 0;
+				div.textContent = `ドロー：${draws}`;
+			});
+		}
+
+		watchVictoryPoints();
+		watchActionPoints();
 		watchDrawPoints();
-	
-  </script>
+
+	</script>
 </body>
+
 </html>
