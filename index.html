@@ -850,11 +850,6 @@ async function drawCard() {
   const drawSnap = await get(ref(db, `rooms/${roomId}/turn/draws`));
   let draws = drawSnap.val() ?? 0;
 
-  if (draws <= 0) {
-    alert("ドローが残っていません");
-    return;
-  }
-
   // 山札・手札取得
   const deckSnap = await get(pv_db_deck);
   const handSnap = await get(pv_db_hand);
