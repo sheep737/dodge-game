@@ -458,7 +458,7 @@
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<div>
-		【Ver：96】
+		【Ver：97】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -1557,29 +1557,31 @@
 			});
 		}
 
-async function toggleShopCardList() {
-    const listDiv = document.getElementById("shopCardList");
+		async function toggleShopCardList() {
+			const listDiv = document.getElementById("shopCardList");
 
-    // 開閉トグル
-    if (listDiv.style.display === "block") {
-        listDiv.style.display = "none";
-        return;
-    }
+			// 開閉トグル
+			if (listDiv.style.display === "block") {
+				listDiv.style.display = "none";
+				return;
+			}
 
-    const snap = await get(pv_db_shopDeck);
-    const cards = snap.val() || [];
+			const snap = await get(pv_db_shopDeck);
+			const cards = snap.val() || [];
 
-    listDiv.innerHTML = `
-      <strong>ショップカード一覧</strong><br>
-      ${cards
-        .filter(c => c.stock > 0)
-        .sort((a, b) => a.cost - b.cost)
-        .map(c => `${c.name}（コスト${c.cost} / 残り${c.stock}）`)
-        .join("<br>")}
-    `;
+			listDiv.innerHTML = `
+			<strong>ショップカード一覧</strong><br>
+			${cards
+				.filter(c => c.stock > 0)
+				.sort((a, b) => a.cost - b.cost)
+				.map(c => `${c.name}（コスト${c.cost} / 残り${c.stock}）`)
+				.join("<br>")}
+			`;
 
-    listDiv.style.display = "block";
-}
+			listDiv.style.display = "block";
+		}
+
+		window.toggleShopCardList = toggleShopCardList;
 
 		watchVictoryPoints();
 		watchActionPoints();
