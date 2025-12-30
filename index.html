@@ -322,6 +322,17 @@
 			/* 効果文は非表示 */
 		}
 
+.cardListPanel {
+    margin-top: 8px;
+    padding: 10px;
+    background: #f2f2f2;
+    border-radius: 6px;
+    font-size: 13px;
+    line-height: 1.6;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
 		@media (max-width: 600px) {
 
 			#topArea {
@@ -447,7 +458,7 @@
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<div>
-		【Ver：95】
+		【Ver：96】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -473,6 +484,11 @@
 			<div id="deckCount"></div>
 		</div>
 		<div id="field"></div>
+	</div>
+	<!-- 通常プレイヤー用 -->
+	<div id="shopCardListArea" style="display:none;">
+		<button onclick="toggleShopCardList()">ショップカード一覧</button>
+		<div id="shopCardList" class="cardListPanel" style="display:none;"></div>
 	</div>
 	<div id="hand"></div>
 	<div id="shopControl">
@@ -876,6 +892,7 @@
 			document.getElementById("drawPoints").style.display = "none";
 		} else {
 			document.getElementById("shopControl").style.display = "none";
+		    document.getElementById("shopCardListArea").style.display = "block";
 		}
 
 		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -1539,6 +1556,30 @@
 				div.textContent = `ドロー：${draws}`;
 			});
 		}
+
+async function toggleShopCardList() {
+    const listDiv = document.getElementById("shopCardList");
+
+    // 開閉トグル
+    if (listDiv.style.display === "block") {
+        listDiv.style.display = "none";
+        return;
+    }
+
+    const snap = await get(pv_db_shopDeck);
+    const cards = snap.val() || [];
+
+    listDiv.innerHTML = `
+      <strong>ショップカード一覧</strong><br>
+      ${cards
+        .filter(c => c.stock > 0)
+        .sort((a, b) => a.cost - b.cost)
+        .map(c => `${c.name}（コスト${c.cost} / 残り${c.stock}）`)
+        .join("<br>")}
+    `;
+
+    listDiv.style.display = "block";
+}
 
 		watchVictoryPoints();
 		watchActionPoints();
