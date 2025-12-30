@@ -333,6 +333,36 @@
     overflow-y: auto;
 }
 
+#menuToggleArea {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+}
+
+#menuToggleBtn {
+    font-size: 20px;
+    padding: 6px 10px;
+}
+
+#menuPanel {
+    margin-top: 6px;
+    background: #ffffff;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 8px;
+}
+
+#menuPanel button {
+    width: 100%;
+    font-size: 16px;
+}
+
+button.danger {
+    background: #d9534f;
+    color: #fff;
+}
+
 		@media (max-width: 600px) {
 
 			#topArea {
@@ -458,9 +488,15 @@
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<div>
-		【Ver：98】
+		【Ver：99】
+		<div id="menuToggleArea">
+		<button id="menuToggleBtn">☰</button>
+
+		<div id="menuPanel" style="display:none;">
+			<button id="exitBtn" class="danger">退室</button>
+		</div>
+		</div>
 		<button id="reset">リセット</button>
-		<button id="leaveRoom">退室</button>
 	</div>
 	<div>
 		<button id="shuffleDeck">シャッフル</button>
@@ -595,6 +631,14 @@
 		let shopPlayers = {};
 		let shopFields = {};
 		let shopTrashes = {};
+
+const menuToggleBtn = document.getElementById("menuToggleBtn");
+const menuPanel = document.getElementById("menuPanel");
+
+menuToggleBtn.addEventListener("click", () => {
+    menuPanel.style.display =
+        menuPanel.style.display === "block" ? "none" : "block";
+});
 
 		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
 		// ■    リアルタイム表示      ■
@@ -802,20 +846,11 @@
 		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
 		// ■    ボタン動作            ■
 		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
-
-		// ●--------ボタン：カードを引く--------●
 		document.getElementById("deckImage").addEventListener("click", drawCard);
-
-		// ●--------ボタン：リセット--------●
 		document.getElementById("reset").addEventListener("click", resetGame);
-
-		// ●--------ボタン：シャッフル--------●
 		document.getElementById("shuffleDeck").addEventListener("click", shuffleDeck);
-
-		// ●--------ボタン：場を山札に戻す--------●
 		document.getElementById("returnToDeck").addEventListener("click", returnDiscardToDeck);
-		document.getElementById("leaveRoom").addEventListener("click", leaveRoom);
-
+		document.getElementById("exitBtn").addEventListener("click", leaveRoom);
 		document.getElementById("endTurn").addEventListener("click", endTurn);
 
 		let isTrashMode = false;
@@ -892,6 +927,7 @@
 			document.getElementById("actionPoints").style.display = "none";
 			document.getElementById("victoryPoints").style.display = "none";
 			document.getElementById("drawPoints").style.display = "none";
+		    document.getElementById("menuToggleArea").style.display = "none";
 		} else {
 			document.getElementById("shopControl").style.display = "none";
 		    document.getElementById("shopCardListArea").style.display = "block";
