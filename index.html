@@ -447,7 +447,7 @@
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<div>
-		【Ver：97】
+		【Ver：98】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -495,7 +495,7 @@
 	<div id="orderEditor" style="margin:10px 0;">
   <h3>プレイヤー順</h3>
   <div id="orderList"></div>
-  <button onclick="savePlayerOrder()">順番確定</button>
+  <button id="saveOrderBtn">順番確定</button>
 </div>
 
 	<script type="module">
@@ -869,6 +869,10 @@ onValue(ref(db, `rooms/${roomId}/turn/orderLocked`), snap => {
 				`場戻し：${isReturnFieldMode ? "ON" : "OFF"}`;
 		});
 
+document
+  .getElementById("saveOrderBtn")
+  .addEventListener("click", savePlayerOrder);
+		
 		if (isShop) {
 			document.getElementById("deckImage").style.pointerEvents = "none";
 			document.getElementById("deckImage").style.opacity = "0.5";
