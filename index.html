@@ -458,7 +458,7 @@
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<div>
-		【Ver：97】
+		【Ver：98】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -718,6 +718,8 @@
 				renderTargetPlayerSelect(players);
 				document.getElementById("endTurn").style.display = "none";
 				document.getElementById("endTurnInfo").style.display = "none";
+			} else {
+				document.getElementById("reset").style.display = "none";
 			}
 		});
 
