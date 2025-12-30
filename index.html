@@ -447,7 +447,7 @@
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<div>
-		【Ver：98】
+		【Ver：99】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -1570,13 +1570,11 @@ const ordered = Object.entries(players)
 
 let tempOrder = [];
 
-let orderEditorInitialized = false;
-
 function loadOrderEditor(players) {
-  if (orderEditorInitialized) return;
+  tempOrder = Object.keys(players)
+    .filter(p => p !== "shop")
+    .sort((a, b) => (players[a].order ?? 999) - (players[b].order ?? 999));
 
-  tempOrder = Object.keys(players).filter(p => p !== "shop");
-  orderEditorInitialized = true;
   renderOrderEditor();
 }
 
