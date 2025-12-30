@@ -342,29 +342,6 @@
     overflow-y: auto;
 }
 
-#menuToggleArea {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    z-index: 1000;
-}
-
-#menuToggleBtn {
-    font-size: 20px;
-    padding: 6px 10px;
-    cursor: pointer;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
-}
-
-#menuPanel {
-    margin-top: 6px;
-    background: #ffffff;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    padding: 8px;
-}
-
 #menuPanel button {
     width: 100%;
     margin-bottom: 6px;
@@ -541,7 +518,7 @@ button.danger {
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<div>
-		【Ver：107】
+		【Ver：108】
 <div id="actionBar">
   <button id="trashMode">破棄</button>
   <button id="returnHandMode">手札戻</button>
@@ -679,18 +656,7 @@ button.danger {
 		let shopFields = {};
 		let shopTrashes = {};
 
-const menuToggleBtn = document.getElementById("menuToggleBtn");
-const menuPanel = document.getElementById("menuPanel");
-
 let scrollY = 0;
-
-menuToggleBtn.addEventListener("click", (e) => {
-    e.preventDefault();
-    menuToggleBtn.blur();
-
-    const isOpen = menuPanel.style.display === "block";
-    menuPanel.style.display = isOpen ? "none" : "block";
-});
 
 		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
 		// ■    リアルタイム表示      ■
@@ -997,10 +963,6 @@ document.getElementById("returnHandMode").classList.remove("active");
 			document.getElementById("shopControl").style.display = "none";
 		    document.getElementById("shopCardListArea").style.display = "block";
 		}
-
-function closeMenu() {
-    menuPanel.style.display = "none";
-}
 
 document.getElementById("trashMode").addEventListener("click", closeMenu);
 document.getElementById("returnHandMode").addEventListener("click", closeMenu);
