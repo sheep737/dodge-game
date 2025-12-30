@@ -447,7 +447,7 @@
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<div>
-		【Ver：99】
+		【Ver：100】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -1026,7 +1026,8 @@ const ordered = Object.entries(players)
 
 				"turn/current": ordered[0] || null,
 				"turn/actions": 1,
-				"turn/draws": 5
+				"turn/draws": 5,
+				"turn/orderLocked": false
 			});
 		}
 
