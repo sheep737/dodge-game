@@ -495,7 +495,7 @@ button.danger {
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<div>
-		【Ver：103】
+		【Ver：104】
 		<div id="menuToggleArea">
 		<button id="menuToggleBtn">☰</button>
 
@@ -648,25 +648,7 @@ menuToggleBtn.addEventListener("click", (e) => {
     menuToggleBtn.blur();
 
     const isOpen = menuPanel.style.display === "block";
-
-    if (!isOpen) {
-        // ▼ 開く
-        scrollY = window.scrollY;
-        document.body.style.position = "fixed";
-        document.body.style.top = `-${scrollY}px`;
-        document.body.style.width = "100%";
-
-        menuPanel.style.display = "block";
-    } else {
-        // ▼ 閉じる
-        document.body.style.position = "";
-        document.body.style.top = "";
-        document.body.style.width = "";
-
-        window.scrollTo(0, scrollY);
-
-        menuPanel.style.display = "none";
-    }
+    menuPanel.style.display = isOpen ? "none" : "block";
 });
 
 		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -962,11 +944,6 @@ menuToggleBtn.addEventListener("click", (e) => {
 		}
 
 function closeMenu() {
-    document.body.style.position = "";
-    document.body.style.top = "";
-    document.body.style.width = "";
-
-    window.scrollTo(0, scrollY);
     menuPanel.style.display = "none";
 }
 
