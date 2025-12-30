@@ -9,6 +9,11 @@
     scroll-behavior: auto;
     overscroll-behavior: none;
 }
+
+		body {
+    padding-bottom: 70px; /* actionBar分 */
+}
+		
 		#deckImage {
 			width: 80px;
 			height: 120px;
@@ -374,7 +379,43 @@ button.danger {
     background: #d9534f;
     color: #fff;
 }
+#actionBar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
 
+    display: flex;
+    gap: 8px;
+    padding: 10px;
+
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(6px);
+    border-top: 1px solid #ccc;
+
+    z-index: 1000;
+}
+
+#actionBar button {
+    flex: 1;
+    font-size: 14px;
+    padding: 10px 0;
+    border-radius: 8px;
+    border: 1px solid #888;
+    background: #f5f5f5;
+}
+
+#actionBar button.active {
+    background: #1976d2;
+    color: #fff;
+    border-color: #1976d2;
+}
+
+#actionBar button.danger {
+    background: #d9534f;
+    color: #fff;
+    border-color: #d9534f;
+}
 		@media (max-width: 600px) {
 
 			#topArea {
@@ -500,18 +541,13 @@ button.danger {
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<div>
-		【Ver：106】
-		<div id="menuToggleArea">
-<div id="menuToggleBtn" role="button" tabindex="0">☰</div>
-
-<div id="menuPanel" style="display:none;">
-    <button id="trashMode">破棄モード：OFF</button>
-    <button id="returnHandMode">手札戻し：OFF</button>
-    <button id="returnFieldMode">場戻し：OFF</button>
-    <hr>
-    <button id="exitBtn" class="danger">退室</button>
+		【Ver：107】
+<div id="actionBar">
+  <button id="trashMode">破棄</button>
+  <button id="returnHandMode">手札戻</button>
+  <button id="returnFieldMode">場戻</button>
+  <button id="exitBtn" class="danger">退室</button>
 </div>
-		</div>
 		<button id="reset">リセット</button>
 	</div>
 	<div>
@@ -889,6 +925,10 @@ menuToggleBtn.addEventListener("click", (e) => {
 
 			document.getElementById("trashMode").textContent =
 				`破棄モード：${isTrashMode ? "ON" : "OFF"}`;
+
+			document.getElementById("trashMode").classList.toggle("active", isTrashMode);
+document.getElementById("returnHandMode").classList.remove("active");
+document.getElementById("returnFieldMode").classList.remove("active");
 		});
 
 		document.getElementById("returnHandMode").addEventListener("click", () => {
@@ -901,11 +941,17 @@ menuToggleBtn.addEventListener("click", (e) => {
 				document.body.classList.remove("trashMode", "returnFieldMode");
 				document.getElementById("trashMode").textContent = "破棄モード：OFF";
 				document.getElementById("returnFieldMode").textContent = "場戻し：OFF";
+
+				
 			}
 
 			document.body.classList.toggle("returnHandMode", isReturnHandMode);
 			document.getElementById("returnHandMode").textContent =
 				`手札戻し：${isReturnHandMode ? "ON" : "OFF"}`;
+
+			document.getElementById("returnHandMode").classList.toggle("active", isReturnHandMode);
+document.getElementById("trashMode").classList.remove("active");
+document.getElementById("returnFieldMode").classList.remove("active");
 		});
 
 		document.getElementById("returnFieldMode").addEventListener("click", () => {
@@ -924,6 +970,10 @@ menuToggleBtn.addEventListener("click", (e) => {
 			document.body.classList.toggle("returnFieldMode", isReturnFieldMode);
 			document.getElementById("returnFieldMode").textContent =
 				`場戻し：${isReturnFieldMode ? "ON" : "OFF"}`;
+
+			document.getElementById("returnFieldMode").classList.toggle("active", isReturnFieldMode);
+document.getElementById("trashMode").classList.remove("active");
+document.getElementById("returnHandMode").classList.remove("active");
 		});
 
 		if (isShop) {
