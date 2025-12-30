@@ -538,17 +538,17 @@
 			{ name: "E_銅貨", cost: 0, text: "＋１コイン", type: "treasure", image: "copper.jpeg" },
 			{ name: "F_銅貨", cost: 0, text: "＋１コイン", type: "treasure", image: "copper.jpeg" },
 			{ name: "G_銅貨", cost: 0, text: "＋１コイン", type: "treasure", image: "copper.jpeg" },
-			{ name: "H_村", cost: 2, text: "勝利点１", type: "victory" },
-			{ name: "I_村", cost: 2, text: "勝利点１", type: "victory" },
-			{ name: "J_村", cost: 2, text: "勝利点１", type: "victory" },
+			{ name: "H_村", cost: 2, text: "勝利点１", type: "victory", image: "village.jpeg" },
+			{ name: "I_村", cost: 2, text: "勝利点１", type: "victory", image: "village.jpeg" },
+			{ name: "J_村", cost: 2, text: "勝利点１", type: "victory", image: "village.jpeg" },
 		];
 
 		const shopDeck = [
-			{ name: "冒険家", cost: 3, text: "コスト4以下カード１枚獲得", type: "action", stock: 10, actions: 0 },
-			{ name: "煽動者", cost: 2, text: "＋１アクション\n手札から好きな枚数のカードを捨て、その枚数分引く", type: "action", stock: 10, actions: 1 },
-			{ name: "炭鉱夫", cost: 5, text: "手札の財宝1枚破棄\nコスト＋３以下の財宝獲得", type: "action", stock: 10, actions: 0 },
-			{ name: "騎士", cost: 3, text: "＋１カード\n＋２アクション", type: "action", stock: 10, actions: 2, draw: 1 },
-			{ name: "守銭奴", cost: 4, text: "＋３カード", type: "action", stock: 10, actions: 0, draw: 3 },
+			{ name: "冒険家", cost: 3, text: "コスト4以下カード１枚獲得", type: "action", stock: 10, actions: 0, image: "adventurer.jpeg" },
+			{ name: "煽動者", cost: 2, text: "＋１アクション\n手札から好きな枚数のカードを捨て、その枚数分引く", type: "action", stock: 10, actions: 1, image: "instigator.jpeg" },
+			{ name: "炭鉱夫", cost: 5, text: "手札の財宝1枚破棄\nコスト＋３以下の財宝獲得", type: "action", stock: 10, actions: 0, image: "miner.jpeg" },
+			{ name: "騎士", cost: 3, text: "＋１カード\n＋２アクション", type: "action", stock: 10, actions: 2, draw: 1, image: "knight.jpeg" },
+			{ name: "守銭奴", cost: 4, text: "＋３カード", type: "action", stock: 10, actions: 0, draw: 3, image: "miser.jpeg" },
 			{ name: "建築家", cost: 4, text: "手札1枚破棄\nコスト＋２以下カード獲得", type: "action", stock: 10, actions: 0 },
 			// { name: "民騎士", cost: 4, text: "＋２コイン。他のプレイヤーは手札３枚にする", type: "action", stock: 10, actions: 0 },
 			{ name: "勇者", cost: 5, text: "＋１カード\n＋１アクション\n＋１購入", type: "action", stock: 10, actions: 1, draw: 1 },
@@ -556,10 +556,10 @@
 			// { name: "堀", cost: 2, text: "アタック時に公開すると無効化", type: "action", stock: 10, actions: 0 },
 			{ name: "銅貨", cost: 0, text: "＋１コイン", type: "treasure", stock: 32, actions: 0, image: "copper.jpeg" },
 			{ name: "銀貨", cost: 3, text: "＋２コイン", type: "treasure", stock: 40, actions: 0, image: "silver.jpeg" },
-			{ name: "金貨", cost: 6, text: "＋３コイン", type: "treasure", stock: 30, actions: 0 },
-			{ name: "村", cost: 2, text: "勝利点１", type: "victory", stock: 12, actions: 0 },
-			{ name: "街", cost: 5, text: "勝利点３", type: "victory", stock: 12, actions: 0 }
-			, { name: "都市", cost: 8, text: "勝利点６", type: "victory", stock: 18, actions: 0 }
+			{ name: "金貨", cost: 6, text: "＋３コイン", type: "treasure", stock: 30, actions: 0, image: "gold.jpeg" },
+			{ name: "村", cost: 2, text: "勝利点１", type: "victory", stock: 12, actions: 0, image: "village.jpeg" },
+			{ name: "街", cost: 5, text: "勝利点３", type: "victory", stock: 12, actions: 0, image: "town.jpeg" }
+			, { name: "都市", cost: 8, text: "勝利点６", type: "victory", stock: 18, actions: 0, image: "urban.jpeg" }
 		];
 
 		// URLからプレイヤーIDを取得
