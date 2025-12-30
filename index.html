@@ -447,7 +447,7 @@
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<div>
-		【Ver：96】
+		【Ver：97】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -1582,11 +1582,18 @@ function renderOrderEditor() {
 
   tempOrder.forEach((pid, i) => {
     const row = document.createElement("div");
-    row.innerHTML = `
-      ${i + 1}. ${pid}
-      <button onclick="moveOrderUp(${i})">↑</button>
-      <button onclick="moveOrderDown(${i})">↓</button>
-    `;
+    row.textContent = `${i + 1}. ${pid} `;
+
+    const up = document.createElement("button");
+    up.textContent = "↑";
+    up.addEventListener("click", () => moveOrderUp(i));
+
+    const down = document.createElement("button");
+    down.textContent = "↓";
+    down.addEventListener("click", () => moveOrderDown(i));
+
+    row.appendChild(up);
+    row.appendChild(down);
     div.appendChild(row);
   });
 }
