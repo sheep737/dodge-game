@@ -5,15 +5,6 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<style>
-		html, body {
-    scroll-behavior: auto;
-    overscroll-behavior: none;
-}
-
-		body {
-    padding-bottom: 70px; /* actionBar分 */
-}
-		
 		#deckImage {
 			width: 80px;
 			height: 120px;
@@ -331,68 +322,6 @@
 			/* 効果文は非表示 */
 		}
 
-.cardListPanel {
-    margin-top: 8px;
-    padding: 10px;
-    background: #f2f2f2;
-    border-radius: 6px;
-    font-size: 13px;
-    line-height: 1.6;
-    max-height: 200px;
-    overflow-y: auto;
-}
-
-#menuPanel button {
-    width: 100%;
-    margin-bottom: 6px;
-    font-size: 15px;
-}
-
-#menuPanel hr {
-    margin: 8px 0;
-}
-
-button.danger {
-    background: #d9534f;
-    color: #fff;
-}
-#actionBar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-
-    display: flex;
-    gap: 8px;
-    padding: 10px;
-
-    background: rgba(255,255,255,0.95);
-    backdrop-filter: blur(6px);
-    border-top: 1px solid #ccc;
-
-    z-index: 1000;
-}
-
-#actionBar button {
-    flex: 1;
-    font-size: 14px;
-    padding: 10px 0;
-    border-radius: 8px;
-    border: 1px solid #888;
-    background: #f5f5f5;
-}
-
-#actionBar button.active {
-    background: #1976d2;
-    color: #fff;
-    border-color: #1976d2;
-}
-
-#actionBar button.danger {
-    background: #d9534f;
-    color: #fff;
-    border-color: #d9534f;
-}
 		@media (max-width: 600px) {
 
 			#topArea {
@@ -518,19 +447,19 @@ button.danger {
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<div>
-		【Ver：108】
-<div id="actionBar">
-  <button id="trashMode">破棄</button>
-  <button id="returnHandMode">手札戻</button>
-  <button id="returnFieldMode">場戻</button>
-  <button id="exitBtn" class="danger">退室</button>
-</div>
+		【Ver：95】
 		<button id="reset">リセット</button>
+		<button id="leaveRoom">退室</button>
 	</div>
 	<div>
 		<button id="shuffleDeck">シャッフル</button>
 		<button id="returnToDeck">捨て札を山札に戻す</button>
 		<button id="endTurn">ターン終了</button>
+	</div>
+	<div>
+		<button id="trashMode">破棄モード：OFF</button>
+		<button id="returnHandMode">手札戻し：OFF</button>
+		<button id="returnFieldMode">場戻し：OFF</button>
 	</div>
 	<div id="playerList"></div>
 	<div>
@@ -544,11 +473,6 @@ button.danger {
 			<div id="deckCount"></div>
 		</div>
 		<div id="field"></div>
-	</div>
-	<!-- 通常プレイヤー用 -->
-	<div id="shopCardListArea" style="display:none;">
-		<button onclick="toggleShopCardList()">ショップカード一覧</button>
-		<div id="shopCardList" class="cardListPanel" style="display:none;"></div>
 	</div>
 	<div id="hand"></div>
 	<div id="shopControl">
@@ -655,8 +579,6 @@ button.danger {
 		let shopPlayers = {};
 		let shopFields = {};
 		let shopTrashes = {};
-
-let scrollY = 0;
 
 		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
 		// ■    リアルタイム表示      ■
@@ -780,8 +702,6 @@ let scrollY = 0;
 				renderTargetPlayerSelect(players);
 				document.getElementById("endTurn").style.display = "none";
 				document.getElementById("endTurnInfo").style.display = "none";
-			} else {
-				document.getElementById("reset").style.display = "none";
 			}
 		});
 
@@ -864,11 +784,20 @@ let scrollY = 0;
 		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
 		// ■    ボタン動作            ■
 		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
+
+		// ●--------ボタン：カードを引く--------●
 		document.getElementById("deckImage").addEventListener("click", drawCard);
+
+		// ●--------ボタン：リセット--------●
 		document.getElementById("reset").addEventListener("click", resetGame);
+
+		// ●--------ボタン：シャッフル--------●
 		document.getElementById("shuffleDeck").addEventListener("click", shuffleDeck);
+
+		// ●--------ボタン：場を山札に戻す--------●
 		document.getElementById("returnToDeck").addEventListener("click", returnDiscardToDeck);
-		document.getElementById("exitBtn").addEventListener("click", leaveRoom);
+		document.getElementById("leaveRoom").addEventListener("click", leaveRoom);
+
 		document.getElementById("endTurn").addEventListener("click", endTurn);
 
 		let isTrashMode = false;
@@ -891,10 +820,6 @@ let scrollY = 0;
 
 			document.getElementById("trashMode").textContent =
 				`破棄モード：${isTrashMode ? "ON" : "OFF"}`;
-
-			document.getElementById("trashMode").classList.toggle("active", isTrashMode);
-document.getElementById("returnHandMode").classList.remove("active");
-document.getElementById("returnFieldMode").classList.remove("active");
 		});
 
 		document.getElementById("returnHandMode").addEventListener("click", () => {
@@ -907,17 +832,11 @@ document.getElementById("returnFieldMode").classList.remove("active");
 				document.body.classList.remove("trashMode", "returnFieldMode");
 				document.getElementById("trashMode").textContent = "破棄モード：OFF";
 				document.getElementById("returnFieldMode").textContent = "場戻し：OFF";
-
-				
 			}
 
 			document.body.classList.toggle("returnHandMode", isReturnHandMode);
 			document.getElementById("returnHandMode").textContent =
 				`手札戻し：${isReturnHandMode ? "ON" : "OFF"}`;
-
-			document.getElementById("returnHandMode").classList.toggle("active", isReturnHandMode);
-document.getElementById("trashMode").classList.remove("active");
-document.getElementById("returnFieldMode").classList.remove("active");
 		});
 
 		document.getElementById("returnFieldMode").addEventListener("click", () => {
@@ -936,10 +855,6 @@ document.getElementById("returnFieldMode").classList.remove("active");
 			document.body.classList.toggle("returnFieldMode", isReturnFieldMode);
 			document.getElementById("returnFieldMode").textContent =
 				`場戻し：${isReturnFieldMode ? "ON" : "OFF"}`;
-
-			document.getElementById("returnFieldMode").classList.toggle("active", isReturnFieldMode);
-document.getElementById("trashMode").classList.remove("active");
-document.getElementById("returnHandMode").classList.remove("active");
 		});
 
 		if (isShop) {
@@ -952,22 +867,17 @@ document.getElementById("returnHandMode").classList.remove("active");
 			document.getElementById("returnFieldMode").style.display = "none";
 			document.getElementById("topArea").style.display = "none";
 			document.getElementById("hand").style.display = "none";
+			document.getElementById("leaveRoom").style.display = "none";
 			document.getElementById("deckListTitle").style.display = "none";
 			document.getElementById("discardListTitle").style.display = "none";
 			document.getElementById("trashListTitle").style.display = "none";
 			document.getElementById("actionPoints").style.display = "none";
 			document.getElementById("victoryPoints").style.display = "none";
 			document.getElementById("drawPoints").style.display = "none";
-		    document.getElementById("menuToggleArea").style.display = "none";
 		} else {
 			document.getElementById("shopControl").style.display = "none";
-		    document.getElementById("shopCardListArea").style.display = "block";
 		}
 
-document.getElementById("trashMode").addEventListener("click", closeMenu);
-document.getElementById("returnHandMode").addEventListener("click", closeMenu);
-document.getElementById("returnFieldMode").addEventListener("click", closeMenu);
-		
 		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
 		// ■    関数                 ■
 		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -1629,32 +1539,6 @@ document.getElementById("returnFieldMode").addEventListener("click", closeMenu);
 				div.textContent = `ドロー：${draws}`;
 			});
 		}
-
-		async function toggleShopCardList() {
-			const listDiv = document.getElementById("shopCardList");
-
-			// 開閉トグル
-			if (listDiv.style.display === "block") {
-				listDiv.style.display = "none";
-				return;
-			}
-
-			const snap = await get(pv_db_shopDeck);
-			const cards = snap.val() || [];
-
-			listDiv.innerHTML = `
-			<strong>ショップカード一覧</strong><br>
-			${cards
-				.filter(c => c.stock > 0)
-				.sort((a, b) => a.cost - b.cost)
-				.map(c => `${c.name}（コスト${c.cost} / 残り${c.stock}）`)
-				.join("<br>")}
-			`;
-
-			listDiv.style.display = "block";
-		}
-
-		window.toggleShopCardList = toggleShopCardList;
 
 		watchVictoryPoints();
 		watchActionPoints();
