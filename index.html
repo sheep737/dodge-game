@@ -447,7 +447,7 @@
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<div>
-		【Ver：95】
+		【Ver：96】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -492,6 +492,11 @@
 	<div id="discardList"></div>
 	<h3 id="trashListTitle">破棄</h3>
 	<div id="trash"></div>
+	<div id="orderEditor" style="margin:10px 0;">
+  <h3>プレイヤー順</h3>
+  <div id="orderList"></div>
+  <button onclick="savePlayerOrder()">順番確定</button>
+</div>
 
 	<script type="module">
 		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -702,6 +707,7 @@
 				renderTargetPlayerSelect(players);
 				document.getElementById("endTurn").style.display = "none";
 				document.getElementById("endTurnInfo").style.display = "none";
+				loadOrderEditor(players);
 			}
 		});
 
@@ -781,6 +787,12 @@
 			});
 		});
 
+onValue(ref(db, `rooms/${roomId}/turn/orderLocked`), snap => {
+  if (snap.val()) {
+    document.getElementById("orderEditor").style.display = "none";
+  }
+});
+		
 		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
 		// ■    ボタン動作            ■
 		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -977,6 +989,15 @@
 			const discards = {};
 			const trashes = {};
 
+const ordered = Object.entries(players)
+  .filter(([pid]) => pid !== "shop")
+  .sort((a, b) => {
+    if (a[1].order == null) return 1;
+    if (b[1].order == null) return -1;
+    return a[1].order - b[1].order;
+  })
+  .map(([pid]) => pid);
+
 			Object.keys(players).forEach(pid => {
 				const deck = [...initialDeck];
 				shuffleArray(deck);
@@ -999,7 +1020,7 @@
 					stock: card.stock
 				})),
 
-				"turn/current": Object.keys(players).find(p => p !== "shop"),
+				"turn/current": ordered[0] || null,
 				"turn/actions": 1,
 				"turn/draws": 5
 			});
@@ -1308,8 +1329,11 @@
 
 			const players = Object.entries(playersData)
 				.filter(([pid]) => pid !== "shop")
-				// order が未定義でも落ちない保険
-				.sort((a, b) => (a[1].order ?? 0) - (b[1].order ?? 0))
+.sort((a, b) => {
+  if (a[1].order == null) return 1;
+  if (b[1].order == null) return -1;
+  return a[1].order - b[1].order;
+})
 				.map(([pid]) => pid);
 
 			const currentIndex = players.indexOf(pv_playerId);
@@ -1540,6 +1564,63 @@
 			});
 		}
 
+let tempOrder = [];
+
+let orderEditorInitialized = false;
+
+function loadOrderEditor(players) {
+  if (orderEditorInitialized) return;
+
+  tempOrder = Object.keys(players).filter(p => p !== "shop");
+  orderEditorInitialized = true;
+  renderOrderEditor();
+}
+
+function renderOrderEditor() {
+  const div = document.getElementById("orderList");
+  div.innerHTML = "";
+
+  tempOrder.forEach((pid, i) => {
+    const row = document.createElement("div");
+    row.innerHTML = `
+      ${i + 1}. ${pid}
+      <button onclick="moveOrderUp(${i})">↑</button>
+      <button onclick="moveOrderDown(${i})">↓</button>
+    `;
+    div.appendChild(row);
+  });
+}
+
+function moveOrderUp(i) {
+  if (i === 0) return;
+  [tempOrder[i - 1], tempOrder[i]] =
+    [tempOrder[i], tempOrder[i - 1]];
+  renderOrderEditor();
+}
+
+function moveOrderDown(i) {
+  if (i === tempOrder.length - 1) return;
+  [tempOrder[i + 1], tempOrder[i]] =
+    [tempOrder[i], tempOrder[i + 1]];
+  renderOrderEditor();
+}
+
+async function savePlayerOrder() {
+  const updates = {};
+
+  tempOrder.forEach((pid, index) => {
+    updates[`players/${pid}/order`] = index;
+  });
+
+  updates["turn/current"] = tempOrder[0];
+  updates["turn/orderLocked"] = true;
+
+  await update(roomRef, updates);
+
+  document.getElementById("orderEditor").style.display = "none";
+  alert("順番を確定しました");
+}
+		
 		watchVictoryPoints();
 		watchActionPoints();
 		watchDrawPoints();
