@@ -343,6 +343,8 @@
 #menuToggleBtn {
     font-size: 20px;
     padding: 6px 10px;
+    outline: none;           /* フォーカス枠を出さない */
+    touch-action: manipulation;
 }
 
 #menuPanel {
@@ -493,7 +495,7 @@ button.danger {
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<div>
-		【Ver：102】
+		【Ver：103】
 		<div id="menuToggleArea">
 		<button id="menuToggleBtn">☰</button>
 
@@ -639,12 +641,32 @@ button.danger {
 const menuToggleBtn = document.getElementById("menuToggleBtn");
 const menuPanel = document.getElementById("menuPanel");
 
-menuToggleBtn.addEventListener("click", (e) => {
-    e.preventDefault();      // ★ iOSの余計な挙動防止
-    menuToggleBtn.blur();    // ★ フォーカス解除（最重要）
+let scrollY = 0;
 
-    menuPanel.style.display =
-        menuPanel.style.display === "block" ? "none" : "block";
+menuToggleBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    menuToggleBtn.blur();
+
+    const isOpen = menuPanel.style.display === "block";
+
+    if (!isOpen) {
+        // ▼ 開く
+        scrollY = window.scrollY;
+        document.body.style.position = "fixed";
+        document.body.style.top = `-${scrollY}px`;
+        document.body.style.width = "100%";
+
+        menuPanel.style.display = "block";
+    } else {
+        // ▼ 閉じる
+        document.body.style.position = "";
+        document.body.style.top = "";
+        document.body.style.width = "";
+
+        window.scrollTo(0, scrollY);
+
+        menuPanel.style.display = "none";
+    }
 });
 
 		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -940,6 +962,11 @@ menuToggleBtn.addEventListener("click", (e) => {
 		}
 
 function closeMenu() {
+    document.body.style.position = "";
+    document.body.style.top = "";
+    document.body.style.width = "";
+
+    window.scrollTo(0, scrollY);
     menuPanel.style.display = "none";
 }
 
