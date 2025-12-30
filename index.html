@@ -493,7 +493,7 @@ button.danger {
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<div>
-		【Ver：101】
+		【Ver：102】
 		<div id="menuToggleArea">
 		<button id="menuToggleBtn">☰</button>
 
@@ -639,7 +639,10 @@ button.danger {
 const menuToggleBtn = document.getElementById("menuToggleBtn");
 const menuPanel = document.getElementById("menuPanel");
 
-menuToggleBtn.addEventListener("click", () => {
+menuToggleBtn.addEventListener("click", (e) => {
+    e.preventDefault();      // ★ iOSの余計な挙動防止
+    menuToggleBtn.blur();    // ★ フォーカス解除（最重要）
+
     menuPanel.style.display =
         menuPanel.style.display === "block" ? "none" : "block";
 });
