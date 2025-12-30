@@ -343,8 +343,9 @@
 #menuToggleBtn {
     font-size: 20px;
     padding: 6px 10px;
-    outline: none;           /* フォーカス枠を出さない */
-    touch-action: manipulation;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 #menuPanel {
@@ -495,9 +496,9 @@ button.danger {
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<div>
-		【Ver：104】
+		【Ver：105】
 		<div id="menuToggleArea">
-		<button id="menuToggleBtn">☰</button>
+<div id="menuToggleBtn" role="button" tabindex="0">☰</div>
 
 <div id="menuPanel" style="display:none;">
     <button id="trashMode">破棄モード：OFF</button>
