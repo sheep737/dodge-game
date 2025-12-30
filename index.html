@@ -355,7 +355,12 @@
 
 #menuPanel button {
     width: 100%;
-    font-size: 16px;
+    margin-bottom: 6px;
+    font-size: 15px;
+}
+
+#menuPanel hr {
+    margin: 8px 0;
 }
 
 button.danger {
@@ -488,13 +493,17 @@ button.danger {
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<div>
-		【Ver：100】
+		【Ver：101】
 		<div id="menuToggleArea">
 		<button id="menuToggleBtn">☰</button>
 
-		<div id="menuPanel" style="display:none;">
-			<button id="exitBtn" class="danger">退室</button>
-		</div>
+<div id="menuPanel" style="display:none;">
+    <button id="trashMode">破棄モード：OFF</button>
+    <button id="returnHandMode">手札戻し：OFF</button>
+    <button id="returnFieldMode">場戻し：OFF</button>
+    <hr>
+    <button id="exitBtn" class="danger">退室</button>
+</div>
 		</div>
 		<button id="reset">リセット</button>
 	</div>
@@ -502,11 +511,6 @@ button.danger {
 		<button id="shuffleDeck">シャッフル</button>
 		<button id="returnToDeck">捨て札を山札に戻す</button>
 		<button id="endTurn">ターン終了</button>
-	</div>
-	<div>
-		<button id="trashMode">破棄モード：OFF</button>
-		<button id="returnHandMode">手札戻し：OFF</button>
-		<button id="returnFieldMode">場戻し：OFF</button>
 	</div>
 	<div id="playerList"></div>
 	<div>
@@ -932,6 +936,14 @@ menuToggleBtn.addEventListener("click", () => {
 		    document.getElementById("shopCardListArea").style.display = "block";
 		}
 
+function closeMenu() {
+    menuPanel.style.display = "none";
+}
+
+document.getElementById("trashMode").addEventListener("click", closeMenu);
+document.getElementById("returnHandMode").addEventListener("click", closeMenu);
+document.getElementById("returnFieldMode").addEventListener("click", closeMenu);
+		
 		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
 		// ■    関数                 ■
 		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
