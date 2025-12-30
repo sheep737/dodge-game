@@ -447,7 +447,7 @@
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<div>
-		【Ver：100】
+		【Ver：101】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -1087,13 +1087,13 @@ const ordered = Object.entries(players)
 			cards.forEach((card, index) => {
 				const cardEl = document.createElement("div");
 				cardEl.className = `cardButton ${card.type || ""}`;
-
 				cardEl.innerHTML = `
-      <div class="cardCost">${card.cost}</div>
-      <div class="cardName">${card.name}</div>
-      <div class="cardText">${card.text.replace(/\n/g, "<br>")}</div>
-      <div style="font-size:12px;">残り：${card.stock}</div>
-    `;
+      				<div class="cardCost">${card.cost}</div>
+	  				<img class="cardImage" src="${card.image || ''}">
+      				<div class="cardName">${card.name}</div>
+      				<div class="cardText">${card.text.replace(/\n/g, "<br>")}</div>
+      				<div style="font-size:12px;">残り：${card.stock}</div>
+    			`;
 
 				if (card.stock <= 0) {
 					cardEl.style.pointerEvents = "none";
