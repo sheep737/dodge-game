@@ -347,6 +347,39 @@ body::before {
 			/* 効果文は非表示 */
 		}
 
+.playerShopList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.playerShopItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  background: rgba(255,255,255,0.7);
+  border-radius: 6px;
+}
+
+.playerShopItem img {
+  width: 40px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.playerShopItem .name {
+  flex: 1;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.playerShopItem .cost {
+  font-size: 13px;
+  white-space: nowrap;
+}
+		
 		@media (max-width: 600px) {
 
 			#topArea {
@@ -472,7 +505,7 @@ body::before {
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<div>
-		【Ver：110】
+		【Ver：111】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -518,6 +551,8 @@ body::before {
 	<h3 id="trashListTitle">破棄</h3>
 	<div id="trash"></div>
 	<div id="orderEditor" style="margin:10px 0;">
+<h3>ショップ一覧</h3>
+<div id="playerShopList" class="playerShopList"></div>
   <h3>プレイヤー順</h3>
   <div id="orderList"></div>
   <button id="saveOrderBtn">順番確定</button>
@@ -849,6 +884,11 @@ onValue(ref(db, `rooms/${roomId}/turn/orderLocked`), snap => {
   if (snap.val()) {
     document.getElementById("orderEditor").style.display = "none";
   }
+});
+
+onValue(ref(db, `rooms/${roomId}/shopDeck`), snap => {
+  const cards = snap.val() || [];
+  renderPlayerShop(cards);
 });
 		
 		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -1743,6 +1783,26 @@ async function savePlayerOrder() {
 
   document.getElementById("orderEditor").style.display = "none";
   alert("順番を確定しました");
+}
+
+function renderPlayerShop(cards) {
+  const list = document.getElementById("playerShopList");
+  if (!list) return;
+
+  list.innerHTML = "";
+
+  cards.forEach(card => {
+    const div = document.createElement("div");
+    div.className = "playerShopItem";
+
+    div.innerHTML = `
+      <img src="${card.image || ''}">
+      <div class="name">${card.name}</div>
+      <div class="cost">💰${card.cost}</div>
+    `;
+
+    list.appendChild(div);
+  });
 }
 		
 		watchVictoryPoints();
