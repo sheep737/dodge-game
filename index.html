@@ -505,7 +505,7 @@ body::before {
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<div>
-		【Ver：113】
+		【Ver：114】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -1433,18 +1433,23 @@ function showCardModal(card) {
 			const block = document.createElement("div");
 			block.className = "shopFieldBlock";
 
-			const fieldHtml = fieldCards.length
-				? fieldCards.map(card => `
-		      <div class="cardButton ${card.type || ""}">
-		        <div class="cardCost">${card.cost}</div>
-		        <div class="cardName">${card.name}</div>
-		        <div class="cardText">
-		          ${card.text.replace(/\n/g, "<br>")}
-		        </div>
-				<img class="cardImage" src="${card.image || ''}">
-		      </div>
-		    `).join("")
-				: `<span style="color:#888;">（場なし）</span>`;
+const fieldHtml = fieldCards.length
+  ? fieldCards.map((card, i) => `
+      <div class="cardButton ${card.type || ""}">
+        <div class="cardCost">${card.cost}</div>
+
+        <img class="cardImage shopFieldImage"
+             src="${card.image || ''}"
+             data-index="${i}">
+
+        <div class="cardName">${card.name}</div>
+
+        <div class="cardText">
+          ${card.text.replace(/\n/g, "<br>")}
+        </div>
+      </div>
+    `).join("")
+  : `<span style="color:#888;">（場なし）</span>`;
 
 			const trashHtml = trashCards.length
 				? trashCards.map(card => `
@@ -1471,6 +1476,25 @@ function showCardModal(card) {
 
 			root.appendChild(block);
 
+// ★ shop画面：場カードの「画像だけ」タップで拡大
+block.querySelectorAll(".shopFieldImage").forEach(img => {
+  const index = img.dataset.index;
+  const card = fieldCards[index];
+
+  // クリック（PC）
+  img.addEventListener("click", e => {
+    e.stopPropagation();
+    showCardModal(card);
+  });
+
+  // タッチ（iPad / iPhone）
+  img.addEventListener("touchend", e => {
+    e.preventDefault();
+    e.stopPropagation();
+    showCardModal(card);
+  });
+});
+			
 			block.querySelectorAll(".shopFieldCards").forEach(container => {
 				container.scrollTo({
 					left: container.scrollWidth,
