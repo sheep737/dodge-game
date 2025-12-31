@@ -5,6 +5,23 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<style>
+/* ===== 全体背景画像 ===== */
+body {
+  background-image: url("background.jpeg"); /* ← 画像ファイル名 */
+  background-size: cover;        /* 画面全体にフィット */
+  background-position: center;   /* 中央寄せ */
+  background-repeat: no-repeat;  /* 繰り返さない */
+  background-attachment: fixed;  /* スクロールでも固定 */
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(255,255,255,0.7); /* 白もや */
+  z-index: -1;
+}
+		
 		#deckImage {
 			width: 80px;
 			height: 120px;
@@ -455,7 +472,7 @@
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<div>
-		【Ver：106】
+		【Ver：107】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
