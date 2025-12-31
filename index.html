@@ -472,7 +472,7 @@ body::before {
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<div>
-		【Ver：108】
+		【Ver：109】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -657,30 +657,39 @@ body::before {
 `;
 let pressTimer = null;
 let longPress = false;
+let moved = false;
 
-// 長押し開始
+// タッチ開始
 btn.addEventListener("touchstart", () => {
   longPress = false;
+  moved = false;
 
   pressTimer = setTimeout(() => {
     longPress = true;
-    showCardModal(card); // ★ 既存モーダルを再利用
+    showCardModal(card);
   }, 500);
+}, { passive: true });
+
+// 指が動いた（＝スクロール）
+btn.addEventListener("touchmove", () => {
+  moved = true;
+  clearTimeout(pressTimer);
 }, { passive: true });
 
 // 指を離した
 btn.addEventListener("touchend", () => {
   clearTimeout(pressTimer);
 
-  // 短タップ＝従来の動作
-  if (!longPress) {
-    if (isTrashMode) {
-      trashCard(index);
-    } else if (isReturnHandMode) {
-      returnHandCardToDeck(index);
-    } else {
-      playCard(index);
-    }
+  // スクロール or 長押しなら何もしない
+  if (moved || longPress) return;
+
+  // 純粋なタップのみ実行
+  if (isTrashMode) {
+    trashCard(index);
+  } else if (isReturnHandMode) {
+    returnHandCardToDeck(index);
+  } else {
+    playCard(index);
   }
 });
 
