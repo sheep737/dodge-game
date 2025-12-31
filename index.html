@@ -447,7 +447,7 @@
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<div>
-		【Ver：102】
+		【Ver：103】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -1080,46 +1080,77 @@ const ordered = Object.entries(players)
 			});
 		}
 
-		function renderShop(cards) {
-			const shopDiv = document.getElementById("shopList");
-			shopDiv.innerHTML = "";
+function renderShop(cards) {
+  const shopDiv = document.getElementById("shopList");
+  shopDiv.innerHTML = "";
 
-cards.forEach((card, index) => {
-  const cardEl = document.createElement("div");
-  cardEl.className = `cardButton ${card.type || ""}`;
-  cardEl.innerHTML = `
-    <div class="cardCost">${card.cost}</div>
-    <img class="cardImage" src="${card.image || ''}">
-    <div class="cardName">${card.name}</div>
-    <div class="cardText">${card.text.replace(/\n/g, "<br>")}</div>
-    <div style="font-size:12px;">残り：${card.stock}</div>
+  cards.forEach((card, index) => {
+    const cardEl = document.createElement("div");
+    cardEl.className = `cardButton ${card.type || ""}`;
+    cardEl.innerHTML = `
+      <div class="cardCost">${card.cost}</div>
+      <img class="cardImage" src="${card.image || ''}">
+      <div class="cardName">${card.name}</div>
+      <div class="cardText">${card.text.replace(/\n/g, "<br>")}</div>
+      <div style="font-size:12px;">残り：${card.stock}</div>
+    `;
+
+    let pressTimer = null;
+
+    // 長押し開始
+    cardEl.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      pressTimer = setTimeout(() => showCardModal(card), 500); // 500ms長押し
+    });
+
+    // 長押し終了またはキャンセル
+    ["touchend", "touchcancel"].forEach(event => {
+      cardEl.addEventListener(event, () => {
+        clearTimeout(pressTimer);
+      });
+    });
+
+    shopDiv.appendChild(cardEl);
+  });
+}
+
+// モーダル表示関数
+function showCardModal(card) {
+  const modal = document.createElement("div");
+  modal.style.position = "fixed";
+  modal.style.top = 0;
+  modal.style.left = 0;
+  modal.style.width = "100%";
+  modal.style.height = "100%";
+  modal.style.background = "rgba(0,0,0,0.6)";
+  modal.style.display = "flex";
+  modal.style.justifyContent = "center";
+  modal.style.alignItems = "center";
+  modal.style.zIndex = 2000;
+
+  const cardView = document.createElement("div");
+  cardView.style.width = "70%";
+  cardView.style.maxWidth = "400px";
+  cardView.style.background = "#fff";
+  cardView.style.borderRadius = "12px";
+  cardView.style.padding = "16px";
+  cardView.style.textAlign = "center";
+  cardView.style.boxShadow = "0 8px 16px rgba(0,0,0,0.5)";
+
+  cardView.innerHTML = `
+    <div style="font-size:24px;font-weight:bold;">${card.name}</div>
+    <img src="${card.image || ''}" style="width:100%;border-radius:8px;margin:10px 0;">
+    <div style="font-size:16px;margin-bottom:6px;">コスト: ${card.cost}</div>
+    <div style="font-size:14px;white-space:pre-wrap;">${card.text}</div>
+    <div style="font-size:12px;margin-top:6px;">残り: ${card.stock}</div>
   `;
 
-  let pressTimer = null;
+  modal.appendChild(cardView);
+  document.body.appendChild(modal);
 
-  // 長押し開始
-  cardEl.addEventListener("touchstart", (e) => {
-    e.preventDefault();
-    pressTimer = setTimeout(() => {
-      cardEl.style.transform = "scale(2)";
-      cardEl.style.zIndex = 1000;
-      cardEl.style.position = "relative";
-    }, 500); // 500ms長押し
-  });
-
-  // 長押し終了またはキャンセル
-  ["touchend", "touchcancel"].forEach(event => {
-    cardEl.addEventListener(event, () => {
-      clearTimeout(pressTimer);
-      cardEl.style.transform = "";
-      cardEl.style.zIndex = "";
-      cardEl.style.position = "";
-    });
-  });
-
-  shopDiv.appendChild(cardEl);
-});
-		}
+  // タップで閉じる
+  modal.addEventListener("click", () => modal.remove());
+}
 
 		function renderTargetPlayerSelect(players) {
 			const select = document.getElementById("targetPlayerSelect");
