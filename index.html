@@ -447,7 +447,7 @@
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<div>
-		【Ver：104】
+		【Ver：105】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -1094,20 +1094,30 @@ function renderShop(cards) {
       <div style="font-size:12px;">残り：${card.stock}</div>
     `;
 
-    let pressTimer = null;
+let pressTimer = null;
+let longPress = false;
 
-    // 長押し開始
-    cardEl.addEventListener("touchstart", (e) => {
-      e.preventDefault();
-      pressTimer = setTimeout(() => showCardModal(card), 500); // 500ms長押し
-    });
+cardEl.addEventListener("touchstart", (e) => {
+  longPress = false;
 
-    // 長押し終了またはキャンセル
-    ["touchend", "touchcancel"].forEach(event => {
-      cardEl.addEventListener(event, () => {
-        clearTimeout(pressTimer);
-      });
-    });
+  pressTimer = setTimeout(() => {
+    longPress = true;
+    showCardModal(card);
+  }, 500);
+}, { passive: true }); // ★重要：preventDefaultしない
+
+cardEl.addEventListener("touchend", () => {
+  clearTimeout(pressTimer);
+
+  // 短タップ＝購入
+  if (!longPress) {
+    addShopCardToPlayer(index);
+  }
+});
+
+cardEl.addEventListener("touchcancel", () => {
+  clearTimeout(pressTimer);
+});
 
     shopDiv.appendChild(cardEl);
   });
