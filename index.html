@@ -505,7 +505,7 @@ body::before {
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<div>
-		【Ver：111】
+		【Ver：112】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -1800,6 +1800,27 @@ function renderPlayerShop(cards) {
       <div class="name">${card.name}</div>
       <div class="cost">💰${card.cost}</div>
     `;
+
+    let pressTimer = null;
+    let longPress = false;
+
+    // 長押し開始
+    div.addEventListener("touchstart", () => {
+      longPress = false;
+      pressTimer = setTimeout(() => {
+        longPress = true;
+        showCardModal(card);   // ★ 既存の拡大モーダルを再利用
+      }, 500);
+    }, { passive: true });
+
+    // 指を離した
+    div.addEventListener("touchend", () => {
+      clearTimeout(pressTimer);
+    });
+
+    div.addEventListener("touchcancel", () => {
+      clearTimeout(pressTimer);
+    });
 
     list.appendChild(div);
   });
