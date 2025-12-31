@@ -505,7 +505,7 @@ body::before {
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<div>
-		【Ver：112】
+		【Ver：113】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -1795,32 +1795,31 @@ function renderPlayerShop(cards) {
     const div = document.createElement("div");
     div.className = "playerShopItem";
 
-    div.innerHTML = `
-      <img src="${card.image || ''}">
-      <div class="name">${card.name}</div>
-      <div class="cost">💰${card.cost}</div>
-    `;
+    const img = document.createElement("img");
+    img.src = card.image || "";
 
-    let pressTimer = null;
-    let longPress = false;
-
-    // 長押し開始
-    div.addEventListener("touchstart", () => {
-      longPress = false;
-      pressTimer = setTimeout(() => {
-        longPress = true;
-        showCardModal(card);   // ★ 既存の拡大モーダルを再利用
-      }, 500);
-    }, { passive: true });
-
-    // 指を離した
-    div.addEventListener("touchend", () => {
-      clearTimeout(pressTimer);
+    // ★ 画像タップで拡大
+    img.addEventListener("click", () => {
+      showCardModal(card);
     });
 
-    div.addEventListener("touchcancel", () => {
-      clearTimeout(pressTimer);
+    // iPad対策（タッチ）
+    img.addEventListener("touchend", (e) => {
+      e.preventDefault();      // 二重発火防止
+      showCardModal(card);
     });
+
+    const name = document.createElement("div");
+    name.className = "name";
+    name.textContent = card.name;
+
+    const cost = document.createElement("div");
+    cost.className = "cost";
+    cost.textContent = `💰${card.cost}`;
+
+    div.appendChild(img);
+    div.appendChild(name);
+    div.appendChild(cost);
 
     list.appendChild(div);
   });
