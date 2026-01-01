@@ -512,7 +512,7 @@ body::before {
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<div>
-		【Ver：117】
+		【Ver：118】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -801,7 +801,34 @@ btn.addEventListener("touchcancel", () => {
 		onValue(ref(db, `rooms/${roomId}/players`), snap => {
 			const players = snap.val() || {};
 			const div = document.getElementById("playerList");
-			div.innerHTML = "参加者：" + Object.keys(players).join(", ");
+　if (!isShop) {
+    div.innerHTML = "参加者：" + Object.keys(players).join(", ");
+    return;
+  }
+
+  // shop画面用
+  div.innerHTML = "<h3>プレイヤー管理</h3>";
+
+  Object.keys(players).forEach(pid => {
+    if (pid === "shop") return;
+
+    const row = document.createElement("div");
+    row.style.display = "flex";
+    row.style.alignItems = "center";
+    row.style.gap = "8px";
+    row.style.marginBottom = "6px";
+
+    const name = document.createElement("span");
+    name.textContent = pid;
+
+    const btn = document.createElement("button");
+    btn.textContent = "退室";
+    btn.onclick = () => kickPlayer(pid);
+
+    row.appendChild(name);
+    row.appendChild(btn);
+    div.appendChild(row);
+  });
 
 			if (isShop) {
 				renderTargetPlayerSelect(players);
@@ -1852,6 +1879,36 @@ function renderPlayerShop(cards) {
 
     list.appendChild(div);
   });
+}
+
+async function kickPlayer(playerId) {
+  if (!isShop) return;
+
+  if (!confirm(`${playerId} を退室させますか？`)) return;
+
+  const updates = {};
+  updates[`players/${playerId}`]  = null;
+  updates[`decks/${playerId}`]    = null;
+  updates[`hands/${playerId}`]    = null;
+  updates[`fields/${playerId}`]   = null;
+  updates[`discards/${playerId}`] = null;
+  updates[`trashes/${playerId}`]  = null;
+
+  // ▼ ターン中プレイヤーだった場合の保険
+  const turnSnap = await get(ref(db, `rooms/${roomId}/turn/current`));
+  const current = turnSnap.val();
+
+  if (current === playerId) {
+    const playersSnap = await get(ref(db, `rooms/${roomId}/players`));
+    const players = Object.keys(playersSnap.val() || {})
+      .filter(p => p !== "shop" && p !== playerId);
+
+    updates["turn/current"] = players[0] ?? null;
+  }
+
+  await update(roomRef, updates);
+
+  showToast(`${playerId} を退室させました`);
 }
 		
 		watchVictoryPoints();
