@@ -512,7 +512,7 @@ body::before {
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<div>
-		【Ver：118】
+		【Ver：117】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -525,9 +525,6 @@ body::before {
 		<button id="trashMode">破棄モード：OFF</button>
 		<button id="returnHandMode">手札戻し：OFF</button>
 		<button id="returnFieldMode">場戻し：OFF</button>
-<button id="returnDiscardToShopMode">
-  捨て札→ショップ：OFF
-</button>
 	</div>
 	<div id="playerList"></div>
 	<div>
@@ -879,22 +876,15 @@ btn.addEventListener("touchcancel", () => {
 			const list = document.getElementById("discardList");
 			list.innerHTML = "";
 
-discard.forEach((card, index) => {
-  const el = document.createElement("div");
-  el.className = `cardButton ${card.type || ""}`;
-  el.innerHTML = `
-    <div class="cardCost">${card.cost}</div>
-    <div class="cardName">${card.name}</div>
-  `;
-
- el.addEventListener("touchend", () => {
-   if (isReturnDiscardToShopMode) {
-     returnDiscardCardToShop(index);
-   }
- });
-
-  list.appendChild(el);
-});
+			discard.forEach(card => {
+				const el = document.createElement("div");
+				el.className = `cardButton ${card.type || ""}`;
+				el.innerHTML = `
+      <div class="cardCost">${card.cost}</div>
+      <div class="cardName">${card.name}</div>
+    `;
+				list.appendChild(el);
+			});
 		});
 
 onValue(ref(db, `rooms/${roomId}/turn/orderLocked`), snap => {
@@ -930,7 +920,6 @@ onValue(ref(db, `rooms/${roomId}/shopDeck`), snap => {
 		let isTrashMode = false;
 		let isReturnHandMode = false;
 		let isReturnFieldMode = false;
-		let isReturnDiscardToShopMode = false;
 
 		document.getElementById("trashMode").addEventListener("click", () => {
 			isTrashMode = !isTrashMode;
@@ -988,35 +977,6 @@ onValue(ref(db, `rooms/${roomId}/shopDeck`), snap => {
 document
   .getElementById("saveOrderBtn")
   .addEventListener("click", savePlayerOrder);
-
-document
-  .getElementById("returnDiscardToShopMode")
-  .addEventListener("click", () => {
-    isReturnDiscardToShopMode = !isReturnDiscardToShopMode;
-
-    if (isReturnDiscardToShopMode) {
-      // 他モードOFF（誤操作防止）
-      isTrashMode = false;
-      isDiscardMode = false;
-      isReturnHandMode = false;
-      isReturnFieldMode = false;
-
-      document.body.classList.remove(
-        "trashMode",
-        "discardMode",
-        "returnHandMode",
-        "returnFieldMode"
-      );
-    }
-
-    document.body.classList.toggle(
-      "returnDiscardToShopMode",
-      isReturnDiscardToShopMode
-    );
-
-    document.getElementById("returnDiscardToShopMode").textContent =
-      `捨て札→ショップ：${isReturnDiscardToShopMode ? "ON" : "OFF"}`;
-  });
 		
 		if (isShop) {
 			document.getElementById("deckImage").style.pointerEvents = "none";
@@ -1361,7 +1321,7 @@ function showCardModal(card) {
 
 				await update(roomRef, {
 					[`discards/${targetPlayer}`]: discard,
-					shopDeck: shop
+					shopDeck: shopCards
 				});
 
 				// ★ 成功表示（非ブロッキング）
@@ -1891,29 +1851,6 @@ function renderPlayerShop(cards) {
     div.appendChild(cost);
 
     list.appendChild(div);
-  });
-}
-
-async function returnDiscardCardToShop(cardIndex) {
-  if (!isMyTurn()) {
-    alert("あなたのターンではありません");
-    return;
-  }
-
-  const discardSnap = await get(pv_db_discard);
-  const shopSnap = await get(pv_db_shopDeck);
-
-  let discard = discardSnap.val() || [];
-  let shop = shopSnap.val() || [];
-
-  if (!discard[cardIndex]) return;
-
-  const card = discard.splice(cardIndex, 1)[0];
-  shop.push(card);
-
-  await update(roomRef, {
-    [`discards/${pv_playerId}`]: discard,
-    shopDeck: shop
   });
 }
 		
