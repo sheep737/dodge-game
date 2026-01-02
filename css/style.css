@@ -1,1 +1,499 @@
+/* ===== 全体背景画像 ===== */
+body {
+  background-image: url("background2.jpeg"); /* ← 画像ファイル名 */
+  background-size: cover;        /* 画面全体にフィット */
+  background-position: center;   /* 中央寄せ */
+  background-repeat: no-repeat;  /* 繰り返さない */
+  background-attachment: fixed;  /* スクロールでも固定 */
+}
 
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(255,255,255,0.85); /* 白もや */
+  z-index: -1;
+}
+		
+		#deckImage {
+			width: 80px;
+			height: 120px;
+			border-radius: 10px;
+			background: repeating-linear-gradient(45deg, #2d2d7f, #2d2d7f 10px, #1a1a4f 10px, #1a1a4f 20px);
+			border: 3px solid #000;
+			box-shadow: 0 6px 8px rgba(0, 0, 0, 0.4);
+			margin-bottom: 5px;
+			transition: transform 0.2s, opacity 0.3s;
+		}
+
+		/* マウスで浮く演出 */
+		#deckImage:hover {
+			transform: translateY(-5px);
+		}
+
+		#deckCount {
+			margin-top: 5px;
+			font-size: 16px;
+			font-weight: bold;
+		}
+
+		#hand {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			margin-top: 20px;
+		}
+
+		/* ===== カードのコスト表示 ===== */
+		.cardCost {
+			position: absolute;
+			top: 4px;
+			right: 4px;
+
+			background: #ffd700;
+			color: #000;
+			border: 1px solid #000;
+			border-radius: 50%;
+
+			width: 22px;
+			height: 22px;
+			font-size: 12px;
+			font-weight: bold;
+
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		.cardButton {
+			position: relative;
+			width: 80px;
+			height: 120px;
+			margin: 5px;
+			border-radius: 10px;
+			border: 2px solid #000;
+			/*
+			background: repeating-linear-gradient(45deg,
+					#ffffff,
+					#ffffff 10px,
+					#e5e5e5 10px,
+					#e5e5e5 20px);
+			*/
+			background: #fff;
+			font-size: 24px;
+			font-weight: bold;
+			display: flex;
+			flex-direction: column;
+			justify-content: space-between;
+			padding: 8px;
+			align-items: center;
+			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+			cursor: pointer;
+			transition: transform 0.15s;
+		}
+
+		/* ===== カード種別ごとの枠色 ===== */
+		.cardButton.action {
+			border-color: #1976d2;
+			/* 青：アクション */
+		}
+
+		.cardButton.treasure {
+			border-color: #f9a825;
+			/* 金：財宝 */
+		}
+
+		.cardButton.victory {
+			border-color: #2e7d32;
+			/* 緑：勝利点 */
+		}
+
+		.cardName {
+			font-size: 16px;
+			font-weight: bold;
+			line-height: 1.1;
+			text-align: center;
+		}
+
+		.cardText {
+			font-size: 12px;
+			line-height: 1.2;
+		}
+
+		.cardButton:hover {
+			transform: translateY(-4px);
+		}
+
+		/* ===== カード画像 ===== */
+		.cardImage {
+			width: 100%;
+			height: 60px;
+			/* 画像エリアの高さ（調整可） */
+			object-fit: cover;
+			/* はみ出さずトリミング */
+			border-radius: 6px;
+			margin-bottom: 4px;
+			background: #ddd;
+			display: block;
+			margin-left: auto;
+			margin-right: auto;
+		}
+
+/* ===== Shopカード画像を大きく ===== */
+#shopList .cardImage {
+  height: 90px;   /* ← ここを調整（80〜110pxがおすすめ） */
+}
+		
+		/* 小さいカード用（山札・捨て札） */
+		#deckList .cardImage,
+		#discardList .cardImage {
+			height: 40px;
+		}
+
+		#topArea {
+			display: flex;
+			align-items: center;
+			gap: 40px;
+			/* デッキと場の間の余白 */
+			margin-bottom: 20px;
+		}
+
+		/* ===== shop画面：カード一覧 + 場を横並び ===== */
+		#shopArea {
+			display: flex;
+			flex-direction: column;
+			gap: 20px;
+			width: 100%;
+		}
+
+		/* 各プレイヤーの場（右） */
+		#shopFields {
+			width: 100%;
+			max-width: 100vw;
+			flex-shrink: 0;
+
+			max-height: 80vh;
+			/* ★ 画面の8割まで */
+			overflow-y: auto;
+			padding-right: 6px;
+			/* スクロールバー分 */
+		}
+
+		#shopList {
+			flex: 1;
+			display: grid;
+			grid-template-columns: repeat(5, 1fr);
+			/* PCは4枚 */
+			gap: 12px;
+			margin-top: 20px;
+			justify-items: center;
+		}
+
+		/* ===== Shopカード専用 ===== */
+		#shopList .cardName {
+			font-size: 14px;
+		}
+
+		#shopList .cardText {
+			font-size: 12px;
+			line-height: 1.2;
+		}
+
+		#shopControl {
+			margin-top: 10px;
+			font-size: 16px;
+		}
+
+		.cardName {
+			font-size: 16px;
+			/* ← 少し小さく */
+			font-weight: bold;
+			line-height: 1.1;
+			text-align: center;
+		}
+
+		.fieldName {
+			font-size: 14px;
+			/* ← 好みで 13〜15px */
+		}
+
+		.shopFieldBlock {
+			margin-bottom: 16px;
+		}
+
+		.shopFieldTitle {
+			font-weight: bold;
+			margin-bottom: 6px;
+		}
+
+		/* ===== 自分の場 ===== */
+		#field {
+			display: flex;
+			gap: 8px;
+
+			flex-wrap: nowrap;
+			/* 折り返さない */
+			overflow-x: auto;
+			/* 横スクロール */
+			overflow-y: hidden;
+
+			width: 100%;
+			padding-bottom: 8px;
+
+			-webkit-overflow-scrolling: touch;
+			/* iOS用 */
+		}
+
+		#field .cardButton {
+			flex-shrink: 0;
+		}
+
+		.shopFieldCards {
+			display: flex;
+			gap: 8px;
+
+			flex-wrap: nowrap;
+			/* ★ 折り返さない */
+			overflow-x: auto;
+			/* ★ 横スクロール */
+			overflow-y: hidden;
+
+			padding-bottom: 6px;
+			-webkit-overflow-scrolling: touch;
+		}
+
+		.shopFieldCards .cardButton {
+			flex-shrink: 0;
+		}
+
+		/* 破棄モード中の手札 */
+		.trashMode #hand .cardButton {
+			border-color: #c62828;
+			background: #ffebee;
+		}
+
+		#trash {
+			display: flex;
+			gap: 8px;
+			flex-wrap: nowrap;
+			overflow-x: auto;
+			opacity: 0.6;
+		}
+
+		.returnHandMode #hand .cardButton {
+			border-color: #6a1b9a;
+			background: #f3e5f5;
+		}
+
+		.returnFieldMode #field .cardButton {
+			border-color: #1565c0;
+			background: #e3f2fd;
+		}
+
+		#deckList {
+			display: flex;
+			gap: 8px;
+
+			flex-wrap: nowrap;
+			overflow-x: auto;
+			padding-bottom: 8px;
+
+			-webkit-overflow-scrolling: touch;
+		}
+
+		#deckList .cardButton {
+			width: 60px;
+			height: 90px;
+			font-size: 10px;
+			padding: 4px;
+			flex-shrink: 0;
+			opacity: 0.85;
+		}
+
+		#deckList .cardText {
+			display: none;
+			/* ← 効果文は非表示 */
+		}
+
+		#discardList {
+			display: flex;
+			gap: 8px;
+
+			flex-wrap: nowrap;
+			overflow-x: auto;
+			padding-bottom: 8px;
+
+			-webkit-overflow-scrolling: touch;
+		}
+
+		#discardList .cardButton {
+			width: 60px;
+			height: 90px;
+			font-size: 10px;
+			padding: 4px;
+			flex-shrink: 0;
+			opacity: 0.85;
+		}
+
+		#discardList .cardText {
+			display: none;
+			/* 効果文は非表示 */
+		}
+
+.playerShopList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.playerShopItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  background: rgba(255,255,255,0.7);
+  border-radius: 6px;
+}
+
+.playerShopItem img {
+  width: 40px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.playerShopItem .name {
+  flex: 1;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.playerShopItem .cost {
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.playerShopItem .cardText {
+  font-size: 11px;
+  line-height: 1.3;
+  color: #333;
+  margin: 4px 0;
+}
+		
+		@media (max-width: 600px) {
+
+			#topArea {
+				flex-direction: row;
+				/* ← 横並びのまま */
+				justify-content: center;
+				gap: 20px;
+				width: 100%;
+			}
+
+			#deckImage {
+				width: 30vw;
+				height: 45vw;
+			}
+
+			.cardButton {
+				width: 30vw;
+				height: 45vw;
+				padding: 5px;
+				margin: 4px;
+				flex-shrink: 0;
+			}
+
+			.cardButton .cardName {
+				font-size: 3vw;
+			}
+
+			.cardButton .cardText {
+				font-size: 3vw;
+			}
+
+			/* 通常カード（手札・場）だけ */
+			#hand .cardName,
+			#field .cardName {
+				font-size: 20px;
+			}
+
+			#hand {
+				display: flex;
+				flex-wrap: nowrap;
+				/* 折り返さない */
+				overflow-x: auto;
+				/* 横スクロール */
+				gap: 8px;
+				padding-bottom: 10px;
+				-webkit-overflow-scrolling: touch;
+				/* iOSなめらか */
+				width: 100%;
+			}
+
+			/* ===== 手札のカード枠色 ===== */
+			#hand .cardButton.action {
+				border-color: #1976d2;
+			}
+
+			#hand .cardButton.treasure {
+				border-color: #f9a825;
+			}
+
+			#hand .cardButton.victory {
+				border-color: #2e7d32;
+			}
+
+			#field {
+				display: flex;
+				justify-content: center;
+				width: 100%;
+			}
+
+			/* デッキも中央寄せ */
+			#deck {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+			}
+
+			body {
+				zoom: 1.0;
+				/* 拡大縮小の誤差防止 */
+				padding: 10px;
+				padding-top: 5px;
+				overflow-x: hidden;
+			}
+
+			#deckImage:active,
+			.cardButton:active {
+				transform: translateY(2px) scale(0.97);
+				filter: brightness(0.95);
+			}
+
+			#shopList {
+				grid-template-columns: repeat(4, 1fr);
+			}
+
+			/* ★ Shopカードはvwを使わない */
+			#shopList .cardName {
+				font-size: 14px;
+			}
+
+			#shopList .cardText {
+				font-size: 11px;
+			}
+
+		}
+
+		/* ===== iPad横持ち：Shopカード ===== */
+		@media (min-width: 768px) and (max-width: 1366px) {
+
+			#shopList .cardName {
+				font-size: 13px;
+			}
+
+			#shopList .cardText {
+				font-size: 11px;
+			}
+
+		}
