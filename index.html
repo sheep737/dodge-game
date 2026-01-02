@@ -7,7 +7,7 @@
 </head>
 <body>
 	<div>
-		【Ver：126】
+		【Ver：127】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -20,6 +20,7 @@
 		<button id="trashMode">破棄モード：OFF</button>
 		<button id="returnHandMode">手札戻し：OFF</button>
 		<button id="returnFieldMode">場戻し：OFF</button>
+		<button id="discardMode">捨てるモード：OFF</button>
 	</div>
 	<div id="playerList"></div>
 	<div>
@@ -216,17 +217,17 @@
 				btn.addEventListener("touchend", () => {
 					clearTimeout(pressTimer);
 
-					// スクロール or 長押しなら何もしない
 					if (moved || longPress) return;
 
-					// 純粋なタップのみ実行
-					if (isTrashMode) {
-						trashCard(index);
-					} else if (isReturnHandMode) {
-						returnHandCardToDeck(index);
-					} else {
-						playCard(index);
-					}
+if (isTrashMode) {
+    trashCard(index);
+} else if (isDiscardMode) {
+    discardCard(index);
+} else if (isReturnHandMode) {
+    returnHandCardToDeck(index);
+} else {
+    playCard(index);
+}
 				});
 
 				// キャンセル
@@ -426,6 +427,7 @@ trash.forEach((card, index) => {
 		document.getElementById("endTurn").addEventListener("click", endTurn);
 
 		let isTrashMode = false;
+		let isDiscardMode = false;
 		let isReturnHandMode = false;
 		let isReturnFieldMode = false;
 
@@ -492,6 +494,30 @@ trash.forEach((card, index) => {
 
 			kickPlayer(playerId);
 		};
+
+document.getElementById("discardMode").addEventListener("click", () => {
+    isDiscardMode = !isDiscardMode;
+
+    if (isDiscardMode) {
+        isTrashMode = false;
+        isReturnHandMode = false;
+        isReturnFieldMode = false;
+
+        document.body.classList.remove(
+            "trashMode",
+            "returnHandMode",
+            "returnFieldMode"
+        );
+
+        document.getElementById("trashMode").textContent = "破棄モード：OFF";
+        document.getElementById("returnHandMode").textContent = "手札戻し：OFF";
+        document.getElementById("returnFieldMode").textContent = "場戻し：OFF";
+    }
+
+    document.body.classList.toggle("discardMode", isDiscardMode);
+    document.getElementById("discardMode").textContent =
+        `捨てるモード：${isDiscardMode ? "ON" : "OFF"}`;
+});
 
 		if (isShop) {
 			document.getElementById("deckImage").style.pointerEvents = "none";
@@ -1026,6 +1052,8 @@ trash.forEach((card, index) => {
 		async function endTurn() {
 			if (!isMyTurn()) return;
 
+			clearModes();
+
 			// ★ ここで playersData を正しく取得する
 			const playersSnap = await get(ref(db, `rooms/${roomId}/players`));
 			const playersData = playersSnap.val() || {};
@@ -1432,6 +1460,46 @@ async function returnTrashCardToHand(cardIndex) {
   await update(roomRef, {
     [`trashes/${pv_playerId}`]: trash,
     [`hands/${pv_playerId}`]: hand
+  });
+}
+
+function clearModes() {
+  isTrashMode = false;
+  isDiscardMode = false;
+  isReturnHandMode = false;
+}
+
+function enterDiscardMode() {
+  clearModes();
+  isDiscardMode = true;
+  document.body.classList.add("discardMode");
+}
+
+function exitDiscardMode() {
+  isDiscardMode = false;
+  document.body.classList.remove("discardMode");
+}
+
+async function discardCard(cardIndex) {
+  if (!isMyTurn()) {
+    alert("あなたのターンではありません");
+    return;
+  }
+
+  const handSnap = await get(pv_db_hand);
+  const discardSnap = await get(pv_db_discard);
+
+  let hand = handSnap.val() || [];
+  let discard = discardSnap.val() || [];
+
+  if (!hand[cardIndex]) return;
+
+  const card = hand.splice(cardIndex, 1)[0];
+  discard.push(card);
+
+  await update(roomRef, {
+    [`hands/${pv_playerId}`]: hand,
+    [`discards/${pv_playerId}`]: discard
   });
 }
 

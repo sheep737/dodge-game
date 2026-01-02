@@ -1,499 +1,511 @@
 /* ===== 全体背景画像 ===== */
 body {
-  background-image: url("../background2.jpeg"); /* ← 画像ファイル名 */
-  background-size: cover;        /* 画面全体にフィット */
-  background-position: center;   /* 中央寄せ */
-  background-repeat: no-repeat;  /* 繰り返さない */
-  background-attachment: fixed;  /* スクロールでも固定 */
+	background-image: url("../background2.jpeg");
+	/* ← 画像ファイル名 */
+	background-size: cover;
+	/* 画面全体にフィット */
+	background-position: center;
+	/* 中央寄せ */
+	background-repeat: no-repeat;
+	/* 繰り返さない */
+	background-attachment: fixed;
+	/* スクロールでも固定 */
 }
 
 body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background: rgba(255,255,255,0.85); /* 白もや */
-  z-index: -1;
+	content: "";
+	position: fixed;
+	inset: 0;
+	background: rgba(255, 255, 255, 0.85);
+	/* 白もや */
+	z-index: -1;
 }
-		
-		#deckImage {
-			width: 80px;
-			height: 120px;
-			border-radius: 10px;
-			background: repeating-linear-gradient(45deg, #2d2d7f, #2d2d7f 10px, #1a1a4f 10px, #1a1a4f 20px);
-			border: 3px solid #000;
-			box-shadow: 0 6px 8px rgba(0, 0, 0, 0.4);
-			margin-bottom: 5px;
-			transition: transform 0.2s, opacity 0.3s;
-		}
 
-		/* マウスで浮く演出 */
-		#deckImage:hover {
-			transform: translateY(-5px);
-		}
+#deckImage {
+	width: 80px;
+	height: 120px;
+	border-radius: 10px;
+	background: repeating-linear-gradient(45deg, #2d2d7f, #2d2d7f 10px, #1a1a4f 10px, #1a1a4f 20px);
+	border: 3px solid #000;
+	box-shadow: 0 6px 8px rgba(0, 0, 0, 0.4);
+	margin-bottom: 5px;
+	transition: transform 0.2s, opacity 0.3s;
+}
 
-		#deckCount {
-			margin-top: 5px;
-			font-size: 16px;
-			font-weight: bold;
-		}
+/* マウスで浮く演出 */
+#deckImage:hover {
+	transform: translateY(-5px);
+}
 
-		#hand {
-			display: flex;
-			flex-wrap: wrap;
-			gap: 10px;
-			margin-top: 20px;
-		}
+#deckCount {
+	margin-top: 5px;
+	font-size: 16px;
+	font-weight: bold;
+}
 
-		/* ===== カードのコスト表示 ===== */
-		.cardCost {
-			position: absolute;
-			top: 4px;
-			right: 4px;
+#hand {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin-top: 20px;
+}
 
-			background: #ffd700;
-			color: #000;
-			border: 1px solid #000;
-			border-radius: 50%;
+/* ===== カードのコスト表示 ===== */
+.cardCost {
+	position: absolute;
+	top: 4px;
+	right: 4px;
 
-			width: 22px;
-			height: 22px;
-			font-size: 12px;
-			font-weight: bold;
+	background: #ffd700;
+	color: #000;
+	border: 1px solid #000;
+	border-radius: 50%;
 
-			display: flex;
-			align-items: center;
-			justify-content: center;
-		}
+	width: 22px;
+	height: 22px;
+	font-size: 12px;
+	font-weight: bold;
 
-		.cardButton {
-			position: relative;
-			width: 80px;
-			height: 120px;
-			margin: 5px;
-			border-radius: 10px;
-			border: 2px solid #000;
-			/*
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.cardButton {
+	position: relative;
+	width: 80px;
+	height: 120px;
+	margin: 5px;
+	border-radius: 10px;
+	border: 2px solid #000;
+	/*
 			background: repeating-linear-gradient(45deg,
 					#ffffff,
 					#ffffff 10px,
 					#e5e5e5 10px,
 					#e5e5e5 20px);
 			*/
-			background: #fff;
-			font-size: 24px;
-			font-weight: bold;
-			display: flex;
-			flex-direction: column;
-			justify-content: space-between;
-			padding: 8px;
-			align-items: center;
-			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-			cursor: pointer;
-			transition: transform 0.15s;
-		}
+	background: #fff;
+	font-size: 24px;
+	font-weight: bold;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	padding: 8px;
+	align-items: center;
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+	cursor: pointer;
+	transition: transform 0.15s;
+}
 
-		/* ===== カード種別ごとの枠色 ===== */
-		.cardButton.action {
-			border-color: #1976d2;
-			/* 青：アクション */
-		}
+/* ===== カード種別ごとの枠色 ===== */
+.cardButton.action {
+	border-color: #1976d2;
+	/* 青：アクション */
+}
 
-		.cardButton.treasure {
-			border-color: #f9a825;
-			/* 金：財宝 */
-		}
+.cardButton.treasure {
+	border-color: #f9a825;
+	/* 金：財宝 */
+}
 
-		.cardButton.victory {
-			border-color: #2e7d32;
-			/* 緑：勝利点 */
-		}
+.cardButton.victory {
+	border-color: #2e7d32;
+	/* 緑：勝利点 */
+}
 
-		.cardName {
-			font-size: 16px;
-			font-weight: bold;
-			line-height: 1.1;
-			text-align: center;
-		}
+.cardName {
+	font-size: 16px;
+	font-weight: bold;
+	line-height: 1.1;
+	text-align: center;
+}
 
-		.cardText {
-			font-size: 12px;
-			line-height: 1.2;
-		}
+.cardText {
+	font-size: 12px;
+	line-height: 1.2;
+}
 
-		.cardButton:hover {
-			transform: translateY(-4px);
-		}
+.cardButton:hover {
+	transform: translateY(-4px);
+}
 
-		/* ===== カード画像 ===== */
-		.cardImage {
-			width: 100%;
-			height: 60px;
-			/* 画像エリアの高さ（調整可） */
-			object-fit: cover;
-			/* はみ出さずトリミング */
-			border-radius: 6px;
-			margin-bottom: 4px;
-			background: #ddd;
-			display: block;
-			margin-left: auto;
-			margin-right: auto;
-		}
+/* ===== カード画像 ===== */
+.cardImage {
+	width: 100%;
+	height: 60px;
+	/* 画像エリアの高さ（調整可） */
+	object-fit: cover;
+	/* はみ出さずトリミング */
+	border-radius: 6px;
+	margin-bottom: 4px;
+	background: #ddd;
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
 
 /* ===== Shopカード画像を大きく ===== */
 #shopList .cardImage {
-  height: 90px;   /* ← ここを調整（80〜110pxがおすすめ） */
+	height: 90px;
+	/* ← ここを調整（80〜110pxがおすすめ） */
 }
-		
-		/* 小さいカード用（山札・捨て札） */
-		#deckList .cardImage,
-		#discardList .cardImage {
-			height: 40px;
-		}
 
-		#topArea {
-			display: flex;
-			align-items: center;
-			gap: 40px;
-			/* デッキと場の間の余白 */
-			margin-bottom: 20px;
-		}
+/* 小さいカード用（山札・捨て札） */
+#deckList .cardImage,
+#discardList .cardImage {
+	height: 40px;
+}
 
-		/* ===== shop画面：カード一覧 + 場を横並び ===== */
-		#shopArea {
-			display: flex;
-			flex-direction: column;
-			gap: 20px;
-			width: 100%;
-		}
+#topArea {
+	display: flex;
+	align-items: center;
+	gap: 40px;
+	/* デッキと場の間の余白 */
+	margin-bottom: 20px;
+}
 
-		/* 各プレイヤーの場（右） */
-		#shopFields {
-			width: 100%;
-			max-width: 100vw;
-			flex-shrink: 0;
+/* ===== shop画面：カード一覧 + 場を横並び ===== */
+#shopArea {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	width: 100%;
+}
 
-			max-height: 80vh;
-			/* ★ 画面の8割まで */
-			overflow-y: auto;
-			padding-right: 6px;
-			/* スクロールバー分 */
-		}
+/* 各プレイヤーの場（右） */
+#shopFields {
+	width: 100%;
+	max-width: 100vw;
+	flex-shrink: 0;
 
-		#shopList {
-			flex: 1;
-			display: grid;
-			grid-template-columns: repeat(5, 1fr);
-			/* PCは4枚 */
-			gap: 12px;
-			margin-top: 20px;
-			justify-items: center;
-		}
+	max-height: 80vh;
+	/* ★ 画面の8割まで */
+	overflow-y: auto;
+	padding-right: 6px;
+	/* スクロールバー分 */
+}
 
-		/* ===== Shopカード専用 ===== */
-		#shopList .cardName {
-			font-size: 14px;
-		}
+#shopList {
+	flex: 1;
+	display: grid;
+	grid-template-columns: repeat(5, 1fr);
+	/* PCは4枚 */
+	gap: 12px;
+	margin-top: 20px;
+	justify-items: center;
+}
 
-		#shopList .cardText {
-			font-size: 12px;
-			line-height: 1.2;
-		}
+/* ===== Shopカード専用 ===== */
+#shopList .cardName {
+	font-size: 14px;
+}
 
-		#shopControl {
-			margin-top: 10px;
-			font-size: 16px;
-		}
+#shopList .cardText {
+	font-size: 12px;
+	line-height: 1.2;
+}
 
-		.cardName {
-			font-size: 16px;
-			/* ← 少し小さく */
-			font-weight: bold;
-			line-height: 1.1;
-			text-align: center;
-		}
+#shopControl {
+	margin-top: 10px;
+	font-size: 16px;
+}
 
-		.fieldName {
-			font-size: 14px;
-			/* ← 好みで 13〜15px */
-		}
+.cardName {
+	font-size: 16px;
+	/* ← 少し小さく */
+	font-weight: bold;
+	line-height: 1.1;
+	text-align: center;
+}
 
-		.shopFieldBlock {
-			margin-bottom: 16px;
-		}
+.fieldName {
+	font-size: 14px;
+	/* ← 好みで 13〜15px */
+}
 
-		.shopFieldTitle {
-			font-weight: bold;
-			margin-bottom: 6px;
-		}
+.shopFieldBlock {
+	margin-bottom: 16px;
+}
 
-		/* ===== 自分の場 ===== */
-		#field {
-			display: flex;
-			gap: 8px;
+.shopFieldTitle {
+	font-weight: bold;
+	margin-bottom: 6px;
+}
 
-			flex-wrap: nowrap;
-			/* 折り返さない */
-			overflow-x: auto;
-			/* 横スクロール */
-			overflow-y: hidden;
+/* ===== 自分の場 ===== */
+#field {
+	display: flex;
+	gap: 8px;
 
-			width: 100%;
-			padding-bottom: 8px;
+	flex-wrap: nowrap;
+	/* 折り返さない */
+	overflow-x: auto;
+	/* 横スクロール */
+	overflow-y: hidden;
 
-			-webkit-overflow-scrolling: touch;
-			/* iOS用 */
-		}
+	width: 100%;
+	padding-bottom: 8px;
 
-		#field .cardButton {
-			flex-shrink: 0;
-		}
+	-webkit-overflow-scrolling: touch;
+	/* iOS用 */
+}
 
-		.shopFieldCards {
-			display: flex;
-			gap: 8px;
+#field .cardButton {
+	flex-shrink: 0;
+}
 
-			flex-wrap: nowrap;
-			/* ★ 折り返さない */
-			overflow-x: auto;
-			/* ★ 横スクロール */
-			overflow-y: hidden;
+.shopFieldCards {
+	display: flex;
+	gap: 8px;
 
-			padding-bottom: 6px;
-			-webkit-overflow-scrolling: touch;
-		}
+	flex-wrap: nowrap;
+	/* ★ 折り返さない */
+	overflow-x: auto;
+	/* ★ 横スクロール */
+	overflow-y: hidden;
 
-		.shopFieldCards .cardButton {
-			flex-shrink: 0;
-		}
+	padding-bottom: 6px;
+	-webkit-overflow-scrolling: touch;
+}
 
-		/* 破棄モード中の手札 */
-		.trashMode #hand .cardButton {
-			border-color: #c62828;
-			background: #ffebee;
-		}
+.shopFieldCards .cardButton {
+	flex-shrink: 0;
+}
 
-		#trash {
-			display: flex;
-			gap: 8px;
-			flex-wrap: nowrap;
-			overflow-x: auto;
-			opacity: 0.6;
-		}
+/* 破棄モード中の手札 */
+.trashMode #hand .cardButton {
+	border-color: #c62828;
+	background: #ffebee;
+}
 
-		.returnHandMode #hand .cardButton {
-			border-color: #6a1b9a;
-			background: #f3e5f5;
-		}
+#trash {
+	display: flex;
+	gap: 8px;
+	flex-wrap: nowrap;
+	overflow-x: auto;
+	opacity: 0.6;
+}
 
-		.returnFieldMode #field .cardButton {
-			border-color: #1565c0;
-			background: #e3f2fd;
-		}
+.returnHandMode #hand .cardButton {
+	border-color: #6a1b9a;
+	background: #f3e5f5;
+}
 
-		#deckList {
-			display: flex;
-			gap: 8px;
+.returnFieldMode #field .cardButton {
+	border-color: #1565c0;
+	background: #e3f2fd;
+}
 
-			flex-wrap: nowrap;
-			overflow-x: auto;
-			padding-bottom: 8px;
+#deckList {
+	display: flex;
+	gap: 8px;
 
-			-webkit-overflow-scrolling: touch;
-		}
+	flex-wrap: nowrap;
+	overflow-x: auto;
+	padding-bottom: 8px;
 
-		#deckList .cardButton {
-			width: 60px;
-			height: 90px;
-			font-size: 10px;
-			padding: 4px;
-			flex-shrink: 0;
-			opacity: 0.85;
-		}
+	-webkit-overflow-scrolling: touch;
+}
 
-		#deckList .cardText {
-			display: none;
-			/* ← 効果文は非表示 */
-		}
+#deckList .cardButton {
+	width: 60px;
+	height: 90px;
+	font-size: 10px;
+	padding: 4px;
+	flex-shrink: 0;
+	opacity: 0.85;
+}
 
-		#discardList {
-			display: flex;
-			gap: 8px;
+#deckList .cardText {
+	display: none;
+	/* ← 効果文は非表示 */
+}
 
-			flex-wrap: nowrap;
-			overflow-x: auto;
-			padding-bottom: 8px;
+#discardList {
+	display: flex;
+	gap: 8px;
 
-			-webkit-overflow-scrolling: touch;
-		}
+	flex-wrap: nowrap;
+	overflow-x: auto;
+	padding-bottom: 8px;
 
-		#discardList .cardButton {
-			width: 60px;
-			height: 90px;
-			font-size: 10px;
-			padding: 4px;
-			flex-shrink: 0;
-			opacity: 0.85;
-		}
+	-webkit-overflow-scrolling: touch;
+}
 
-		#discardList .cardText {
-			display: none;
-			/* 効果文は非表示 */
-		}
+#discardList .cardButton {
+	width: 60px;
+	height: 90px;
+	font-size: 10px;
+	padding: 4px;
+	flex-shrink: 0;
+	opacity: 0.85;
+}
+
+#discardList .cardText {
+	display: none;
+	/* 効果文は非表示 */
+}
 
 .playerShopList {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
 }
 
 .playerShopItem {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 8px;
-  background: rgba(255,255,255,0.7);
-  border-radius: 6px;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 6px 8px;
+	background: rgba(255, 255, 255, 0.7);
+	border-radius: 6px;
 }
 
 .playerShopItem img {
-  width: 40px;
-  height: 60px;
-  object-fit: cover;
-  border-radius: 4px;
+	width: 40px;
+	height: 60px;
+	object-fit: cover;
+	border-radius: 4px;
 }
 
 .playerShopItem .name {
-  flex: 1;
-  font-weight: bold;
-  font-size: 14px;
+	flex: 1;
+	font-weight: bold;
+	font-size: 14px;
 }
 
 .playerShopItem .cost {
-  font-size: 13px;
-  white-space: nowrap;
+	font-size: 13px;
+	white-space: nowrap;
 }
 
 .playerShopItem .cardText {
-  font-size: 11px;
-  line-height: 1.3;
-  color: #333;
-  margin: 4px 0;
+	font-size: 11px;
+	line-height: 1.3;
+	color: #333;
+	margin: 4px 0;
 }
-		
-		@media (max-width: 600px) {
 
-			#topArea {
-				flex-direction: row;
-				/* ← 横並びのまま */
-				justify-content: center;
-				gap: 20px;
-				width: 100%;
-			}
+.discardMode #hand .cardButton {
+	border-color: #455a64;
+	background: #eceff1;
+}
 
-			#deckImage {
-				width: 30vw;
-				height: 45vw;
-			}
+@media (max-width: 600px) {
 
-			.cardButton {
-				width: 30vw;
-				height: 45vw;
-				padding: 5px;
-				margin: 4px;
-				flex-shrink: 0;
-			}
+	#topArea {
+		flex-direction: row;
+		/* ← 横並びのまま */
+		justify-content: center;
+		gap: 20px;
+		width: 100%;
+	}
 
-			.cardButton .cardName {
-				font-size: 3vw;
-			}
+	#deckImage {
+		width: 30vw;
+		height: 45vw;
+	}
 
-			.cardButton .cardText {
-				font-size: 3vw;
-			}
+	.cardButton {
+		width: 30vw;
+		height: 45vw;
+		padding: 5px;
+		margin: 4px;
+		flex-shrink: 0;
+	}
 
-			/* 通常カード（手札・場）だけ */
-			#hand .cardName,
-			#field .cardName {
-				font-size: 20px;
-			}
+	.cardButton .cardName {
+		font-size: 3vw;
+	}
 
-			#hand {
-				display: flex;
-				flex-wrap: nowrap;
-				/* 折り返さない */
-				overflow-x: auto;
-				/* 横スクロール */
-				gap: 8px;
-				padding-bottom: 10px;
-				-webkit-overflow-scrolling: touch;
-				/* iOSなめらか */
-				width: 100%;
-			}
+	.cardButton .cardText {
+		font-size: 3vw;
+	}
 
-			/* ===== 手札のカード枠色 ===== */
-			#hand .cardButton.action {
-				border-color: #1976d2;
-			}
+	/* 通常カード（手札・場）だけ */
+	#hand .cardName,
+	#field .cardName {
+		font-size: 20px;
+	}
 
-			#hand .cardButton.treasure {
-				border-color: #f9a825;
-			}
+	#hand {
+		display: flex;
+		flex-wrap: nowrap;
+		/* 折り返さない */
+		overflow-x: auto;
+		/* 横スクロール */
+		gap: 8px;
+		padding-bottom: 10px;
+		-webkit-overflow-scrolling: touch;
+		/* iOSなめらか */
+		width: 100%;
+	}
 
-			#hand .cardButton.victory {
-				border-color: #2e7d32;
-			}
+	/* ===== 手札のカード枠色 ===== */
+	#hand .cardButton.action {
+		border-color: #1976d2;
+	}
 
-			#field {
-				display: flex;
-				justify-content: center;
-				width: 100%;
-			}
+	#hand .cardButton.treasure {
+		border-color: #f9a825;
+	}
 
-			/* デッキも中央寄せ */
-			#deck {
-				display: flex;
-				flex-direction: column;
-				align-items: center;
-			}
+	#hand .cardButton.victory {
+		border-color: #2e7d32;
+	}
 
-			body {
-				zoom: 1.0;
-				/* 拡大縮小の誤差防止 */
-				padding: 10px;
-				padding-top: 5px;
-				overflow-x: hidden;
-			}
+	#field {
+		display: flex;
+		justify-content: center;
+		width: 100%;
+	}
 
-			#deckImage:active,
-			.cardButton:active {
-				transform: translateY(2px) scale(0.97);
-				filter: brightness(0.95);
-			}
+	/* デッキも中央寄せ */
+	#deck {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
 
-			#shopList {
-				grid-template-columns: repeat(4, 1fr);
-			}
+	body {
+		zoom: 1.0;
+		/* 拡大縮小の誤差防止 */
+		padding: 10px;
+		padding-top: 5px;
+		overflow-x: hidden;
+	}
 
-			/* ★ Shopカードはvwを使わない */
-			#shopList .cardName {
-				font-size: 14px;
-			}
+	#deckImage:active,
+	.cardButton:active {
+		transform: translateY(2px) scale(0.97);
+		filter: brightness(0.95);
+	}
 
-			#shopList .cardText {
-				font-size: 11px;
-			}
+	#shopList {
+		grid-template-columns: repeat(4, 1fr);
+	}
 
-		}
+	/* ★ Shopカードはvwを使わない */
+	#shopList .cardName {
+		font-size: 14px;
+	}
 
-		/* ===== iPad横持ち：Shopカード ===== */
-		@media (min-width: 768px) and (max-width: 1366px) {
+	#shopList .cardText {
+		font-size: 11px;
+	}
 
-			#shopList .cardName {
-				font-size: 13px;
-			}
+}
 
-			#shopList .cardText {
-				font-size: 11px;
-			}
+/* ===== iPad横持ち：Shopカード ===== */
+@media (min-width: 768px) and (max-width: 1366px) {
 
-		}
+	#shopList .cardName {
+		font-size: 13px;
+	}
+
+	#shopList .cardText {
+		font-size: 11px;
+	}
+
+}
