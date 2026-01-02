@@ -12,7 +12,7 @@
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<div>
-		【Ver：120】
+		【Ver：121】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -40,15 +40,15 @@
 		<div id="field"></div>
 	</div>
 	<div id="hand"></div>
-<div id="exitControl">
-  <select id="exitPlayerSelect">
-    <!-- プレイヤー一覧 -->
-  </select>
+	<div id="exitControl">
+		<select id="exitPlayerSelect">
+			<!-- プレイヤー一覧 -->
+		</select>
 
-  <button id="exitPlayerBtn">
-    選択したプレイヤーを退室
-  </button>
-</div>
+		<button id="exitPlayerBtn">
+			選択したプレイヤーを退室
+		</button>
+	</div>
 	<div id="shopControl">
 		追加先：
 		<select id="targetPlayerSelect"></select>
@@ -67,12 +67,12 @@
 	<h3 id="trashListTitle">破棄</h3>
 	<div id="trash"></div>
 	<div id="orderEditor" style="margin:10px 0;">
-<h3>ショップ一覧</h3>
-<div id="playerShopList" class="playerShopList"></div>
-  <h3>プレイヤー順</h3>
-  <div id="orderList"></div>
-  <button id="saveOrderBtn">順番確定</button>
-</div>
+		<h3>ショップ一覧</h3>
+		<div id="playerShopList" class="playerShopList"></div>
+		<h3>プレイヤー順</h3>
+		<div id="orderList"></div>
+		<button id="saveOrderBtn">順番確定</button>
+	</div>
 
 	<script type="module">
 		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -206,48 +206,48 @@
   <div class="cardName">${card.name}</div>
   <div class="cardText">${card.text.replace(/\n/g, "<br>")}</div>
 `;
-let pressTimer = null;
-let longPress = false;
-let moved = false;
+				let pressTimer = null;
+				let longPress = false;
+				let moved = false;
 
-// タッチ開始
-btn.addEventListener("touchstart", () => {
-  longPress = false;
-  moved = false;
+				// タッチ開始
+				btn.addEventListener("touchstart", () => {
+					longPress = false;
+					moved = false;
 
-  pressTimer = setTimeout(() => {
-    longPress = true;
-    showCardModal(card);
-  }, 500);
-}, { passive: true });
+					pressTimer = setTimeout(() => {
+						longPress = true;
+						showCardModal(card);
+					}, 500);
+				}, { passive: true });
 
-// 指が動いた（＝スクロール）
-btn.addEventListener("touchmove", () => {
-  moved = true;
-  clearTimeout(pressTimer);
-}, { passive: true });
+				// 指が動いた（＝スクロール）
+				btn.addEventListener("touchmove", () => {
+					moved = true;
+					clearTimeout(pressTimer);
+				}, { passive: true });
 
-// 指を離した
-btn.addEventListener("touchend", () => {
-  clearTimeout(pressTimer);
+				// 指を離した
+				btn.addEventListener("touchend", () => {
+					clearTimeout(pressTimer);
 
-  // スクロール or 長押しなら何もしない
-  if (moved || longPress) return;
+					// スクロール or 長押しなら何もしない
+					if (moved || longPress) return;
 
-  // 純粋なタップのみ実行
-  if (isTrashMode) {
-    trashCard(index);
-  } else if (isReturnHandMode) {
-    returnHandCardToDeck(index);
-  } else {
-    playCard(index);
-  }
-});
+					// 純粋なタップのみ実行
+					if (isTrashMode) {
+						trashCard(index);
+					} else if (isReturnHandMode) {
+						returnHandCardToDeck(index);
+					} else {
+						playCard(index);
+					}
+				});
 
-// キャンセル
-btn.addEventListener("touchcancel", () => {
-  clearTimeout(pressTimer);
-});
+				// キャンセル
+				btn.addEventListener("touchcancel", () => {
+					clearTimeout(pressTimer);
+				});
 
 				handDiv.appendChild(btn);
 			});
@@ -310,15 +310,14 @@ btn.addEventListener("touchcancel", () => {
 		onValue(ref(db, `rooms/${roomId}/players`), snap => {
 			const players = snap.val() || {};
 			const div = document.getElementById("playerList");
-　if (!isShop) {
-    div.innerHTML = "参加者：" + Object.keys(players).join(", ");
-    return;
-  }
+			if (!isShop) {
+				div.innerHTML = "参加者：" + Object.keys(players).join(", ");
+				return;
+			}
 
-renderExitPlayerList(players);
-			
-  // shop画面用
-div.innerHTML = "<h3>プレイヤー管理</h3><p>退室させるプレイヤーを選択してください</p>";
+			renderExitPlayerList(players);
+
+			div.innerHTML = "";
 
 			if (isShop) {
 				renderTargetPlayerSelect(players);
@@ -404,17 +403,17 @@ div.innerHTML = "<h3>プレイヤー管理</h3><p>退室させるプレイヤー
 			});
 		});
 
-onValue(ref(db, `rooms/${roomId}/turn/orderLocked`), snap => {
-  if (snap.val()) {
-    document.getElementById("orderEditor").style.display = "none";
-  }
-});
+		onValue(ref(db, `rooms/${roomId}/turn/orderLocked`), snap => {
+			if (snap.val()) {
+				document.getElementById("orderEditor").style.display = "none";
+			}
+		});
 
-onValue(ref(db, `rooms/${roomId}/shopDeck`), snap => {
-  const cards = snap.val() || [];
-  renderPlayerShop(cards);
-});
-		
+		onValue(ref(db, `rooms/${roomId}/shopDeck`), snap => {
+			const cards = snap.val() || [];
+			renderPlayerShop(cards);
+		});
+
 		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
 		// ■    ボタン動作            ■
 		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -491,19 +490,19 @@ onValue(ref(db, `rooms/${roomId}/shopDeck`), snap => {
 				`場戻し：${isReturnFieldMode ? "ON" : "OFF"}`;
 		});
 
-document
-  .getElementById("saveOrderBtn")
-  .addEventListener("click", savePlayerOrder);
+		document
+			.getElementById("saveOrderBtn")
+			.addEventListener("click", savePlayerOrder);
 
-document.getElementById("exitPlayerBtn").onclick = () => {
-  const playerId =
-    document.getElementById("exitPlayerSelect").value;
+		document.getElementById("exitPlayerBtn").onclick = () => {
+			const playerId =
+				document.getElementById("exitPlayerSelect").value;
 
-  if (!playerId) return;
+			if (!playerId) return;
 
-  kickPlayer(playerId);
-};
-		
+			kickPlayer(playerId);
+		};
+
 		if (isShop) {
 			document.getElementById("deckImage").style.pointerEvents = "none";
 			document.getElementById("deckImage").style.opacity = "0.5";
@@ -624,14 +623,14 @@ document.getElementById("exitPlayerBtn").onclick = () => {
 			const discards = {};
 			const trashes = {};
 
-const ordered = Object.entries(players)
-  .filter(([pid]) => pid !== "shop")
-  .sort((a, b) => {
-    if (a[1].order == null) return 1;
-    if (b[1].order == null) return -1;
-    return a[1].order - b[1].order;
-  })
-  .map(([pid]) => pid);
+			const ordered = Object.entries(players)
+				.filter(([pid]) => pid !== "shop")
+				.sort((a, b) => {
+					if (a[1].order == null) return 1;
+					if (b[1].order == null) return -1;
+					return a[1].order - b[1].order;
+				})
+				.map(([pid]) => pid);
 
 			Object.keys(players).forEach(pid => {
 				const deck = [...initialDeck];
@@ -711,73 +710,73 @@ const ordered = Object.entries(players)
 			});
 		}
 
-function renderShop(cards) {
-  const shopDiv = document.getElementById("shopList");
-  shopDiv.innerHTML = "";
+		function renderShop(cards) {
+			const shopDiv = document.getElementById("shopList");
+			shopDiv.innerHTML = "";
 
-  cards.forEach((card, index) => {
-    const cardEl = document.createElement("div");
-    cardEl.className = `cardButton ${card.type || ""}`;
-cardEl.innerHTML = `
+			cards.forEach((card, index) => {
+				const cardEl = document.createElement("div");
+				cardEl.className = `cardButton ${card.type || ""}`;
+				cardEl.innerHTML = `
   <div class="cardCost">${card.cost}</div>
   <img class="cardImage" src="${card.image || ''}">
   <div class="cardName">${card.name}</div>
   <div style="font-size:12px;">残り：${card.stock}</div>
 `;
 
-let pressTimer = null;
-let longPress = false;
+				let pressTimer = null;
+				let longPress = false;
 
-cardEl.addEventListener("touchstart", (e) => {
-  longPress = false;
+				cardEl.addEventListener("touchstart", (e) => {
+					longPress = false;
 
-  pressTimer = setTimeout(() => {
-    longPress = true;
-    showCardModal(card);
-  }, 500);
-}, { passive: true }); // ★重要：preventDefaultしない
+					pressTimer = setTimeout(() => {
+						longPress = true;
+						showCardModal(card);
+					}, 500);
+				}, { passive: true }); // ★重要：preventDefaultしない
 
-cardEl.addEventListener("touchend", () => {
-  clearTimeout(pressTimer);
+				cardEl.addEventListener("touchend", () => {
+					clearTimeout(pressTimer);
 
-  // 短タップ＝購入
-  if (!longPress) {
-    addShopCardToPlayer(index);
-  }
-});
+					// 短タップ＝購入
+					if (!longPress) {
+						addShopCardToPlayer(index);
+					}
+				});
 
-cardEl.addEventListener("touchcancel", () => {
-  clearTimeout(pressTimer);
-});
+				cardEl.addEventListener("touchcancel", () => {
+					clearTimeout(pressTimer);
+				});
 
-    shopDiv.appendChild(cardEl);
-  });
-}
+				shopDiv.appendChild(cardEl);
+			});
+		}
 
-// モーダル表示関数
-function showCardModal(card) {
-  const modal = document.createElement("div");
-  modal.style.position = "fixed";
-  modal.style.top = 0;
-  modal.style.left = 0;
-  modal.style.width = "100%";
-  modal.style.height = "100%";
-  modal.style.background = "rgba(0,0,0,0.6)";
-  modal.style.display = "flex";
-  modal.style.justifyContent = "center";
-  modal.style.alignItems = "center";
-  modal.style.zIndex = 2000;
+		// モーダル表示関数
+		function showCardModal(card) {
+			const modal = document.createElement("div");
+			modal.style.position = "fixed";
+			modal.style.top = 0;
+			modal.style.left = 0;
+			modal.style.width = "100%";
+			modal.style.height = "100%";
+			modal.style.background = "rgba(0,0,0,0.6)";
+			modal.style.display = "flex";
+			modal.style.justifyContent = "center";
+			modal.style.alignItems = "center";
+			modal.style.zIndex = 2000;
 
-  const cardView = document.createElement("div");
-  cardView.style.width = "70%";
-  cardView.style.maxWidth = "400px";
-  cardView.style.background = "#fff";
-  cardView.style.borderRadius = "12px";
-  cardView.style.padding = "16px";
-  cardView.style.textAlign = "center";
-  cardView.style.boxShadow = "0 8px 16px rgba(0,0,0,0.5)";
+			const cardView = document.createElement("div");
+			cardView.style.width = "70%";
+			cardView.style.maxWidth = "400px";
+			cardView.style.background = "#fff";
+			cardView.style.borderRadius = "12px";
+			cardView.style.padding = "16px";
+			cardView.style.textAlign = "center";
+			cardView.style.boxShadow = "0 8px 16px rgba(0,0,0,0.5)";
 
-  cardView.innerHTML = `
+			cardView.innerHTML = `
     <div style="font-size:24px;font-weight:bold;">${card.name}</div>
     <img src="${card.image || ''}" style="width:100%;border-radius:8px;margin:10px 0;">
     <div style="font-size:16px;margin-bottom:6px;">コスト: ${card.cost}</div>
@@ -785,12 +784,12 @@ function showCardModal(card) {
     <div style="font-size:12px;margin-top:6px;">残り: ${card.stock}</div>
   `;
 
-  modal.appendChild(cardView);
-  document.body.appendChild(modal);
+			modal.appendChild(cardView);
+			document.body.appendChild(modal);
 
-  // タップで閉じる
-  modal.addEventListener("click", () => modal.remove());
-}
+			// タップで閉じる
+			modal.addEventListener("click", () => modal.remove());
+		}
 
 		function renderTargetPlayerSelect(players) {
 			const select = document.getElementById("targetPlayerSelect");
@@ -966,8 +965,8 @@ function showCardModal(card) {
 			const block = document.createElement("div");
 			block.className = "shopFieldBlock";
 
-const fieldHtml = fieldCards.length
-  ? fieldCards.map((card, i) => `
+			const fieldHtml = fieldCards.length
+				? fieldCards.map((card, i) => `
       <div class="cardButton ${card.type || ""}">
         <div class="cardCost">${card.cost}</div>
 
@@ -978,7 +977,7 @@ const fieldHtml = fieldCards.length
         <div class="cardName">${card.name}</div>
       </div>
     `).join("")
-  : `<span style="color:#888;">（場なし）</span>`;
+				: `<span style="color:#888;">（場なし）</span>`;
 
 			const trashHtml = trashCards.length
 				? trashCards.map(card => `
@@ -1005,25 +1004,25 @@ const fieldHtml = fieldCards.length
 
 			root.appendChild(block);
 
-// ★ shop画面：場カードの「画像だけ」タップで拡大
-block.querySelectorAll(".shopFieldImage").forEach(img => {
-  const index = img.dataset.index;
-  const card = fieldCards[index];
+			// ★ shop画面：場カードの「画像だけ」タップで拡大
+			block.querySelectorAll(".shopFieldImage").forEach(img => {
+				const index = img.dataset.index;
+				const card = fieldCards[index];
 
-  // クリック（PC）
-  img.addEventListener("click", e => {
-    e.stopPropagation();
-    showCardModal(card);
-  });
+				// クリック（PC）
+				img.addEventListener("click", e => {
+					e.stopPropagation();
+					showCardModal(card);
+				});
 
-  // タッチ（iPad / iPhone）
-  img.addEventListener("touchend", e => {
-    e.preventDefault();
-    e.stopPropagation();
-    showCardModal(card);
-  });
-});
-			
+				// タッチ（iPad / iPhone）
+				img.addEventListener("touchend", e => {
+					e.preventDefault();
+					e.stopPropagation();
+					showCardModal(card);
+				});
+			});
+
 			block.querySelectorAll(".shopFieldCards").forEach(container => {
 				container.scrollTo({
 					left: container.scrollWidth,
@@ -1041,11 +1040,11 @@ block.querySelectorAll(".shopFieldImage").forEach(img => {
 
 			const players = Object.entries(playersData)
 				.filter(([pid]) => pid !== "shop")
-.sort((a, b) => {
-  if (a[1].order == null) return 1;
-  if (b[1].order == null) return -1;
-  return a[1].order - b[1].order;
-})
+				.sort((a, b) => {
+					if (a[1].order == null) return 1;
+					if (b[1].order == null) return -1;
+					return a[1].order - b[1].order;
+				})
 				.map(([pid]) => pid);
 
 			const currentIndex = players.indexOf(pv_playerId);
@@ -1276,154 +1275,154 @@ block.querySelectorAll(".shopFieldImage").forEach(img => {
 			});
 		}
 
-let tempOrder = [];
+		let tempOrder = [];
 
-function loadOrderEditor(players) {
-  tempOrder = Object.keys(players)
-    .filter(p => p !== "shop")
-    .sort((a, b) => (players[a].order ?? 999) - (players[b].order ?? 999));
+		function loadOrderEditor(players) {
+			tempOrder = Object.keys(players)
+				.filter(p => p !== "shop")
+				.sort((a, b) => (players[a].order ?? 999) - (players[b].order ?? 999));
 
-  renderOrderEditor();
-}
+			renderOrderEditor();
+		}
 
-function renderOrderEditor() {
-  const div = document.getElementById("orderList");
-  div.innerHTML = "";
+		function renderOrderEditor() {
+			const div = document.getElementById("orderList");
+			div.innerHTML = "";
 
-  tempOrder.forEach((pid, i) => {
-    const row = document.createElement("div");
-    row.textContent = `${i + 1}. ${pid} `;
+			tempOrder.forEach((pid, i) => {
+				const row = document.createElement("div");
+				row.textContent = `${i + 1}. ${pid} `;
 
-    const up = document.createElement("button");
-    up.textContent = "↑";
-    up.addEventListener("click", () => moveOrderUp(i));
+				const up = document.createElement("button");
+				up.textContent = "↑";
+				up.addEventListener("click", () => moveOrderUp(i));
 
-    const down = document.createElement("button");
-    down.textContent = "↓";
-    down.addEventListener("click", () => moveOrderDown(i));
+				const down = document.createElement("button");
+				down.textContent = "↓";
+				down.addEventListener("click", () => moveOrderDown(i));
 
-    row.appendChild(up);
-    row.appendChild(down);
-    div.appendChild(row);
-  });
-}
+				row.appendChild(up);
+				row.appendChild(down);
+				div.appendChild(row);
+			});
+		}
 
-function moveOrderUp(i) {
-  if (i === 0) return;
-  [tempOrder[i - 1], tempOrder[i]] =
-    [tempOrder[i], tempOrder[i - 1]];
-  renderOrderEditor();
-}
+		function moveOrderUp(i) {
+			if (i === 0) return;
+			[tempOrder[i - 1], tempOrder[i]] =
+				[tempOrder[i], tempOrder[i - 1]];
+			renderOrderEditor();
+		}
 
-function moveOrderDown(i) {
-  if (i === tempOrder.length - 1) return;
-  [tempOrder[i + 1], tempOrder[i]] =
-    [tempOrder[i], tempOrder[i + 1]];
-  renderOrderEditor();
-}
+		function moveOrderDown(i) {
+			if (i === tempOrder.length - 1) return;
+			[tempOrder[i + 1], tempOrder[i]] =
+				[tempOrder[i], tempOrder[i + 1]];
+			renderOrderEditor();
+		}
 
-async function savePlayerOrder() {
-  const updates = {};
+		async function savePlayerOrder() {
+			const updates = {};
 
-  tempOrder.forEach((pid, index) => {
-    updates[`players/${pid}/order`] = index;
-  });
+			tempOrder.forEach((pid, index) => {
+				updates[`players/${pid}/order`] = index;
+			});
 
-  updates["turn/current"] = tempOrder[0];
-  updates["turn/orderLocked"] = true;
+			updates["turn/current"] = tempOrder[0];
+			updates["turn/orderLocked"] = true;
 
-  await update(roomRef, updates);
+			await update(roomRef, updates);
 
-  document.getElementById("orderEditor").style.display = "none";
-  alert("順番を確定しました");
-}
+			document.getElementById("orderEditor").style.display = "none";
+			alert("順番を確定しました");
+		}
 
-function renderPlayerShop(cards) {
-  const list = document.getElementById("playerShopList");
-  if (!list) return;
+		function renderPlayerShop(cards) {
+			const list = document.getElementById("playerShopList");
+			if (!list) return;
 
-  list.innerHTML = "";
+			list.innerHTML = "";
 
-  cards.forEach(card => {
-    const div = document.createElement("div");
-    div.className = "playerShopItem";
+			cards.forEach(card => {
+				const div = document.createElement("div");
+				div.className = "playerShopItem";
 
-    const img = document.createElement("img");
-    img.src = card.image || "";
+				const img = document.createElement("img");
+				img.src = card.image || "";
 
-    // 画像タップで拡大（既存仕様）
-    img.addEventListener("touchend", (e) => {
-      e.stopPropagation();
-      showCardModal(card);
-    }, { passive: true });
+				// 画像タップで拡大（既存仕様）
+				img.addEventListener("touchend", (e) => {
+					e.stopPropagation();
+					showCardModal(card);
+				}, { passive: true });
 
-    const name = document.createElement("div");
-    name.className = "name";
-    name.textContent = card.name;
+				const name = document.createElement("div");
+				name.className = "name";
+				name.textContent = card.name;
 
-    const text = document.createElement("div");
-    text.className = "cardText";
-    text.innerHTML = card.text
-      ? card.text.replace(/\n/g, "<br>")
-      : "";
+				const text = document.createElement("div");
+				text.className = "cardText";
+				text.innerHTML = card.text
+					? card.text.replace(/\n/g, "<br>")
+					: "";
 
-    const cost = document.createElement("div");
-    cost.className = "cost";
-    cost.textContent = `💰${card.cost}`;
+				const cost = document.createElement("div");
+				cost.className = "cost";
+				cost.textContent = `💰${card.cost}`;
 
-    div.appendChild(img);
-    div.appendChild(name);
-    div.appendChild(text);   // ← ★ 効果文を追加
-    div.appendChild(cost);
+				div.appendChild(img);
+				div.appendChild(name);
+				div.appendChild(text);   // ← ★ 効果文を追加
+				div.appendChild(cost);
 
-    list.appendChild(div);
-  });
-}
+				list.appendChild(div);
+			});
+		}
 
-async function kickPlayer(playerId) {
-  if (!isShop) return;
+		async function kickPlayer(playerId) {
+			if (!isShop) return;
 
-  if (!confirm(`${playerId} を退室させますか？`)) return;
+			if (!confirm(`${playerId} を退室させますか？`)) return;
 
-  const updates = {};
-  updates[`players/${playerId}`]  = null;
-  updates[`decks/${playerId}`]    = null;
-  updates[`hands/${playerId}`]    = null;
-  updates[`fields/${playerId}`]   = null;
-  updates[`discards/${playerId}`] = null;
-  updates[`trashes/${playerId}`]  = null;
+			const updates = {};
+			updates[`players/${playerId}`] = null;
+			updates[`decks/${playerId}`] = null;
+			updates[`hands/${playerId}`] = null;
+			updates[`fields/${playerId}`] = null;
+			updates[`discards/${playerId}`] = null;
+			updates[`trashes/${playerId}`] = null;
 
-  // ▼ ターン中プレイヤーだった場合の保険
-  const turnSnap = await get(ref(db, `rooms/${roomId}/turn/current`));
-  const current = turnSnap.val();
+			// ▼ ターン中プレイヤーだった場合の保険
+			const turnSnap = await get(ref(db, `rooms/${roomId}/turn/current`));
+			const current = turnSnap.val();
 
-  if (current === playerId) {
-    const playersSnap = await get(ref(db, `rooms/${roomId}/players`));
-    const players = Object.keys(playersSnap.val() || {})
-      .filter(p => p !== "shop" && p !== playerId);
+			if (current === playerId) {
+				const playersSnap = await get(ref(db, `rooms/${roomId}/players`));
+				const players = Object.keys(playersSnap.val() || {})
+					.filter(p => p !== "shop" && p !== playerId);
 
-    updates["turn/current"] = players[0] ?? null;
-  }
+				updates["turn/current"] = players[0] ?? null;
+			}
 
-  await update(roomRef, updates);
+			await update(roomRef, updates);
 
-  showToast(`${playerId} を退室させました`);
-}
+			showToast(`${playerId} を退室させました`);
+		}
 
-function renderExitPlayerList(players) {
-  const select = document.getElementById("exitPlayerSelect");
-  select.innerHTML = "";
+		function renderExitPlayerList(players) {
+			const select = document.getElementById("exitPlayerSelect");
+			select.innerHTML = "";
 
-  Object.keys(players).forEach(pid => {
-    if (pid === "shop") return;
+			Object.keys(players).forEach(pid => {
+				if (pid === "shop") return;
 
-    const opt = document.createElement("option");
-    opt.value = pid;       // ★ playerId
-    opt.textContent = pid;
-    select.appendChild(opt);
-  });
-}
-		
+				const opt = document.createElement("option");
+				opt.value = pid;       // ★ playerId
+				opt.textContent = pid;
+				select.appendChild(opt);
+			});
+		}
+
 		watchVictoryPoints();
 		watchActionPoints();
 		watchDrawPoints();
