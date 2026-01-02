@@ -12,7 +12,7 @@
 	<!-- ■    画面構成              ■ -->
 	<!-- ■■■■■■■■■■■■■■■■■■■■■■■■■■■ -->
 	<div>
-		【Ver：119】
+		【Ver：120】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -40,6 +40,15 @@
 		<div id="field"></div>
 	</div>
 	<div id="hand"></div>
+<div id="exitControl">
+  <select id="exitPlayerSelect">
+    <!-- プレイヤー一覧 -->
+  </select>
+
+  <button id="exitPlayerBtn">
+    選択したプレイヤーを退室
+  </button>
+</div>
 	<div id="shopControl">
 		追加先：
 		<select id="targetPlayerSelect"></select>
@@ -306,29 +315,10 @@ btn.addEventListener("touchcancel", () => {
     return;
   }
 
+renderExitPlayerList(players);
+			
   // shop画面用
-  div.innerHTML = "<h3>プレイヤー管理</h3>";
-
-  Object.keys(players).forEach(pid => {
-    if (pid === "shop") return;
-
-    const row = document.createElement("div");
-    row.style.display = "flex";
-    row.style.alignItems = "center";
-    row.style.gap = "8px";
-    row.style.marginBottom = "6px";
-
-    const name = document.createElement("span");
-    name.textContent = pid;
-
-    const btn = document.createElement("button");
-    btn.textContent = "退室";
-    btn.onclick = () => kickPlayer(pid);
-
-    row.appendChild(name);
-    row.appendChild(btn);
-    div.appendChild(row);
-  });
+div.innerHTML = "<h3>プレイヤー管理</h3><p>退室させるプレイヤーを選択してください</p>";
 
 			if (isShop) {
 				renderTargetPlayerSelect(players);
@@ -504,6 +494,15 @@ onValue(ref(db, `rooms/${roomId}/shopDeck`), snap => {
 document
   .getElementById("saveOrderBtn")
   .addEventListener("click", savePlayerOrder);
+
+document.getElementById("exitPlayerBtn").onclick = () => {
+  const playerId =
+    document.getElementById("exitPlayerSelect").value;
+
+  if (!playerId) return;
+
+  kickPlayer(playerId);
+};
 		
 		if (isShop) {
 			document.getElementById("deckImage").style.pointerEvents = "none";
@@ -1409,6 +1408,20 @@ async function kickPlayer(playerId) {
   await update(roomRef, updates);
 
   showToast(`${playerId} を退室させました`);
+}
+
+function renderExitPlayerList(players) {
+  const select = document.getElementById("exitPlayerSelect");
+  select.innerHTML = "";
+
+  Object.keys(players).forEach(pid => {
+    if (pid === "shop") return;
+
+    const opt = document.createElement("option");
+    opt.value = pid;       // ★ playerId
+    opt.textContent = pid;
+    select.appendChild(opt);
+  });
 }
 		
 		watchVictoryPoints();
