@@ -1037,11 +1037,11 @@
 
 			// 場・手札 → 捨て札
 			const fieldSnap = await get(pv_db_field);
-			const handSnap = await get(pv_db_hand);      // ★追加
+			const handSnap = await get(pv_db_hand); 
 			const discardSnap = await get(pv_db_discard);
 
 			const field = fieldSnap.val() || [];
-			const hand = handSnap.val() || [];           // ★追加
+			const hand = handSnap.val() || []; 
 			const discard = discardSnap.val() || [];
 
 			// 場を捨て札へ
@@ -1056,7 +1056,7 @@
 
 			await update(roomRef, {
 				[`fields/${pv_playerId}`]: [],
-				[`hands/${pv_playerId}`]: [],                 // ★追加
+				[`hands/${pv_playerId}`]: [], 
 				[`discards/${pv_playerId}`]: discard,
 				"turn/current": nextPlayer,
 				"turn/actions": 1,
@@ -1082,17 +1082,14 @@
 
 			info.textContent = `現在のターン：${currentTurnPlayer}`;
 
-			// shop画面はターン制の影響を受けない
 			if (isShop) return;
 
 			const disabled = !isMyTurn();
 
-			// デッキ
 			const deck = document.getElementById("deckImage");
 			deck.style.pointerEvents = disabled ? "none" : "auto";
 			deck.style.opacity = disabled ? "0.4" : "1";
 
-			// 手札カードだけ制御
 			document.querySelectorAll("#hand .cardButton").forEach(el => {
 				el.style.pointerEvents = disabled ? "none" : "auto";
 				el.style.opacity = disabled ? "0.6" : "1";
