@@ -7,7 +7,7 @@
 </head>
 <body>
 	<div>
-		【Ver：125】
+		【Ver：126】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -341,15 +341,22 @@
 			const div = document.getElementById("trash");
 			div.innerHTML = "";
 
-			trash.forEach(card => {
-				const el = document.createElement("div");
-				el.className = `cardButton ${card.type || ""}`;
-				el.innerHTML = `
-	      <div class="cardCost">${card.cost}</div>
-	      <div class="cardName">${card.name}</div>
-	    `;
-				div.appendChild(el);
-			});
+trash.forEach((card, index) => {
+  const el = document.createElement("div");
+  el.className = `cardButton ${card.type || ""}`;
+  el.innerHTML = `
+    <div class="cardCost">${card.cost}</div>
+    <div class="cardName">${card.name}</div>
+  `;
+
+  el.onclick = () => {
+    if (isReturnHandMode) {
+      returnTrashCardToHand(index);
+    }
+  };
+
+  div.appendChild(el);
+});
 		});
 
 		onValue(pv_db_deck, snap => {
@@ -1404,6 +1411,29 @@
 				select.appendChild(opt);
 			});
 		}
+
+async function returnTrashCardToHand(cardIndex) {
+  if (!isMyTurn()) {
+    alert("あなたのターンではありません");
+    return;
+  }
+
+  const trashSnap = await get(pv_db_trash);
+  const handSnap  = await get(pv_db_hand);
+
+  let trash = trashSnap.val() || [];
+  let hand  = handSnap.val() || [];
+
+  if (!trash[cardIndex]) return;
+
+  const card = trash.splice(cardIndex, 1)[0];
+  hand.push(card); // ★ 手札の最後に戻す
+
+  await update(roomRef, {
+    [`trashes/${pv_playerId}`]: trash,
+    [`hands/${pv_playerId}`]: hand
+  });
+}
 
 		watchVictoryPoints();
 		watchActionPoints();
