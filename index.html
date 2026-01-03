@@ -9,7 +9,7 @@
 
 <body>
 	<div>
-		【Ver：129】
+		【Ver：130】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -388,13 +388,20 @@
 			const list = document.getElementById("discardList");
 			list.innerHTML = "";
 
-			discard.forEach(card => {
+			discard.forEach((card, index) => {
 				const el = document.createElement("div");
 				el.className = `cardButton ${card.type || ""}`;
 				el.innerHTML = `
       <div class="cardCost">${card.cost}</div>
       <div class="cardName">${card.name}</div>
     `;
+
+				el.onclick = () => {
+					if (isReturnHandMode){
+						returnDiscardToHand(index)
+					}
+				};
+
 				list.appendChild(el);
 			});
 		});
@@ -1480,6 +1487,30 @@
 				[`hands/${pv_playerId}`]: hand
 			});
 		}
+
+		async function returnDiscardToHand(cardIndex) {
+			if (!isMyTurn()) {
+				alert("あなたのターンではありません");
+				return;
+			}
+
+			const discardSnap = await get(pv_db_discard);
+			const handSnap = await get(pv_db_hand);
+
+			let discard = discardSnap.val() || [];
+			let hand = handSnap.val() || [];
+
+			if (!discard[cardIndex]) return;
+
+			const card = discard.splice(cardIndex, 1)[0];
+			hand.push(card);
+
+			await update(roomRef, {
+				[`discards/${pv_playerId}`]: discard,
+				[`hands/${pv_playerId}`]: hand
+			});
+		}
+
 
 		function clearModes() {
 			isTrashMode = false;
