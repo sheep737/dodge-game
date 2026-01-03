@@ -18,6 +18,7 @@
 	</div>
 	<div>
 		<button id="trashMode">破棄モード：OFF</button>
+		<button id="returnDeckMode">山札戻し：OFF</button>
 		<button id="returnHandMode">手札戻し：OFF</button>
 		<button id="returnFieldMode">場戻し：OFF</button>
 		<button id="discardMode">捨てるモード：OFF</button>
@@ -428,6 +429,7 @@ trash.forEach((card, index) => {
 
 		let isTrashMode = false;
 		let isDiscardMode = false;
+		let isReturnDeckMode = false;
 		let isReturnHandMode = false;
 		let isReturnFieldMode = false;
 
@@ -444,9 +446,25 @@ trash.forEach((card, index) => {
 			}
 
 			document.body.classList.toggle("trashMode", isTrashMode);
-
 			document.getElementById("trashMode").textContent =
 				`破棄モード：${isTrashMode ? "ON" : "OFF"}`;
+		});
+
+		document.getElementById("returnDeckMode").addEventListener("click", () => {
+			isReturnDeckMode = !isReturnDeckMode;
+
+			if (isReturnDeckMode) {
+				isTrashMode = false;
+				isReturnFieldMode = false;
+
+				document.body.classList.remove("trashMode", "returnFieldMode");
+				document.getElementById("trashMode").textContent = "破棄モード：OFF";
+				document.getElementById("returnFieldMode").textContent = "場戻し：OFF";
+			}
+
+			document.body.classList.toggle("returnDeckMode", isReturnDeckMode);
+			document.getElementById("returnDeckMode").textContent =
+				`山札戻し：${isReturnDeckMode ? "ON" : "OFF"}`;
 		});
 
 		document.getElementById("returnHandMode").addEventListener("click", () => {
@@ -470,7 +488,6 @@ trash.forEach((card, index) => {
 			isReturnFieldMode = !isReturnFieldMode;
 
 			if (isReturnFieldMode) {
-				// 他モードをOFF
 				isTrashMode = false;
 				isReturnHandMode = false;
 
