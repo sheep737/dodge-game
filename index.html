@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
 	<div>
-		【Ver：127】
+		【Ver：128】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -220,15 +222,15 @@
 
 					if (moved || longPress) return;
 
-if (isTrashMode) {
-    trashCard(index);
-} else if (isDiscardMode) {
-    discardCard(index);
-} else if (isReturnHandMode) {
-    returnHandCardToDeck(index);
-} else {
-    playCard(index);
-}
+					if (isTrashMode) {
+						trashCard(index);
+					} else if (isDiscardMode) {
+						discardCard(index);
+					} else if (isReturnDeckMode) {
+						returnHandCardToDeck(index);
+					} else {
+						playCard(index);
+					}
 				});
 
 				// キャンセル
@@ -343,22 +345,22 @@ if (isTrashMode) {
 			const div = document.getElementById("trash");
 			div.innerHTML = "";
 
-trash.forEach((card, index) => {
-  const el = document.createElement("div");
-  el.className = `cardButton ${card.type || ""}`;
-  el.innerHTML = `
+			trash.forEach((card, index) => {
+				const el = document.createElement("div");
+				el.className = `cardButton ${card.type || ""}`;
+				el.innerHTML = `
     <div class="cardCost">${card.cost}</div>
     <div class="cardName">${card.name}</div>
   `;
 
-  el.onclick = () => {
-    if (isReturnHandMode) {
-      returnTrashCardToHand(index);
-    }
-  };
+				el.onclick = () => {
+					if (isReturnHandMode) {
+						returnTrashCardToHand(index);
+					}
+				};
 
-  div.appendChild(el);
-});
+				div.appendChild(el);
+			});
 		});
 
 		onValue(pv_db_deck, snap => {
@@ -512,29 +514,29 @@ trash.forEach((card, index) => {
 			kickPlayer(playerId);
 		};
 
-document.getElementById("discardMode").addEventListener("click", () => {
-    isDiscardMode = !isDiscardMode;
+		document.getElementById("discardMode").addEventListener("click", () => {
+			isDiscardMode = !isDiscardMode;
 
-    if (isDiscardMode) {
-        isTrashMode = false;
-        isReturnHandMode = false;
-        isReturnFieldMode = false;
+			if (isDiscardMode) {
+				isTrashMode = false;
+				isReturnHandMode = false;
+				isReturnFieldMode = false;
 
-        document.body.classList.remove(
-            "trashMode",
-            "returnHandMode",
-            "returnFieldMode"
-        );
+				document.body.classList.remove(
+					"trashMode",
+					"returnHandMode",
+					"returnFieldMode"
+				);
 
-        document.getElementById("trashMode").textContent = "破棄モード：OFF";
-        document.getElementById("returnHandMode").textContent = "手札戻し：OFF";
-        document.getElementById("returnFieldMode").textContent = "場戻し：OFF";
-    }
+				document.getElementById("trashMode").textContent = "破棄モード：OFF";
+				document.getElementById("returnHandMode").textContent = "手札戻し：OFF";
+				document.getElementById("returnFieldMode").textContent = "場戻し：OFF";
+			}
 
-    document.body.classList.toggle("discardMode", isDiscardMode);
-    document.getElementById("discardMode").textContent =
-        `捨てるモード：${isDiscardMode ? "ON" : "OFF"}`;
-});
+			document.body.classList.toggle("discardMode", isDiscardMode);
+			document.getElementById("discardMode").textContent =
+				`捨てるモード：${isDiscardMode ? "ON" : "OFF"}`;
+		});
 
 		if (isShop) {
 			document.getElementById("deckImage").style.pointerEvents = "none";
@@ -1089,11 +1091,11 @@ document.getElementById("discardMode").addEventListener("click", () => {
 
 			// 場・手札 → 捨て札
 			const fieldSnap = await get(pv_db_field);
-			const handSnap = await get(pv_db_hand); 
+			const handSnap = await get(pv_db_hand);
 			const discardSnap = await get(pv_db_discard);
 
 			const field = fieldSnap.val() || [];
-			const hand = handSnap.val() || []; 
+			const hand = handSnap.val() || [];
 			const discard = discardSnap.val() || [];
 
 			// 場を捨て札へ
@@ -1108,7 +1110,7 @@ document.getElementById("discardMode").addEventListener("click", () => {
 
 			await update(roomRef, {
 				[`fields/${pv_playerId}`]: [],
-				[`hands/${pv_playerId}`]: [], 
+				[`hands/${pv_playerId}`]: [],
 				[`discards/${pv_playerId}`]: discard,
 				"turn/current": nextPlayer,
 				"turn/actions": 1,
@@ -1457,68 +1459,68 @@ document.getElementById("discardMode").addEventListener("click", () => {
 			});
 		}
 
-async function returnTrashCardToHand(cardIndex) {
-  if (!isMyTurn()) {
-    alert("あなたのターンではありません");
-    return;
-  }
+		async function returnTrashCardToHand(cardIndex) {
+			if (!isMyTurn()) {
+				alert("あなたのターンではありません");
+				return;
+			}
 
-  const trashSnap = await get(pv_db_trash);
-  const handSnap  = await get(pv_db_hand);
+			const trashSnap = await get(pv_db_trash);
+			const handSnap = await get(pv_db_hand);
 
-  let trash = trashSnap.val() || [];
-  let hand  = handSnap.val() || [];
+			let trash = trashSnap.val() || [];
+			let hand = handSnap.val() || [];
 
-  if (!trash[cardIndex]) return;
+			if (!trash[cardIndex]) return;
 
-  const card = trash.splice(cardIndex, 1)[0];
-  hand.push(card); // ★ 手札の最後に戻す
+			const card = trash.splice(cardIndex, 1)[0];
+			hand.push(card); // ★ 手札の最後に戻す
 
-  await update(roomRef, {
-    [`trashes/${pv_playerId}`]: trash,
-    [`hands/${pv_playerId}`]: hand
-  });
-}
+			await update(roomRef, {
+				[`trashes/${pv_playerId}`]: trash,
+				[`hands/${pv_playerId}`]: hand
+			});
+		}
 
-function clearModes() {
-  isTrashMode = false;
-  isDiscardMode = false;
-  isReturnHandMode = false;
-}
+		function clearModes() {
+			isTrashMode = false;
+			isDiscardMode = false;
+			isReturnHandMode = false;
+		}
 
-function enterDiscardMode() {
-  clearModes();
-  isDiscardMode = true;
-  document.body.classList.add("discardMode");
-}
+		function enterDiscardMode() {
+			clearModes();
+			isDiscardMode = true;
+			document.body.classList.add("discardMode");
+		}
 
-function exitDiscardMode() {
-  isDiscardMode = false;
-  document.body.classList.remove("discardMode");
-}
+		function exitDiscardMode() {
+			isDiscardMode = false;
+			document.body.classList.remove("discardMode");
+		}
 
-async function discardCard(cardIndex) {
-  if (!isMyTurn()) {
-    alert("あなたのターンではありません");
-    return;
-  }
+		async function discardCard(cardIndex) {
+			if (!isMyTurn()) {
+				alert("あなたのターンではありません");
+				return;
+			}
 
-  const handSnap = await get(pv_db_hand);
-  const discardSnap = await get(pv_db_discard);
+			const handSnap = await get(pv_db_hand);
+			const discardSnap = await get(pv_db_discard);
 
-  let hand = handSnap.val() || [];
-  let discard = discardSnap.val() || [];
+			let hand = handSnap.val() || [];
+			let discard = discardSnap.val() || [];
 
-  if (!hand[cardIndex]) return;
+			if (!hand[cardIndex]) return;
 
-  const card = hand.splice(cardIndex, 1)[0];
-  discard.push(card);
+			const card = hand.splice(cardIndex, 1)[0];
+			discard.push(card);
 
-  await update(roomRef, {
-    [`hands/${pv_playerId}`]: hand,
-    [`discards/${pv_playerId}`]: discard
-  });
-}
+			await update(roomRef, {
+				[`hands/${pv_playerId}`]: hand,
+				[`discards/${pv_playerId}`]: discard
+			});
+		}
 
 		watchVictoryPoints();
 		watchActionPoints();
