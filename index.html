@@ -9,7 +9,7 @@
 
 <body>
 	<div>
-		【Ver：131】
+		【Ver：132】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -448,9 +448,8 @@
 				isReturnHandMode = false;
 				isReturnFieldMode = false;
 
-				document.body.classList.remove("returnHandMode", "returnFieldMode");
+				document.body.classList.remove("returnHandMode");
 				document.getElementById("returnHandMode").textContent = "手札戻し：OFF";
-				document.getElementById("returnFieldMode").textContent = "場戻し：OFF";
 			}
 
 			document.body.classList.toggle("trashMode", isTrashMode);
@@ -465,9 +464,8 @@
 				isTrashMode = false;
 				isReturnFieldMode = false;
 
-				document.body.classList.remove("trashMode", "returnFieldMode");
+				document.body.classList.remove("trashMode");
 				document.getElementById("trashMode").textContent = "破棄モード：OFF";
-				document.getElementById("returnFieldMode").textContent = "場戻し：OFF";
 			}
 
 			document.body.classList.toggle("returnDeckMode", isReturnDeckMode);
@@ -482,31 +480,13 @@
 				isTrashMode = false;
 				isReturnFieldMode = false;
 
-				document.body.classList.remove("trashMode", "returnFieldMode");
+				document.body.classList.remove("trashMode");
 				document.getElementById("trashMode").textContent = "破棄モード：OFF";
-				document.getElementById("returnFieldMode").textContent = "場戻し：OFF";
 			}
 
 			document.body.classList.toggle("returnHandMode", isReturnHandMode);
 			document.getElementById("returnHandMode").textContent =
 				`手札戻し：${isReturnHandMode ? "ON" : "OFF"}`;
-		});
-
-		document.getElementById("returnFieldMode").addEventListener("click", () => {
-			isReturnFieldMode = !isReturnFieldMode;
-
-			if (isReturnFieldMode) {
-				isTrashMode = false;
-				isReturnHandMode = false;
-
-				document.body.classList.remove("trashMode", "returnHandMode");
-				document.getElementById("trashMode").textContent = "破棄モード：OFF";
-				document.getElementById("returnHandMode").textContent = "手札戻し：OFF";
-			}
-
-			document.body.classList.toggle("returnFieldMode", isReturnFieldMode);
-			document.getElementById("returnFieldMode").textContent =
-				`場戻し：${isReturnFieldMode ? "ON" : "OFF"}`;
 		});
 
 		document.getElementById("saveOrderBtn").addEventListener("click", savePlayerOrder);
@@ -530,13 +510,11 @@
 
 				document.body.classList.remove(
 					"trashMode",
-					"returnHandMode",
-					"returnFieldMode"
+					"returnHandMode"
 				);
 
 				document.getElementById("trashMode").textContent = "破棄モード：OFF";
 				document.getElementById("returnHandMode").textContent = "手札戻し：OFF";
-				document.getElementById("returnFieldMode").textContent = "場戻し：OFF";
 			}
 
 			document.body.classList.toggle("discardMode", isDiscardMode);
@@ -551,7 +529,6 @@
 			document.getElementById("returnToDeck").style.display = "none";
 			document.getElementById("trashMode").style.display = "none";
 			document.getElementById("returnHandMode").style.display = "none";
-			document.getElementById("returnFieldMode").style.display = "none";
 			document.getElementById("topArea").style.display = "none";
 			document.getElementById("hand").style.display = "none";
 			document.getElementById("leaveRoom").style.display = "none";
