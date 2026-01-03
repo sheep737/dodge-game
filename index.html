@@ -9,7 +9,7 @@
 
 <body>
 	<div>
-		【Ver：128】
+		【Ver：129】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -1261,8 +1261,7 @@
 
 			const card = hand.splice(cardIndex, 1)[0];
 
-			// ★ 山札の一番下に戻す
-			deck.push(card);
+			deck.unshift(card);
 
 			await update(roomRef, {
 				[`hands/${pv_playerId}`]: hand,
