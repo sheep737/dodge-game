@@ -9,7 +9,7 @@
 
 <body>
 	<div>
-		【Ver：132】
+		【Ver：133】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -23,6 +23,7 @@
 		<button id="returnDeckMode">山札戻し：OFF</button>
 		<button id="returnHandMode">手札戻し：OFF</button>
 		<button id="discardMode">捨てるモード：OFF</button>
+		<button id="returnSupplyMode">サプライ戻し：OFF</button>
 	</div>
 	<div id="playerList"></div>
 	<div>
@@ -227,6 +228,8 @@
 						discardCard(index);
 					} else if (isReturnDeckMode) {
 						returnHandCardToDeck(index);
+					} else if (isReturnSupplyMode) {
+    					returnHandCardToSupply(index);
 					} else {
 						playCard(index);
 					}
@@ -440,6 +443,7 @@
 		let isReturnDeckMode = false;
 		let isReturnHandMode = false;
 		let isReturnFieldMode = false;
+		let isReturnSupplyMode = false;
 
 		document.getElementById("trashMode").addEventListener("click", () => {
 			isTrashMode = !isTrashMode;
@@ -521,6 +525,18 @@
 			document.getElementById("discardMode").textContent =
 				`捨てるモード：${isDiscardMode ? "ON" : "OFF"}`;
 		});
+
+document.getElementById("returnSupplyMode").addEventListener("click", () => {
+    if (isReturnSupplyMode) {
+        clearModes();
+        return;
+    }
+
+    clearModes();
+    isReturnSupplyMode = true;
+    document.body.classList.add("returnSupplyMode");
+    document.getElementById("returnSupplyMode").textContent = "サプライ戻し：ON";
+});
 
 		if (isShop) {
 			document.getElementById("deckImage").style.pointerEvents = "none";
@@ -1492,6 +1508,7 @@
 			isTrashMode = false;
 			isDiscardMode = false;
 			isReturnHandMode = false;
+			isReturnSupplyMode = false;
 		}
 
 		function enterDiscardMode() {
@@ -1527,6 +1544,18 @@
 				[`discards/${pv_playerId}`]: discard
 			});
 		}
+
+function returnHandCardToSupply(index) {
+    const card = hand.splice(index, 1)[0];
+    if (!card) return;
+
+    shopDeck.unshift(card);
+
+    update(ref(db, `rooms/${roomId}/hand/${playerId}`), hand);
+    update(ref(db, `rooms/${roomId}/shopDeck`), shopDeck);
+
+    clearModes();
+}
 
 		watchVictoryPoints();
 		watchActionPoints();
