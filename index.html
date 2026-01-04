@@ -9,7 +9,7 @@
 
 <body>
 	<div>
-		【Ver：137】
+		【Ver：136】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -193,6 +193,7 @@
   <div class="cardCost">${card.cost}</div>
   <img class="cardImage" src="${card.image || ''}">
   <div class="cardName">${card.name}</div>
+  <div class="cardText">${card.text.replace(/\n/g, "<br>")}</div>
 `;
 				let pressTimer = null;
 				let longPress = false;
