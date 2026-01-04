@@ -9,7 +9,7 @@
 
 <body>
 	<div>
-		【Ver：134】
+		【Ver：135】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -1566,29 +1566,43 @@ async function returnHandCardToSupply(cardIndex) {
         return;
     }
 
-    // Firebase から最新状態を取得
     const handSnap = await get(pv_db_hand);
     const shopSnap = await get(pv_db_shopDeck);
 
     let hand = handSnap.val() || [];
-    let shopCards = shopSnap.val() || [];
+    let shopDeck = shopSnap.val() || [];
 
-    if (!hand[cardIndex]) return;
+    const card = hand[cardIndex];
+    if (!card) return;
 
-    // 手札 → サプライ
-    const card = hand.splice(cardIndex, 1)[0];
-    shopCards.unshift({
-        ...card,
-        stock: (card.stock ?? 0) + 1
-    });
+    // 手札から削除
+    hand.splice(cardIndex, 1);
+
+    // 🔍 同名サプライを探す
+    const supply = shopDeck.find(s => s.name === card.name);
+
+    if (supply) {
+        // 既存サプライに戻す
+        supply.stock = (supply.stock || 0) + 1;
+    } else {
+        // 新規サプライとして追加
+        shopDeck.push({
+            name: card.name,
+            cost: card.cost,
+            image: card.image,
+            text: card.text,
+            type: card.type,
+            stock: 1
+        });
+    }
 
     await update(roomRef, {
         [`hands/${pv_playerId}`]: hand,
-        shopDeck: shopCards
+        shopDeck: shopDeck
     });
 
     clearModes();
-}	
+}
 
 		watchVictoryPoints();
 		watchActionPoints();
