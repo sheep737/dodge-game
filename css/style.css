@@ -392,6 +392,11 @@ body::before {
 	background: #eceff1;
 }
 
+.returnSupplyMode #hand .cardButton {
+    border-color: #00695c;
+    background: #e0f2f1;
+}
+
 @media (max-width: 600px) {
 
 	#topArea {
