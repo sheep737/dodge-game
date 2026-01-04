@@ -9,7 +9,7 @@
 
 <body>
 	<div>
-		【Ver：135】
+		【Ver：136】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -401,6 +401,8 @@
 				el.onclick = () => {
 					if (isReturnHandMode){
 						returnDiscardToHand(index)
+					} else if (isReturnSupplyMode) {
+        				returnDiscardCardToSupply(index);
 					}
 				};
 
@@ -1598,6 +1600,48 @@ async function returnHandCardToSupply(cardIndex) {
 
     await update(roomRef, {
         [`hands/${pv_playerId}`]: hand,
+        shopDeck: shopDeck
+    });
+
+    clearModes();
+}
+
+async function returnDiscardCardToSupply(cardIndex) {
+    if (!isMyTurn()) {
+        alert("あなたのターンではありません");
+        return;
+    }
+
+    const discardSnap = await get(pv_db_discard);
+    const shopSnap = await get(pv_db_shopDeck);
+
+    let discard = discardSnap.val() || [];
+    let shopDeck = shopSnap.val() || [];
+
+    const card = discard[cardIndex];
+    if (!card) return;
+
+    // 捨て札から削除
+    discard.splice(cardIndex, 1);
+
+    // 同名サプライを探す
+    const supply = shopDeck.find(s => s.name === card.name);
+
+    if (supply) {
+        supply.stock = (supply.stock || 0) + 1;
+    } else {
+        shopDeck.push({
+            name: card.name,
+            cost: card.cost,
+            image: card.image,
+            text: card.text,
+            type: card.type,
+            stock: 1
+        });
+    }
+
+    await update(roomRef, {
+        [`discards/${pv_playerId}`]: discard,
         shopDeck: shopDeck
     });
 
