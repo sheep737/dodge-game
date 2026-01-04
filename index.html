@@ -9,7 +9,7 @@
 
 <body>
 	<div>
-		【Ver：133】
+		【Ver：134】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -1504,12 +1504,27 @@ document.getElementById("returnSupplyMode").addEventListener("click", () => {
 		}
 
 
-		function clearModes() {
-			isTrashMode = false;
-			isDiscardMode = false;
-			isReturnHandMode = false;
-			isReturnSupplyMode = false;
-		}
+function clearModes() {
+    isTrashMode = false;
+    isDiscardMode = false;
+    isReturnHandMode = false;
+    isReturnDeckMode = false;
+    isReturnSupplyMode = false;
+
+    document.body.classList.remove(
+        "trashMode",
+        "discardMode",
+        "returnHandMode",
+        "returnDeckMode",
+        "returnSupplyMode"
+    );
+
+    document.getElementById("trashMode").textContent = "破棄モード：OFF";
+    document.getElementById("discardMode").textContent = "捨てるモード：OFF";
+    document.getElementById("returnHandMode").textContent = "手札戻し：OFF";
+    document.getElementById("returnDeckMode").textContent = "山札戻し：OFF";
+    document.getElementById("returnSupplyMode").textContent = "サプライ戻し：OFF";
+}
 
 		function enterDiscardMode() {
 			clearModes();
@@ -1545,17 +1560,35 @@ document.getElementById("returnSupplyMode").addEventListener("click", () => {
 			});
 		}
 
-function returnHandCardToSupply(index) {
-    const card = hand.splice(index, 1)[0];
-    if (!card) return;
+async function returnHandCardToSupply(cardIndex) {
+    if (!isMyTurn()) {
+        alert("あなたのターンではありません");
+        return;
+    }
 
-    shopDeck.unshift(card);
+    // Firebase から最新状態を取得
+    const handSnap = await get(pv_db_hand);
+    const shopSnap = await get(pv_db_shopDeck);
 
-    update(ref(db, `rooms/${roomId}/hand/${playerId}`), hand);
-    update(ref(db, `rooms/${roomId}/shopDeck`), shopDeck);
+    let hand = handSnap.val() || [];
+    let shopCards = shopSnap.val() || [];
+
+    if (!hand[cardIndex]) return;
+
+    // 手札 → サプライ
+    const card = hand.splice(cardIndex, 1)[0];
+    shopCards.unshift({
+        ...card,
+        stock: (card.stock ?? 0) + 1
+    });
+
+    await update(roomRef, {
+        [`hands/${pv_playerId}`]: hand,
+        shopDeck: shopCards
+    });
 
     clearModes();
-}
+}	
 
 		watchVictoryPoints();
 		watchActionPoints();
