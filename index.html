@@ -9,7 +9,7 @@
 
 <body>
 	<div>
-		【Ver：149】
+		【Ver：150】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -887,6 +887,17 @@ document.getElementById("returnSupplyMode").addEventListener("click", () => {
 				const card = shopCards[cardIndex];
 				if (!card || card.stock <= 0) return;
 
+				// ===== コイン取得 =====
+				const coinRef = ref(db, `rooms/${roomId}/turn/coins`);
+				const coinSnap = await get(coinRef);
+				let coins = coinSnap.val() ?? 0;
+
+				// ===== コストチェック =====
+				if (coins < card.cost) {
+					showToast("コインが足りません");
+					throw new Error("コイン不足");
+				}
+
 				const targetPlayer =
 					document.getElementById("targetPlayerSelect").value;
 
@@ -896,14 +907,16 @@ document.getElementById("returnSupplyMode").addEventListener("click", () => {
 
 				discard.push(card);
 				shopCards[cardIndex].stock -= 1;
+				coins -= card.cost;
 
 				await update(roomRef, {
 					[`discards/${targetPlayer}`]: discard,
-					shopDeck: shopCards
+					shopDeck: shopCards,
+            		"turn/coins": coins
 				});
 
 				// ★ 成功表示（非ブロッキング）
-				showToast(`${card.name} を購入`);
+				showToast(`${card.name} を購入（-${card.cost}）`);
 
 			} catch (e) {
 				cardEl.style.pointerEvents = "auto";
