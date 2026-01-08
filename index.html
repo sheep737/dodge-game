@@ -9,7 +9,7 @@
 
 <body>
 	<div>
-		【Ver：144】
+		【Ver：146】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -30,6 +30,7 @@
 		<span id="endTurnInfo"></span>
 	</div>
 	<div id="actionPoints">アクション：1</div>
+	<div id="coinPoints">コイン：0</div>
 	<div id="drawPoints">ドロー：0</div>
 	<div id="victoryPoints" style="margin-top:10px;font-weight:bold;">勝利点：0</div>
 	<div id="topArea">
@@ -1306,6 +1307,15 @@ document.getElementById("returnSupplyMode").addEventListener("click", () => {
 			});
 		}
 
+function watchCoinPoints() {
+	const div = document.getElementById("coinPoints");
+
+	onValue(ref(db, `rooms/${roomId}/turn/coins`), snap => {
+		const coins = snap.val() ?? 0;
+		div.textContent = `コイン：${coins}`;
+	});
+}
+		
 		function watchDrawPoints() {
 			const div = document.getElementById("drawPoints");
 
@@ -1654,6 +1664,7 @@ async function returnDiscardCardToSupply(cardIndex) {
 
 		watchVictoryPoints();
 		watchActionPoints();
+		watchCoinPoints();
 		watchDrawPoints();
 
 	</script>
