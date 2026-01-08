@@ -74,7 +74,7 @@ body::before {
 #shopList {
 	flex: 1;
 	display: grid;
-	grid-template-columns: repeat(5, 1fr);
+	grid-template-columns: repeat(6, 1fr);
 	/* PCは4枚 */
 	gap: 12px;
 	margin-top: 20px;
