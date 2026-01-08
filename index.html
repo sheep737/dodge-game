@@ -9,7 +9,7 @@
 
 <body>
 	<div>
-		【Ver：151】
+		【Ver：152】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -646,7 +646,7 @@ document.getElementById("returnSupplyMode").addEventListener("click", () => {
 			}
 
 			// ▼ ★ 財宝カード
-			if (card.type === "treasure") {
+			if (card.type === "treasure" || card.type === "action") {
 				coins += card.coin || 0;
 			}
 
