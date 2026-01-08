@@ -9,7 +9,7 @@
 
 <body>
 	<div>
-		【Ver：146】
+		【Ver：147】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -96,13 +96,13 @@
 
 		const roomId = "room1";
 		const initialDeck = [
-			{ name: "A_銅貨", cost: 0, text: "＋１コイン", type: "treasure", image: "copper.jpeg" },
-			{ name: "B_銅貨", cost: 0, text: "＋１コイン", type: "treasure", image: "copper.jpeg" },
-			{ name: "C_銅貨", cost: 0, text: "＋１コイン", type: "treasure", image: "copper.jpeg" },
-			{ name: "D_銅貨", cost: 0, text: "＋１コイン", type: "treasure", image: "copper.jpeg" },
-			{ name: "E_銅貨", cost: 0, text: "＋１コイン", type: "treasure", image: "copper.jpeg" },
-			{ name: "F_銅貨", cost: 0, text: "＋１コイン", type: "treasure", image: "copper.jpeg" },
-			{ name: "G_銅貨", cost: 0, text: "＋１コイン", type: "treasure", image: "copper.jpeg" },
+			{ name: "A_銅貨", cost: 0, text: "＋１コイン", coin: 1, type: "treasure", image: "copper.jpeg" },
+			{ name: "B_銅貨", cost: 0, text: "＋１コイン", coin: 1, type: "treasure", image: "copper.jpeg" },
+			{ name: "C_銅貨", cost: 0, text: "＋１コイン", coin: 1, type: "treasure", image: "copper.jpeg" },
+			{ name: "D_銅貨", cost: 0, text: "＋１コイン", coin: 1, type: "treasure", image: "copper.jpeg" },
+			{ name: "E_銅貨", cost: 0, text: "＋１コイン", coin: 1, type: "treasure", image: "copper.jpeg" },
+			{ name: "F_銅貨", cost: 0, text: "＋１コイン", coin: 1, type: "treasure", image: "copper.jpeg" },
+			{ name: "G_銅貨", cost: 0, text: "＋１コイン", coin: 1, type: "treasure", image: "copper.jpeg" },
 			{ name: "H_村", cost: 2, text: "勝利点１", type: "victory", image: "village.jpeg" },
 			{ name: "I_村", cost: 2, text: "勝利点１", type: "victory", image: "village.jpeg" },
 			{ name: "J_村", cost: 2, text: "勝利点１", type: "victory", image: "village.jpeg" },
@@ -122,9 +122,9 @@
 			{ name: "修道女", cost: 2, text: "手札から4枚までのカードを破棄できる", type: "action", stock: 10, actions: 0, draw: 0, image: "nun.jpeg" },
 			{ name: "双子", cost: 4, text: "手札のアクションカード1枚を2度使用しても良い", type: "action", stock: 10, actions: 0, draw: 0, image: "twins.jpeg" },
 			{ name: "賢者", cost: 5, text: "＋2カード\n＋1アクション", type: "action", stock: 10, actions: 1, draw: 2, image: "sage.jpeg" },
-			{ name: "銅貨", cost: 0, text: "＋１コイン", type: "treasure", stock: 32, actions: 0, image: "copper.jpeg" },
-			{ name: "銀貨", cost: 3, text: "＋２コイン", type: "treasure", stock: 40, actions: 0, image: "silver.jpeg" },
-			{ name: "金貨", cost: 6, text: "＋３コイン", type: "treasure", stock: 30, actions: 0, image: "gold.jpeg" },
+			{ name: "銅貨", cost: 0, text: "＋１コイン", coin: 1, type: "treasure", stock: 32, actions: 0, image: "copper.jpeg" },
+			{ name: "銀貨", cost: 3, text: "＋２コイン", coin: 2, type: "treasure", stock: 40, actions: 0, image: "silver.jpeg" },
+			{ name: "金貨", cost: 6, text: "＋３コイン", coin: 3, type: "treasure", stock: 30, actions: 0, image: "gold.jpeg" },
 			{ name: "村", cost: 2, text: "勝利点１", type: "victory", stock: 12, actions: 0, image: "village.jpeg" },
 			{ name: "街", cost: 5, text: "勝利点３", type: "victory", stock: 12, actions: 0, image: "town.jpeg" }
 			, { name: "都市", cost: 8, text: "勝利点６", type: "victory", stock: 18, actions: 0, image: "urban.jpeg" }
@@ -613,10 +613,12 @@ document.getElementById("returnSupplyMode").addEventListener("click", () => {
 			const handSnap = await get(pv_db_hand);
 			const fieldSnap = await get(ref(db, `rooms/${roomId}/fields/${pv_playerId}`));
 			const actionSnap = await get(ref(db, `rooms/${roomId}/turn/actions`));
+			const coinSnap = await get(ref(db, `rooms/${roomId}/turn/coins`));
 
 			let hand = handSnap.val() || [];
 			let field = fieldSnap.val() || [];
 			let action = actionSnap.val() ?? 0;
+			let coins = coinSnap.val() ?? 0;
 
 			const card = hand[cardIndex];
 			if (!card) return;
@@ -640,6 +642,11 @@ document.getElementById("returnSupplyMode").addEventListener("click", () => {
 						"turn/draws": draws
 					});
 				}
+			}
+
+			// ▼ ★ 財宝カード
+			if (card.type === "treasure") {
+				coins += card.coin || 0;
 			}
 
 			// ▼ 手札→場
@@ -700,6 +707,7 @@ document.getElementById("returnSupplyMode").addEventListener("click", () => {
 				"turn/current": ordered[0] || null,
 				"turn/actions": 1,
 				"turn/draws": 5,
+				"turn/coins": 0,
 				"turn/orderLocked": false
 			});
 		}
@@ -1121,6 +1129,7 @@ document.getElementById("returnSupplyMode").addEventListener("click", () => {
 				"turn/current": nextPlayer,
 				"turn/actions": 1,
 				"turn/draws": 5,
+				"turn/coins": 0,
 				lastEndTurn: {
 					player: pv_playerId,
 					at: Date.now()
