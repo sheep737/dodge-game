@@ -9,7 +9,7 @@
 
 <body>
 	<div>
-		【Ver：152】
+		【Ver：153】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -891,12 +891,6 @@ document.getElementById("returnSupplyMode").addEventListener("click", () => {
 				const coinRef = ref(db, `rooms/${roomId}/turn/coins`);
 				const coinSnap = await get(coinRef);
 				let coins = coinSnap.val() ?? 0;
-
-				// ===== コストチェック =====
-				if (coins < card.cost) {
-					showToast("コインが足りません");
-					throw new Error("コイン不足");
-				}
 
 				const targetPlayer =
 					document.getElementById("targetPlayerSelect").value;
