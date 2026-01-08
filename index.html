@@ -9,7 +9,7 @@
 
 <body>
 	<div>
-		【Ver：147】
+		【Ver：148】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -656,7 +656,8 @@ document.getElementById("returnSupplyMode").addEventListener("click", () => {
 			await update(roomRef, {
 				[`hands/${pv_playerId}`]: hand,
 				[`fields/${pv_playerId}`]: field,
-				"turn/actions": action
+				"turn/actions": action,
+				"turn/coins": coins
 			});
 		}
 
