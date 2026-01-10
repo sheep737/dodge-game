@@ -9,7 +9,7 @@
 
 <body>
 	<div>
-		【Ver：162】
+		【Ver：163】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -570,10 +570,6 @@ document.getElementById("returnSupplyMode").addEventListener("click", () => {
 			document.getElementById("exitControl").style.display = "none";
 		}
 
-		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
-		// ■    関数                 ■
-		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
-
 function shuffle(array) {
   const arr = [...array];
   for (let i = arr.length - 1; i > 0; i--) {
@@ -586,17 +582,17 @@ function shuffle(array) {
 function generateRandomShopDeck() {
 
     // ===== 固定で出すカード =====
-    const fixedCards = allCards.filter(card =>
+    const fixedCards = shopDeck.filter(card =>
         card.type === "treasure" ||
         card.type === "victory" ||
-        card.type === "curse"
+        card.type === "hex"
     ).map(card => ({
         ...card,
-        stock: card.stock   // 初期枚数
+        stock: card.stock
     }));
 
     // ===== アクションカードだけ抽選 =====
-    const actionCards = allCards.filter(card => card.type === "action");
+    const actionCards = shopDeck.filter(card => card.type === "action");
 
     // シャッフル
     const shuffled = [...actionCards].sort(() => Math.random() - 0.5);
@@ -614,7 +610,6 @@ function generateRandomShopDeck() {
     ];
 }
 
-		// ●--------カードを引く--------●
 		async function drawCard() {
 			if (!isMyTurn()) {
 				alert("あなたのターンではありません");
@@ -652,7 +647,6 @@ function generateRandomShopDeck() {
 			});
 		}
 
-		// ●--------場に出す--------●
 		async function playCard(cardIndex) {
 			const handSnap = await get(pv_db_hand);
 			const fieldSnap = await get(ref(db, `rooms/${roomId}/fields/${pv_playerId}`));
@@ -705,7 +699,6 @@ function generateRandomShopDeck() {
 			});
 		}
 
-		// ●--------リセット--------●
 		async function resetGame() {
 			if (!confirm("ゲームをリセットしますか？")) return;
 
@@ -754,7 +747,6 @@ function generateRandomShopDeck() {
 			});
 		}
 
-		// ●--------シャッフル実行--------●
 		async function shuffleDeck() {
 			const deckSnap = await get(pv_db_deck);
 			let deck = deckSnap.val() || [];
@@ -771,7 +763,6 @@ function generateRandomShopDeck() {
 			});
 		}
 
-		// ●--------デッキをシャッフル--------●
 		function shuffleArray(array) {
 			for (let i = array.length - 1; i > 0; i--) {
 				const j = Math.floor(Math.random() * (i + 1));
@@ -779,7 +770,6 @@ function generateRandomShopDeck() {
 			}
 		}
 
-		// ●--------捨て札のカードを山札に戻す--------●
 		async function returnDiscardToDeck() {
 			if (!confirm("捨て札をすべて山札に戻しますか？")) return;
 
@@ -846,7 +836,6 @@ function generateRandomShopDeck() {
 			});
 		}
 
-		// モーダル表示関数
 		function showCardModal(card) {
 			const modal = document.createElement("div");
 			modal.style.position = "fixed";
