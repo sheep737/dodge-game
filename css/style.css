@@ -273,6 +273,10 @@ body::before {
 	/* 緑：勝利点 */
 }
 
+.cardButton.hex {
+	border-color: #824c9a;
+}
+
 .cardName {
 	font-size: 16px;
 	font-weight: bold;
