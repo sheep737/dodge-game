@@ -9,7 +9,7 @@
 
 <body>
 	<div>
-		【Ver：160】
+		【Ver：161】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -573,6 +573,27 @@ document.getElementById("returnSupplyMode").addEventListener("click", () => {
 		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
 		// ■    関数                 ■
 		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
+
+function shuffle(array) {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function generateRandomShopDeck() {
+    const actionPool = shopDeck.filter(card => card.type === "action");
+
+    const selected = shuffle(actionPool).slice(0, 10);
+
+    return selected.map(card => ({
+        ...card,
+        stock: card.stock ?? 10
+    }));
+}
+
 		// ●--------カードを引く--------●
 		async function drawCard() {
 			if (!isMyTurn()) {
@@ -703,10 +724,7 @@ document.getElementById("returnSupplyMode").addEventListener("click", () => {
 				discards,
 				trashes,
 
-				shopDeck: shopDeck.map(card => ({
-					...card,
-					stock: card.stock
-				})),
+				shopDeck: generateRandomShopDeck(),
 
 				"turn/current": ordered[0] || null,
 				"turn/actions": 1,
