@@ -9,7 +9,7 @@
 
 <body>
 	<div>
-		【Ver：161】
+		【Ver：162】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -584,14 +584,34 @@ function shuffle(array) {
 }
 
 function generateRandomShopDeck() {
-    const actionPool = shopDeck.filter(card => card.type === "action");
 
-    const selected = shuffle(actionPool).slice(0, 10);
-
-    return selected.map(card => ({
+    // ===== 固定で出すカード =====
+    const fixedCards = allCards.filter(card =>
+        card.type === "treasure" ||
+        card.type === "victory" ||
+        card.type === "curse"
+    ).map(card => ({
         ...card,
-        stock: card.stock ?? 10
+        stock: card.stock   // 初期枚数
     }));
+
+    // ===== アクションカードだけ抽選 =====
+    const actionCards = allCards.filter(card => card.type === "action");
+
+    // シャッフル
+    const shuffled = [...actionCards].sort(() => Math.random() - 0.5);
+
+    // ランダム10枚
+    const randomActions = shuffled.slice(0, 10).map(card => ({
+        ...card,
+        stock: card.stock
+    }));
+
+    // ===== 合体 =====
+    return [
+        ...fixedCards,
+        ...randomActions
+    ];
 }
 
 		// ●--------カードを引く--------●
