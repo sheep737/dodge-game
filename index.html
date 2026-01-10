@@ -9,7 +9,7 @@
 
 <body>
 	<div>
-		【Ver：164】
+		【Ver：165】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -812,7 +812,7 @@ function generateRandomShopDeck() {
 					clearTimeout(pressTimer);
 
 					if (!longPress) {
-						addShopCardToPlayer(index);
+						addShopCardToPlayer(card.name);
 					}
 				});
 
@@ -881,62 +881,75 @@ function generateRandomShopDeck() {
 			});
 		}
 
-		async function addShopCardToPlayer(cardIndex) {
-			const cardEls = document.querySelectorAll("#shopList .cardButton");
-			const cardEl = cardEls[cardIndex];
+async function addShopCardToPlayer(cardName) {
 
-			// ★ 即UI反応
-			cardEl.style.pointerEvents = "none";
-			cardEl.style.opacity = "0.5";
+    // ===== UI側のカードを特定 =====
+    const cardEl = document.querySelector(
+        `#shopList .cardButton[data-card-name="${cardName}"]`
+    );
+    if (!cardEl) return;
 
-			const badge = document.createElement("div");
-			badge.textContent = "購入中…";
-			badge.style.position = "absolute";
-			badge.style.bottom = "4px";
-			badge.style.fontSize = "11px";
-			badge.style.color = "#555";
-			cardEl.appendChild(badge);
+    cardEl.style.pointerEvents = "none";
+    cardEl.style.opacity = "0.5";
 
-			try {
-				const shopSnap = await get(pv_db_shopDeck);
-				const shopCards = shopSnap.val() || [];
+    const badge = document.createElement("div");
+    badge.textContent = "購入中…";
+    badge.style.position = "absolute";
+    badge.style.bottom = "4px";
+    badge.style.fontSize = "11px";
+    badge.style.color = "#555";
+    cardEl.appendChild(badge);
 
-				const card = shopCards[cardIndex];
-				if (!card || card.stock <= 0) return;
+    try {
+        // ===== ShopDeck取得 =====
+        const shopSnap = await get(pv_db_shopDeck);
+        const shopCards = shopSnap.val() || [];
 
-				// ===== コイン取得 =====
-				const coinRef = ref(db, `rooms/${roomId}/turn/coins`);
-				const coinSnap = await get(coinRef);
-				let coins = coinSnap.val() ?? 0;
+        // ★ name で検索（ズレない）
+        const cardIndex = shopCards.findIndex(c => c.name === cardName);
+        if (cardIndex === -1) throw new Error("card not found");
 
-				const targetPlayer =
-					document.getElementById("targetPlayerSelect").value;
+        const card = shopCards[cardIndex];
+        if (card.stock <= 0) throw new Error("out of stock");
 
-				const discardRef = ref(db, `rooms/${roomId}/discards/${targetPlayer}`);
-				const discardSnap = await get(discardRef);
-				const discard = discardSnap.val() || [];
+        // ===== コイン取得 =====
+        const coinRef = ref(db, `rooms/${roomId}/turn/coins`);
+        const coinSnap = await get(coinRef);
+        let coins = coinSnap.val() ?? 0;
 
-				discard.push(card);
-				shopCards[cardIndex].stock -= 1;
-				coins -= card.cost;
+        if (coins < card.cost) {
+            showToast("コインが足りません");
+            throw new Error("not enough coins");
+        }
 
-				await update(roomRef, {
-					[`discards/${targetPlayer}`]: discard,
-					shopDeck: shopCards,
-            		"turn/coins": coins
-				});
+        // ===== 捨て札 =====
+        const targetPlayer =
+            document.getElementById("targetPlayerSelect").value;
 
-				// ★ 成功表示（非ブロッキング）
-				showToast(`${card.name} を購入（-${card.cost}）`);
+        const discardRef =
+            ref(db, `rooms/${roomId}/discards/${targetPlayer}`);
+        const discardSnap = await get(discardRef);
+        const discard = discardSnap.val() || [];
 
-			} catch (e) {
-				cardEl.style.pointerEvents = "auto";
-				cardEl.style.opacity = "1";
-				badge.remove();
+        discard.push(card);
+        shopCards[cardIndex].stock -= 1;
+        coins -= card.cost;
 
-				showToast("購入に失敗しました");
-			}
-		}
+        await update(roomRef, {
+            [`discards/${targetPlayer}`]: discard,
+            shopDeck: shopCards,
+            "turn/coins": coins
+        });
+
+        showToast(`${card.name} を購入（-${card.cost}）`);
+
+    } catch (e) {
+        // ★ UI復旧
+        cardEl.style.pointerEvents = "auto";
+        cardEl.style.opacity = "1";
+        badge.remove();
+    }
+}
 
 		function showToast(text) {
 			const toast = document.createElement("div");
@@ -957,7 +970,6 @@ function generateRandomShopDeck() {
 			setTimeout(() => toast.remove(), 1200);
 		}
 
-		// ===== shop画面：Shopカード一覧を監視 =====
 		if (isShop) {
 			onValue(pv_db_shopDeck, snap => {
 				const cards = snap.val() || [];
