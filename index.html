@@ -9,7 +9,7 @@
 
 <body>
 	<div>
-		【Ver：165】
+		【Ver：166】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -779,16 +779,16 @@ function generateRandomShopDeck() {
 				const typeDiff =
 					(typeOrder[a.type] ?? 99) - (typeOrder[b.type] ?? 99);
 				if (typeDiff !== 0) return typeDiff;
-
 				return (a.cost ?? 0) - (b.cost ?? 0);
 			});
 
 			const shopDiv = document.getElementById("shopList");
 			shopDiv.innerHTML = "";
 
-			cards.forEach((card, index) => {
+			cards.forEach((card) => {
 				const cardEl = document.createElement("div");
 				cardEl.className = `cardButton ${card.type || ""}`;
+				cardEl.dataset.cardName = card.name;
 				cardEl.innerHTML = `
   <div class="cardCost">${card.cost}</div>
   <img class="cardImage" src="${card.image || ''}">
@@ -799,7 +799,7 @@ function generateRandomShopDeck() {
 				let pressTimer = null;
 				let longPress = false;
 
-				cardEl.addEventListener("touchstart", (e) => {
+				cardEl.addEventListener("touchstart", () => {
 					longPress = false;
 
 					pressTimer = setTimeout(() => {
