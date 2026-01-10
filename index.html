@@ -9,7 +9,7 @@
 
 <body>
 	<div>
-		【Ver：163】
+		【Ver：164】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -146,18 +146,20 @@
 		const pv_db_turn = ref(db, `rooms/${roomId}/turn/current`);
 		const pv_db_trash = ref(db, `rooms/${roomId}/trashes/${pv_playerId}`);
 
+		const typeOrder = {
+			action: 1,
+			treasure: 2,
+			victory: 3,
+			hex: 4
+		};
+
 		let currentTurnPlayer = null;
 		let currentTurnFieldUnsub = null;
 
-		// ===== shop用状態 =====
 		let shopPlayers = {};
 		let shopFields = {};
 		let shopTrashes = {};
 
-		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
-		// ■    リアルタイム表示      ■
-		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
-		// ●--------描画：デッキ--------●
 		if (!isShop) {
 			onValue(pv_db_deck, (snap) => {
 				const deck = snap.val() || [];
@@ -167,7 +169,6 @@
 			});
 		}
 
-		// ===== shop画面：各プレイヤーの場を監視 =====
 		if (isShop) {
 			onValue(ref(db, `rooms/${roomId}/players`), snap => {
 				shopPlayers = snap.val() || {};
@@ -183,7 +184,6 @@
 			});
 		}
 
-		// ●--------描画：手札--------●
 		onValue(pv_db_hand, (lv_snapshot_hand) => {
 			if (isShop) return;
 			const lv_hand = lv_snapshot_hand.val() || [];
@@ -248,7 +248,6 @@
 			});
 		});
 
-		// ●--------描画：場--------●
 		onValue(ref(db, `rooms/${roomId}/turn/current`), (turnSnap) => {
 			const turnPlayer = turnSnap.val();
 			if (!turnPlayer) return;
@@ -425,23 +424,11 @@
 			renderPlayerShop(cards);
 		});
 
-		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
-		// ■    ボタン動作            ■
-		// ■■■■■■■■■■■■■■■■■■■■■■■■■■■
-
-		// ●--------ボタン：カードを引く--------●
 		document.getElementById("deckImage").addEventListener("click", drawCard);
-
-		// ●--------ボタン：リセット--------●
 		document.getElementById("reset").addEventListener("click", resetGame);
-
-		// ●--------ボタン：シャッフル--------●
 		document.getElementById("shuffleDeck").addEventListener("click", shuffleDeck);
-
-		// ●--------ボタン：場を山札に戻す--------●
 		document.getElementById("returnToDeck").addEventListener("click", returnDiscardToDeck);
 		document.getElementById("leaveRoom").addEventListener("click", leaveRoom);
-
 		document.getElementById("endTurn").addEventListener("click", endTurn);
 
 		let isTrashMode = false;
@@ -581,7 +568,6 @@ function shuffle(array) {
 
 function generateRandomShopDeck() {
 
-    // ===== 固定で出すカード =====
     const fixedCards = shopDeck.filter(card =>
         card.type === "treasure" ||
         card.type === "victory" ||
@@ -591,19 +577,13 @@ function generateRandomShopDeck() {
         stock: card.stock
     }));
 
-    // ===== アクションカードだけ抽選 =====
     const actionCards = shopDeck.filter(card => card.type === "action");
-
-    // シャッフル
     const shuffled = [...actionCards].sort(() => Math.random() - 0.5);
-
-    // ランダム10枚
     const randomActions = shuffled.slice(0, 10).map(card => ({
         ...card,
         stock: card.stock
     }));
 
-    // ===== 合体 =====
     return [
         ...fixedCards,
         ...randomActions
@@ -794,6 +774,15 @@ function generateRandomShopDeck() {
 		}
 
 		function renderShop(cards) {
+
+			cards.sort((a, b) => {
+				const typeDiff =
+					(typeOrder[a.type] ?? 99) - (typeOrder[b.type] ?? 99);
+				if (typeDiff !== 0) return typeDiff;
+
+				return (a.cost ?? 0) - (b.cost ?? 0);
+			});
+
 			const shopDiv = document.getElementById("shopList");
 			shopDiv.innerHTML = "";
 
@@ -817,12 +806,11 @@ function generateRandomShopDeck() {
 						longPress = true;
 						showCardModal(card);
 					}, 500);
-				}, { passive: true }); // ★重要：preventDefaultしない
+				}, { passive: true });
 
 				cardEl.addEventListener("touchend", () => {
 					clearTimeout(pressTimer);
 
-					// 短タップ＝購入
 					if (!longPress) {
 						addShopCardToPlayer(index);
 					}
