@@ -9,7 +9,7 @@
 
 <body>
 	<div>
-		【Ver：157】
+		【Ver：158】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -1202,11 +1202,12 @@ document.getElementById("returnSupplyMode").addEventListener("click", () => {
 		}
 
 		function getVictoryPoints(card) {
-			if (card.type !== "victory") return 0;
+			if (card.type !== "victory" || card.type !== "hex") return 0;
 
 			if (card.name.includes("村")) return 1;
 			if (card.name.includes("街")) return 3;
 			if (card.name.includes("都市")) return 6;
+			if (card.name.includes("呪い")) return -1;
 
 			return 0;
 		}
