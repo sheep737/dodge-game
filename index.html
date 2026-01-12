@@ -9,7 +9,7 @@
 
 <body>
 	<div>
-		【Ver：169】
+		【Ver：170】
 		<button id="reset">リセット</button>
 		<button id="leaveRoom">退室</button>
 	</div>
@@ -643,7 +643,6 @@ function generateRandomShopDeck() {
 			const card = hand[cardIndex];
 			if (!card) return;
 
-			// ▼ アクションカードの場合
 			if (card.type === "action") {
 				if (action <= 0) {
 					alert("アクションが足りません");
@@ -652,7 +651,6 @@ function generateRandomShopDeck() {
 				action -= 1;
 				action += card.actions || 0;
 
-				// ★ ドロー加算
 				if (card.draw) {
 					const drawSnap = await get(ref(db, `rooms/${roomId}/turn/draws`));
 					let draws = drawSnap.val() ?? 0;
@@ -664,12 +662,10 @@ function generateRandomShopDeck() {
 				}
 			}
 
-			// ▼ ★ 財宝カード
 			if (card.type === "treasure" || card.type === "action") {
 				coins += card.coin || 0;
 			}
 
-			// ▼ 手札→場
 			hand.splice(cardIndex, 1);
 			field.push(card);
 
@@ -679,7 +675,127 @@ function generateRandomShopDeck() {
 				"turn/actions": action,
 				"turn/coins": coins
 			});
+
+if (card.name === "執事") {
+    await resolveButler();
+}
+
 		}
+
+async function resolveButler() {
+    const deckSnap = await get(pv_db_deck);
+    const discardSnap = await get(pv_db_discard);
+
+    let deck = deckSnap.val() || [];
+    let discard = discardSnap.val() || [];
+
+    if (deck.length === 0) {
+        showToast("山札がありません");
+        return;
+    }
+
+    // デッキトップ
+    const topCard = deck.shift();
+
+    // アクションか？
+    if (topCard.type === "action") {
+        showButlerChoice(topCard, deck, discard);
+    } else {
+        // アクション以外 → 即捨て札
+        discard.push(topCard);
+
+        await update(roomRef, {
+            [`decks/${pv_playerId}`]: deck,
+            [`discards/${pv_playerId}`]: discard
+        });
+
+        showToast(`${topCard.name} を捨てました`);
+    }
+}
+
+function showButlerChoice(card, deck, discard) {
+    const modal = document.createElement("div");
+    modal.style.position = "fixed";
+    modal.style.inset = 0;
+    modal.style.background = "rgba(0,0,0,0.6)";
+    modal.style.display = "flex";
+    modal.style.justifyContent = "center";
+    modal.style.alignItems = "center";
+    modal.style.zIndex = 3000;
+
+    const box = document.createElement("div");
+    box.style.background = "#fff";
+    box.style.padding = "16px";
+    box.style.borderRadius = "12px";
+    box.style.width = "80%";
+    box.style.maxWidth = "360px";
+    box.style.textAlign = "center";
+
+    box.innerHTML = `
+        <div style="font-weight:bold;font-size:18px;">${card.name}</div>
+        <img src="${card.image}" style="width:100%;margin:10px 0;">
+        <div style="font-size:14px;">このカードを使用しますか？</div>
+        <button id="butlerUse">使用する</button>
+        <button id="butlerSkip">使わない</button>
+    `;
+
+    modal.appendChild(box);
+    document.body.appendChild(modal);
+
+    // 使用する
+    box.querySelector("#butlerUse").onclick = async () => {
+        modal.remove();
+        await playButlerAction(card, deck);
+    };
+
+    // 使わない
+    box.querySelector("#butlerSkip").onclick = async () => {
+        modal.remove();
+        discard.push(card);
+
+        await update(roomRef, {
+            [`decks/${pv_playerId}`]: deck,
+            [`discards/${pv_playerId}`]: discard
+        });
+    };
+}
+
+async function playButlerAction(card, deck) {
+    const fieldSnap = await get(pv_db_field);
+    const field = fieldSnap.val() || [];
+
+    field.push(card);
+
+    await update(roomRef, {
+        [`decks/${pv_playerId}`]: deck,
+        [`fields/${pv_playerId}`]: field
+    });
+
+    // ★ アクション効果を再帰的に適用
+    if (card.actions || card.draw || card.coin) {
+        await applyActionEffects(card);
+    }
+}
+
+async function applyActionEffects(card) {
+    const actionSnap = await get(ref(db, `rooms/${roomId}/turn/actions`));
+    const drawSnap   = await get(ref(db, `rooms/${roomId}/turn/draws`));
+    const coinSnap   = await get(ref(db, `rooms/${roomId}/turn/coins`));
+
+    let actions = actionSnap.val() ?? 0;
+    let draws   = drawSnap.val() ?? 0;
+    let coins   = coinSnap.val() ?? 0;
+
+    actions += card.actions || 0;
+    draws   += card.draw || 0;
+    coins   += card.coin || 0;
+
+    await update(roomRef, {
+        "turn/actions": actions,
+        "turn/draws": draws,
+        "turn/coins": coins
+    });
+}
 
 		async function resetGame() {
 			if (!confirm("ゲームをリセットしますか？")) return;
